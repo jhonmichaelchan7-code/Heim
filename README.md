@@ -118,18 +118,95 @@ A full-stack, enterprise-grade Coffee Shop Point-of-Sale (POS) and Recipe-Driven
 
 ---
 
-### Quick Setup Summary
+## 🚀 Setup & Deployment Guide
+
+### Prerequisites
+
+| Software | Download | Purpose |
+|---|---|---|
+| **XAMPP** | [apachefriends.org](https://www.apachefriends.org/download.html) | PHP 8.1+ & MySQL/MariaDB |
+| **Composer** | [getcomposer.org](https://getcomposer.org/download/) | PHP dependency manager |
+| **Node.js** (LTS) | [nodejs.org](https://nodejs.org/) | Frontend build tools (Vite, Tailwind) |
+
+### Step-by-Step Installation
+
 ```bash
-# 1. Install dependencies
+# 1. Navigate to project directory
+cd C:\Users\user\Documents\PROJECT
+
+# 2. Install PHP dependencies
 composer install
+
+# 3. Install frontend dependencies
 npm install
 
-# 2. Setup database & seed
+# 4. Create environment file
+copy .env.example .env
+
+# 5. Generate application key
+C:\xampp\php\php.exe artisan key:generate
+
+# 6. Create database "coffee_shop_pos" in phpMyAdmin (http://localhost/phpmyadmin)
+#    Then run migrations and seed sample data
 C:\xampp\php\php.exe artisan migrate:fresh --seed
 
-# 3. Build assets
+# 7. Build frontend assets (Tailwind CSS & JavaScript)
 npm run build
 
-# 4. Start server
-C:\xampp\php\php.exe artisan serve
+# 8. Start the development server
+C:\xampp\php\php.exe artisan serve --host=0.0.0.0 --port=8000
 ```
+
+> **Note:** Before running Step 6, make sure XAMPP's **MySQL** service is running and the `coffee_shop_pos` database has been created in phpMyAdmin.
+
+### 📱 Multi-Device LAN Deployment (Coffee Shop Setup)
+
+To access the POS from multiple tablets/devices on the same WiFi:
+
+1. Find the server PC's IP address:
+   ```bash
+   ipconfig
+   # Look for IPv4 Address (e.g., 192.168.1.21)
+   ```
+
+2. Update `.env`:
+   ```
+   APP_URL=http://YOUR_IP:8000
+   ```
+
+3. Start the server with network binding:
+   ```bash
+   C:\xampp\php\php.exe artisan serve --host=0.0.0.0 --port=8000
+   ```
+
+4. Open Windows Firewall port (**run PowerShell as Administrator**):
+   ```bash
+   netsh advfirewall firewall add rule name="Heim POS Port 8000" dir=in action=allow protocol=TCP localport=8000
+   ```
+
+5. On any device connected to the same WiFi, open a browser and go to:
+   ```
+   http://YOUR_IP:8000
+   ```
+
+### 🔑 Default Login Accounts
+
+| Role | Email | Password |
+|---|---|---|
+| **Owner** | `owner@coffee.com` | `password` |
+| **Manager** | `manager@coffee.com` | `password` |
+| **Supervisor** | `supervisor@coffee.com` | `password` |
+| **Cashier** | `cashier@coffee.com` | `password` |
+
+> ⚠️ **Change all default passwords immediately after first login!**
+
+### 🔧 Troubleshooting
+
+| Issue | Solution |
+|---|---|
+| Blank page or 500 error | Run `C:\xampp\php\php.exe artisan cache:clear` and `config:clear` |
+| Database connection error | Ensure XAMPP MySQL is running and `coffee_shop_pos` database exists |
+| "Could not find driver" | Enable `pdo_mysql` in `C:\xampp\php\php.ini` |
+| Can't connect from other devices | Check firewall rule, verify same WiFi, use `--host=0.0.0.0` |
+| "419 Page Expired" | Refresh the page (CSRF token timeout) |
+| IP address changed | Run `ipconfig`, update `.env` `APP_URL`, restart server |
