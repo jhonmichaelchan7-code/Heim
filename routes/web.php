@@ -35,6 +35,11 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/pos', [PosController::class, 'index'])->name('pos.index');
     Route::post('/pos/order', [PosController::class, 'store'])->name('pos.store');
 
+    // CSRF Token Refresh (for long-lived POS sessions)
+    Route::get('/csrf-token', function () {
+        return response()->json(['token' => csrf_token()]);
+    })->name('csrf.refresh');
+
     // Orders (all authenticated users)
     Route::get('/orders', [OrderController::class, 'index'])->name('orders.index');
     Route::get('/orders/{order}', [OrderController::class, 'show'])->name('orders.show');

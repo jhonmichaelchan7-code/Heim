@@ -639,7 +639,24 @@
             document.getElementById('change-display').innerText = `₱${change.toFixed(2)}`;
         }
 
-        // Submit Order via AJAX
+        // Refresh CSRF token from server (prevents stale token after long sessions)
+        async function refreshCsrfToken() {
+            try {
+                const response = await fetch("{{ route('csrf.refresh') }}", {
+                    headers: { 'Accept': 'application/json' }
+                });
+                if (response.ok) {
+                    const data = await response.json();
+                    document.querySelector('meta[name="csrf-token"]').setAttribute('content', data.token);
+                    return data.token;
+                }
+            } catch (e) {
+                console.warn('CSRF refresh failed:', e);
+            }
+            return document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+        }
+
+        // Submit Order via AJAX (with automatic CSRF token refresh)
         async function submitOrder() {
             const cashierName = document.getElementById('cashier-name').value.trim();
             const total = cart.reduce((sum, item) => sum + item.subtotal, 0);
@@ -673,15 +690,25 @@
             submitText.innerText = 'Processing...';
 
             try {
-                const response = await fetch("{{ route('pos.store') }}", {
+                // Always refresh CSRF token before submitting (prevents stale token errors)
+                const freshToken = await refreshCsrfToken();
+
+                let response = await fetch("{{ route('pos.store') }}", {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
-                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
+                        'X-CSRF-TOKEN': freshToken,
                         'Accept': 'application/json'
                     },
                     body: JSON.stringify(payload)
                 });
+
+                // If still 419 (session fully expired), retry once after re-login redirect
+                if (response.status === 419) {
+                    alert('Your session has expired. The page will reload — please log in again.');
+                    window.location.reload();
+                    return;
+                }
 
                 const data = await response.json();
 
