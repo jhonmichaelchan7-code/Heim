@@ -159,63 +159,74 @@ C:\xampp\php\php.exe artisan serve --host=0.0.0.0 --port=8000
 
 > **Note:** Before running Step 6, make sure XAMPP's **MySQL** service is running and the `coffee_shop_pos` database has been created in phpMyAdmin.
 
-### 🌐 Multi-User & Remote Deployment (Two Options)
+### 🚀 Daily Operations & Multi-User Hosting Guide
 
-You can host Heim POS for multiple users either **over the internet** (recommended for any location/device) or **over local Wi-Fi (LAN)**.
+#### ❓ Server Architecture FAQ:
+- **Does the Main PC need to stay ON?**  
+  **Yes.** Your computer serves as the centralized server hosting the MySQL database and Laravel application. If the PC turns off or enters Sleep mode, other devices will lose connection.
+  > 💡 **Tip:** Go to **Windows Settings > Power & Sleep** and set *"When plugged in, PC goes to sleep after"* to **Never** during business hours.
+
+- **Does the Main PC need an active INTERNET connection?**  
+  - **Using Cloudflare Tunnel (Remote Access):** **YES.** Both the server PC and devices require internet connection to route traffic through Cloudflare.
+  - **Using Local Shop Wi-Fi (LAN):** **NO.** You can operate completely offline! As long as the PC and devices are connected to the same shop Wi-Fi router (even without ISP/data), the POS system works locally.
 
 ---
 
-#### Option A: Cloudflare Tunnel (Recommended — Free & Works Anywhere)
+### ⚡ 1-Click Fast Launcher (`START-HEIM.bat`)
 
-Allows cashiers, supervisors, and managers to access the POS from **any device (phones, tablets, PCs) anywhere in the world** with a free, secure HTTPS link — no port forwarding or accounts required.
+To start everything in one click each day:
 
-1. **Prerequisite:** Install Cloudflare CLI once (if not already installed):
-   ```powershell
-   winget install Cloudflare.cloudflared
-   ```
+1. Double-click **`START-HEIM.bat`** (located in the project root or copied to your Desktop).
+2. The script will automatically:
+   - Verify that **MySQL** is running in XAMPP.
+   - Start the **Laravel Backend Server** on port 8000.
+   - Launch **Cloudflare Tunnel** and display your secure live HTTPS link.
+3. Share the generated link (e.g. `https://xxxx.trycloudflare.com`) to your cashier tablets or phones!
 
-2. **Start the Laravel Server:**
+---
+
+### 🌐 Manual Hosting Options
+
+#### Option A: Cloudflare Tunnel (Recommended — Free & Access Anywhere)
+Allows cashiers, supervisors, and managers to access the POS from **any device (phones, tablets, PCs) anywhere in the world** with a free, secure HTTPS link — no port forwarding or sign-up needed.
+
+1. **Start the Laravel Server:**
    ```bash
    C:\xampp\php\php.exe artisan serve --host=0.0.0.0 --port=8000
    ```
 
-3. **Start the Tunnel (Quick Method):**
-   - Simply double-click **`start-tunnel.bat`** in the project root, **OR** run:
-     ```bash
-     "C:\Program Files (x86)\cloudflared\cloudflared.exe" tunnel --protocol http2 --url http://127.0.0.1:8000
-     ```
+2. **Start the Tunnel:**
+   Double-click **`start-tunnel.bat`**, or run:
+   ```bash
+   "C:\Program Files (x86)\cloudflared\cloudflared.exe" tunnel --protocol http2 --url http://127.0.0.1:8000
+   ```
 
-4. **Access the Application:**
-   Copy the generated URL from the terminal (e.g. `https://your-tunnel-name.trycloudflare.com`) and open it on any device.
+3. **Access:** Open the printed `https://xxxx.trycloudflare.com` URL on any device.
 
 ---
 
-#### Option B: Multi-Device LAN Deployment (Same Wi-Fi Network)
+#### Option B: Multi-Device Local Wi-Fi (LAN) — No Internet Required
+To run strictly offline within your coffee shop:
 
-To access the POS from multiple tablets/devices connected to the same shop Wi-Fi:
-
-1. **Find the server PC's local IP address:**
+1. Connect the PC and all POS tablets to the **same shop Wi-Fi router**.
+2. Find the server PC's local IP address:
    ```bash
    ipconfig
-   # Look for IPv4 Address (e.g., 192.168.1.21 or 10.125.224.120)
+   # Look for IPv4 Address (e.g., 10.125.224.120)
    ```
-
-2. **Update `.env`:**
+3. Update `.env`:
    ```env
    APP_URL=http://YOUR_IP:8000
    ```
-
-3. **Start the server with network binding:**
+4. Start the server:
    ```bash
    C:\xampp\php\php.exe artisan serve --host=0.0.0.0 --port=8000
    ```
-
-4. **Open Windows Firewall port** (*run PowerShell as Administrator*):
+5. Allow port in Windows Firewall (*run PowerShell as Admin once*):
    ```powershell
    netsh advfirewall firewall add rule name="Heim POS Port 8000" dir=in action=allow protocol=TCP localport=8000
    ```
-
-5. **Access from any device on the same Wi-Fi:**
+6. On your devices, open the browser and navigate to:
    ```
    http://YOUR_IP:8000
    ```
