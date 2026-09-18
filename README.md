@@ -172,16 +172,13 @@ C:\xampp\php\php.exe artisan serve --host=0.0.0.0 --port=8000
 
 ---
 
-### ⚡ 1-Click Fast Launcher (`START-HEIM.bat`)
+### ⚡ 1-Click Fast Launcher & Shutdown
 
-To start everything in one click each day:
+- **To START the system:**  
+  Double-click **`START-HEIM.bat`** (on your Desktop or project root). It verifies MySQL, starts the Laravel backend on port 8000, and starts Cloudflare Tunnel to generate your live link.
 
-1. Double-click **`START-HEIM.bat`** (located in the project root or copied to your Desktop).
-2. The script will automatically:
-   - Verify that **MySQL** is running in XAMPP.
-   - Start the **Laravel Backend Server** on port 8000.
-   - Launch **Cloudflare Tunnel** and display your secure live HTTPS link.
-3. Share the generated link (e.g. `https://xxxx.trycloudflare.com`) to your cashier tablets or phones!
+- **To STOP the system:**  
+  Double-click **`STOP-HEIM.bat`** (on your Desktop or project root). It immediately and cleanly stops both the Laravel server and Cloudflare tunnel processes.
 
 ---
 
