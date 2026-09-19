@@ -1,5 +1,5 @@
 @echo off
-title Heim POS — Stop Server & Tunnel
+title Heim POS - Stop Server and Tunnel
 color 0C
 
 echo ========================================================

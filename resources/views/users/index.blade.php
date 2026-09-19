@@ -16,8 +16,8 @@
         </div>
     </x-slot>
 
-    <div class="py-6">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <div class="py-4 sm:py-6">
+        <div class="max-w-[1650px] mx-auto px-4 sm:px-6 lg:px-8">
             <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
                 <div class="overflow-x-auto">
                     <table class="w-full text-left text-sm">

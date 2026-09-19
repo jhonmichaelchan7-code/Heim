@@ -1,18 +1,33 @@
 <x-app-layout>
-    <div class="py-3 h-[calc(100vh-4.5rem)] flex flex-col">
-        <div class="max-w-[1650px] w-full mx-auto px-4 sm:px-6 lg:px-8 flex-1 flex flex-col md:flex-row gap-4 overflow-hidden">
+    <div class="py-3 min-h-[calc(100vh-4.5rem)] md:h-[calc(100vh-4.5rem)] flex flex-col">
+        <div class="max-w-[1650px] w-full mx-auto px-4 sm:px-6 lg:px-8 flex-1 flex flex-col md:flex-row gap-4 md:overflow-hidden overflow-visible">
             
             <!-- Left Column: Catalog & Categories (65% width) -->
-            <div class="flex-1 flex flex-col bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+            <div class="flex-1 flex flex-col bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden min-h-[480px] md:min-h-0">
                 <!-- Search & Category Filters -->
                 <div class="p-4 border-b border-gray-100 flex flex-col sm:flex-row gap-3 items-center justify-between bg-[#f0f8f5]/60">
-                    <div class="relative w-full sm:w-72">
-                        <span class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none text-[#155d49]">
-                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                    <div class="flex items-center gap-2 w-full sm:w-72">
+                        <div class="relative flex-1">
+                            <span class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none text-[#155d49]">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                                </svg>
+                            </span>
+                            <input type="text" id="search-input" onkeyup="filterProducts()" placeholder="Search menu, coffee, pastries..." class="w-full pl-9 pr-4 py-2 text-sm bg-white border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#155d49] focus:border-[#155d49] outline-none transition shadow-sm font-medium" />
+                        </div>
+
+                        <!-- Mobile-only Quick Jump to Cart Button (HCI: Visibility of System Status & Fitts's Law) -->
+                        <button type="button" 
+                                onclick="scrollToCart()" 
+                                title="View Current Order"
+                                class="md:hidden relative shrink-0 p-2.5 bg-white hover:bg-emerald-50 text-[#155d49] border border-gray-200 hover:border-[#155d49] rounded-xl shadow-sm transition-all flex items-center justify-center active:scale-95">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
                             </svg>
-                        </span>
-                        <input type="text" id="search-input" onkeyup="filterProducts()" placeholder="Search menu, coffee, pastries..." class="w-full pl-9 pr-4 py-2 text-sm bg-white border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#155d49] focus:border-[#155d49] outline-none transition shadow-sm font-medium" />
+                            <span id="mobile-cart-header-badge" class="hidden absolute -top-1.5 -right-1.5 min-w-[18px] h-[18px] px-1 bg-rose-600 text-white text-[10px] font-black rounded-full items-center justify-center shadow-sm ring-2 ring-white leading-none">
+                                0
+                            </span>
+                        </button>
                     </div>
 
                     <!-- Category Pills -->
@@ -65,7 +80,7 @@
             </div>
 
             <!-- Right Column: Order Cart Panel (35% width) -->
-            <div class="w-full md:w-[420px] flex flex-col bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+            <div id="pos-cart-panel" class="w-full md:w-[420px] flex flex-col bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden shrink-0">
                 <!-- Cart Header & Cashier Assignment -->
                 <div class="p-4 border-b border-gray-100 bg-[#f0f8f5]/60 space-y-3">
                     <div class="flex items-center justify-between">
@@ -86,7 +101,7 @@
                 </div>
 
                 <!-- Cart Items List (Scrollable) -->
-                <div id="cart-items" class="flex-1 p-4 overflow-y-auto divide-y divide-gray-100 space-y-3">
+                <div id="cart-items" class="flex-1 p-4 overflow-y-auto divide-y divide-gray-100 space-y-3 max-h-[350px] md:max-h-none">
                     <div id="empty-cart-msg" class="h-full flex flex-col items-center justify-center text-gray-400 py-16">
                         <div class="w-16 h-16 rounded-full bg-[#f0f8f5] flex items-center justify-center text-2xl mb-3 text-[#155d49]">
                             🛒
@@ -497,10 +512,23 @@
             closeProductModal();
         }
 
+        // HCI: Fitts's Law & Immediate Visual Feedback for Mobile View
+        function scrollToCart() {
+            const cartEl = document.getElementById('pos-cart-panel');
+            if (cartEl) {
+                cartEl.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                cartEl.classList.add('ring-2', 'ring-[#155d49]', 'ring-offset-2');
+                setTimeout(() => {
+                    cartEl.classList.remove('ring-2', 'ring-[#155d49]', 'ring-offset-2');
+                }, 1200);
+            }
+        }
+
         // Cart Rendering
         function renderCart() {
             const container = document.getElementById('cart-items');
             const emptyMsg = document.getElementById('empty-cart-msg');
+            const mobileBadge = document.getElementById('mobile-cart-header-badge');
 
             if (cart.length === 0) {
                 container.innerHTML = '';
@@ -510,6 +538,12 @@
                 document.getElementById('cart-total').innerText = '₱0.00';
                 document.getElementById('btn-total').innerText = '0.00';
                 document.getElementById('checkout-btn').disabled = true;
+
+                if (mobileBadge) {
+                    mobileBadge.innerText = '0';
+                    mobileBadge.classList.add('hidden');
+                    mobileBadge.classList.remove('flex');
+                }
                 return;
             }
 
@@ -557,6 +591,12 @@
             document.getElementById('cart-total').innerText = `₱${total.toFixed(2)}`;
             document.getElementById('btn-total').innerText = total.toFixed(2);
             document.getElementById('checkout-btn').disabled = false;
+
+            if (mobileBadge) {
+                mobileBadge.innerText = count;
+                mobileBadge.classList.remove('hidden');
+                mobileBadge.classList.add('flex');
+            }
         }
 
         function updateCartQty(index, delta) {

@@ -1,5 +1,5 @@
 @echo off
-title Heim POS — Server & Tunnel Launcher
+title Heim POS - Server and Tunnel Launcher
 color 0A
 
 echo ========================================================
@@ -22,8 +22,15 @@ echo.
 echo [2/3] Starting Laravel Backend Server on port 8000...
 start "Heim - Backend Server (Do Not Close)" cmd /k "cd /d \"%PROJECT_DIR%\" && C:\xampp\php\php.exe artisan serve --host=0.0.0.0 --port=8000"
 
-:: Wait 3 seconds for Laravel server to bind port
-timeout /t 3 /nobreak >nul
+:: Wait for Laravel server to bind port 8000 (up to 15 seconds)
+echo       Waiting for backend server to bind to port 8000...
+for /l %%i in (1, 1, 15) do (
+    netstat -ano | findstr ":8000 " | findstr "LISTENING" >nul
+    if not errorlevel 1 goto :server_ready
+    timeout /t 1 /nobreak >nul
+)
+:server_ready
+echo       [OK] Laravel server is ready on port 8000.
 
 echo.
 echo [3/3] Starting Cloudflare Public Tunnel...

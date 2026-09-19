@@ -22,9 +22,9 @@
 
             <!-- Flash Messages -->
             @if (session('success'))
-                <div id="flash-success" class="max-w-7xl mx-auto mt-4 px-4 sm:px-6 lg:px-8">
-                    <div class="bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded-lg relative" role="alert">
-                        <span class="block sm:inline">{{ session('success') }}</span>
+                <div id="flash-success" class="max-w-[1650px] mx-auto mt-4 px-4 sm:px-6 lg:px-8">
+                    <div class="bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded-xl relative shadow-sm" role="alert">
+                        <span class="block sm:inline font-medium">{{ session('success') }}</span>
                         <button onclick="this.parentElement.parentElement.remove()" class="absolute top-0 bottom-0 right-0 px-4 py-3">
                             <svg class="fill-current h-5 w-5 text-green-500" viewBox="0 0 20 20"><path d="M14.348 14.849a1.2 1.2 0 0 1-1.697 0L10 11.819l-2.651 3.029a1.2 1.2 0 1 1-1.697-1.697l2.758-3.15-2.759-3.152a1.2 1.2 0 1 1 1.697-1.697L10 8.183l2.651-3.031a1.2 1.2 0 1 1 1.697 1.697l-2.758 3.152 2.758 3.15a1.2 1.2 0 0 1 0 1.698z"/></svg>
                         </button>
@@ -33,9 +33,9 @@
             @endif
 
             @if (session('error'))
-                <div id="flash-error" class="max-w-7xl mx-auto mt-4 px-4 sm:px-6 lg:px-8">
-                    <div class="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg relative" role="alert">
-                        <span class="block sm:inline">{{ session('error') }}</span>
+                <div id="flash-error" class="max-w-[1650px] mx-auto mt-4 px-4 sm:px-6 lg:px-8">
+                    <div class="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-xl relative shadow-sm" role="alert">
+                        <span class="block sm:inline font-medium">{{ session('error') }}</span>
                         <button onclick="this.parentElement.parentElement.remove()" class="absolute top-0 bottom-0 right-0 px-4 py-3">
                             <svg class="fill-current h-5 w-5 text-red-500" viewBox="0 0 20 20"><path d="M14.348 14.849a1.2 1.2 0 0 1-1.697 0L10 11.819l-2.651 3.029a1.2 1.2 0 1 1-1.697-1.697l2.758-3.15-2.759-3.152a1.2 1.2 0 1 1 1.697-1.697L10 8.183l2.651-3.031a1.2 1.2 0 1 1 1.697 1.697l-2.758 3.152 2.758 3.15a1.2 1.2 0 0 1 0 1.698z"/></svg>
                         </button>
@@ -43,10 +43,10 @@
                 </div>
             @endif
 
-            <!-- Page Heading -->
+            <!-- Page Heading (HCI: Information Scent, Clean Vertical Rhythm) -->
             @if (isset($header))
-                <header class="bg-white shadow-sm">
-                    <div class="max-w-7xl mx-auto py-4 px-4 sm:px-6 lg:px-8">
+                <header class="bg-white border-b border-gray-100 shadow-[0_1px_2px_rgba(0,0,0,0.02)]">
+                    <div class="max-w-[1650px] mx-auto py-3.5 sm:py-4 px-4 sm:px-6 lg:px-8">
                         {{ $header }}
                     </div>
                 </header>
