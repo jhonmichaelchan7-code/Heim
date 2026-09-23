@@ -153,36 +153,98 @@
         </div>
     </div>
 
-    <!-- Responsive Navigation Menu (Mobile Drawer) -->
-    <div :class="{'block': open, 'hidden': ! open}" class="hidden sm:hidden border-t border-gray-100 bg-white shadow-lg">
-        <div class="pt-2 pb-3 px-3 space-y-1">
-            <x-responsive-nav-link :href="route('dashboard')" :active="request()->routeIs('dashboard')">Dashboard</x-responsive-nav-link>
-            <x-responsive-nav-link :href="route('pos.index')" :active="request()->routeIs('pos.*')">POS</x-responsive-nav-link>
-            <x-responsive-nav-link :href="route('orders.index')" :active="request()->routeIs('orders.*')">Orders</x-responsive-nav-link>
+    <!-- Full-Screen Responsive Navigation Menu (Mobile Overlay) -->
+    <div x-show="open" 
+         x-cloak
+         x-transition:enter="transition ease-out duration-200"
+         x-transition:enter-start="opacity-0 scale-98"
+         x-transition:enter-end="opacity-100 scale-100"
+         x-transition:leave="transition ease-in duration-150"
+         x-transition:leave-start="opacity-100 scale-100"
+         x-transition:leave-end="opacity-0 scale-98"
+         class="fixed inset-0 z-50 sm:hidden bg-white flex flex-col h-full w-full overflow-hidden">
+        
+        <!-- Mobile Overlay Header -->
+        <div class="h-16 px-5 border-b border-gray-100 flex items-center justify-between shrink-0 bg-white shadow-xs">
+            <div class="flex items-center gap-2.5">
+                <div class="w-9 h-9 rounded-full overflow-hidden shadow-sm border border-emerald-700/20 bg-[#155d49] flex items-center justify-center shrink-0">
+                    <img src="{{ asset('images/logo.png') }}" alt="Heim Logo" class="w-full h-full object-cover rounded-full" />
+                </div>
+                <div class="flex flex-col">
+                    <span class="font-black text-base text-gray-900 tracking-tight leading-none">Heim</span>
+                    <span class="text-[9px] uppercase tracking-wider text-[#155d49] font-bold mt-0.5">POS & Inventory</span>
+                </div>
+            </div>
+
+            <button @click="open = false" 
+                    type="button" 
+                    class="w-10 h-10 rounded-xl bg-gray-100 hover:bg-gray-200 text-gray-700 active:scale-95 transition flex items-center justify-center"
+                    aria-label="Close menu">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12" />
+                </svg>
+            </button>
+        </div>
+
+        <!-- Scrollable Navigation Links -->
+        <div class="flex-1 overflow-y-auto px-4 py-5 space-y-4">
+            <div class="space-y-1.5">
+                <x-responsive-nav-link :href="route('dashboard')" :active="request()->routeIs('dashboard')">
+                    <span class="flex items-center gap-3">
+                        <svg class="w-5 h-5 text-gray-400 group-hover:text-[#155d49]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg>
+                        Dashboard
+                    </span>
+                </x-responsive-nav-link>
+                <x-responsive-nav-link :href="route('pos.index')" :active="request()->routeIs('pos.*')">
+                    <span class="flex items-center gap-3">
+                        <svg class="w-5 h-5 text-gray-400 group-hover:text-[#155d49]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z"/></svg>
+                        POS Terminal
+                    </span>
+                </x-responsive-nav-link>
+                <x-responsive-nav-link :href="route('orders.index')" :active="request()->routeIs('orders.*')">
+                    <span class="flex items-center gap-3">
+                        <svg class="w-5 h-5 text-gray-400 group-hover:text-[#155d49]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>
+                        Orders Management
+                    </span>
+                </x-responsive-nav-link>
+            </div>
 
             @if(auth()->user()->isAtLeast('supervisor'))
-                <div class="pt-2 pb-1 px-3 text-[10px] font-bold text-gray-400 uppercase tracking-wider">Catalog & Stock</div>
-                <x-responsive-nav-link :href="route('products.index')" :active="request()->routeIs('products.*') || request()->routeIs('categories.*')">Products</x-responsive-nav-link>
-                <x-responsive-nav-link :href="route('recipes.index')" :active="request()->routeIs('recipes.*')">Recipes</x-responsive-nav-link>
-                <x-responsive-nav-link :href="route('inventory.index')" :active="request()->routeIs('inventory.*')">Inventory</x-responsive-nav-link>
+                <div class="pt-3 border-t border-gray-100">
+                    <div class="pb-2 px-3 text-[10px] font-black text-gray-400 uppercase tracking-widest">Catalog & Stock</div>
+                    <div class="space-y-1.5">
+                        <x-responsive-nav-link :href="route('products.index')" :active="request()->routeIs('products.*') || request()->routeIs('categories.*')">Products</x-responsive-nav-link>
+                        <x-responsive-nav-link :href="route('recipes.index')" :active="request()->routeIs('recipes.*')">Recipes</x-responsive-nav-link>
+                        <x-responsive-nav-link :href="route('inventory.index')" :active="request()->routeIs('inventory.*')">Inventory</x-responsive-nav-link>
+                    </div>
+                </div>
             @endif
 
             @if(auth()->user()->isAtLeast('manager'))
-                <div class="pt-2 pb-1 px-3 text-[10px] font-bold text-gray-400 uppercase tracking-wider">Management</div>
-                <x-responsive-nav-link :href="route('consumption.index')" :active="request()->routeIs('consumption.*')">Consumption</x-responsive-nav-link>
-                <x-responsive-nav-link :href="route('reports.sales')" :active="request()->routeIs('reports.*')">Reports</x-responsive-nav-link>
-                <x-responsive-nav-link :href="route('audit-logs.index')" :active="request()->routeIs('audit-logs.*')">Audit Logs</x-responsive-nav-link>
+                <div class="pt-3 border-t border-gray-100">
+                    <div class="pb-2 px-3 text-[10px] font-black text-gray-400 uppercase tracking-widest">Management & Reports</div>
+                    <div class="space-y-1.5">
+                        <x-responsive-nav-link :href="route('consumption.index')" :active="request()->routeIs('consumption.*')">Daily Consumption</x-responsive-nav-link>
+                        <x-responsive-nav-link :href="route('reports.sales')" :active="request()->routeIs('reports.*')">Sales Reports</x-responsive-nav-link>
+                        <x-responsive-nav-link :href="route('audit-logs.index')" :active="request()->routeIs('audit-logs.*')">Audit Logs</x-responsive-nav-link>
+                    </div>
+                </div>
             @endif
         </div>
 
-        <!-- Responsive Settings Options -->
-        <div class="pt-3 pb-3 px-4 border-t border-gray-100 bg-gray-50/50">
-            <div class="flex items-center justify-between">
-                <div>
-                    <div class="font-bold text-sm text-gray-800">{{ Auth::user()->name }}</div>
-                    <div class="font-medium text-xs text-gray-500">{{ Auth::user()->email }}</div>
+        <!-- Mobile User Account Footer -->
+        <div class="p-4 border-t border-gray-100 bg-gray-50/80 shrink-0 space-y-3">
+            <div class="flex items-center justify-between bg-white p-3 rounded-2xl border border-gray-200/80 shadow-xs">
+                <div class="flex items-center gap-2.5 min-w-0">
+                    <div class="w-9 h-9 rounded-full bg-[#155d49] text-white flex items-center justify-center font-bold text-xs uppercase shrink-0">
+                        {{ substr(Auth::user()->name, 0, 2) }}
+                    </div>
+                    <div class="truncate">
+                        <div class="font-bold text-xs text-gray-900 truncate">{{ Auth::user()->name }}</div>
+                        <div class="text-[11px] text-gray-500 truncate">{{ Auth::user()->email }}</div>
+                    </div>
                 </div>
-                <span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold uppercase
+                <span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-black uppercase tracking-wider shrink-0
                     {{ auth()->user()->role === 'owner' ? 'bg-emerald-100 text-[#155d49]' : '' }}
                     {{ auth()->user()->role === 'manager' ? 'bg-blue-100 text-blue-800' : '' }}
                     {{ auth()->user()->role === 'supervisor' ? 'bg-teal-100 text-teal-800' : '' }}
@@ -192,14 +254,20 @@
                 </span>
             </div>
 
-            <div class="mt-3 space-y-1">
-                <x-responsive-nav-link :href="route('profile.edit')">Profile</x-responsive-nav-link>
+            <div class="grid grid-cols-2 gap-2 text-xs">
+                <a href="{{ route('profile.edit') }}" class="py-2.5 px-3 bg-white hover:bg-gray-100 border border-gray-200 rounded-xl font-bold text-center text-gray-700 transition">
+                    Profile
+                </a>
                 @if(auth()->user()->isOwner())
-                    <x-responsive-nav-link :href="route('users.index')">User Management</x-responsive-nav-link>
+                    <a href="{{ route('users.index') }}" class="py-2.5 px-3 bg-white hover:bg-gray-100 border border-gray-200 rounded-xl font-bold text-center text-gray-700 transition">
+                        Users
+                    </a>
                 @endif
-                <form method="POST" action="{{ route('logout') }}">
+                <form method="POST" action="{{ route('logout') }}" class="{{ auth()->user()->isOwner() ? 'col-span-2' : '' }}">
                     @csrf
-                    <x-responsive-nav-link :href="route('logout')" onclick="event.preventDefault(); this.closest('form').submit();">Log Out</x-responsive-nav-link>
+                    <button type="submit" class="w-full py-2.5 px-3 bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200 rounded-xl font-bold text-center transition">
+                        Log Out
+                    </button>
                 </form>
             </div>
         </div>
