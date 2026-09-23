@@ -98,6 +98,15 @@
                         <label class="block text-[11px] font-bold uppercase tracking-wider text-gray-600 mb-1">Cashier on Shift</label>
                         <input type="text" id="cashier-name" value="{{ Auth::user()->name }}" class="w-full px-3 py-1.5 text-sm bg-white border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#155d49] outline-none font-semibold text-gray-800" placeholder="Cashier Name..." required />
                     </div>
+
+                    <!-- Real-time Live Clock -->
+                    <div class="flex items-center justify-between px-3 py-1.5 bg-white rounded-xl border border-gray-200 text-[11px] font-semibold text-gray-600 shadow-xs">
+                        <span class="flex items-center gap-1.5 text-emerald-700">
+                            <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+                            <span class="uppercase tracking-wider text-[10px] font-bold">Live Time</span>
+                        </span>
+                        <span id="pos-live-clock" class="font-mono text-gray-900 font-bold">--:--:-- --</span>
+                    </div>
                 </div>
 
                 <!-- Cart Items List (Scrollable) -->
@@ -527,12 +536,18 @@
         // Cart Rendering
         function renderCart() {
             const container = document.getElementById('cart-items');
-            const emptyMsg = document.getElementById('empty-cart-msg');
             const mobileBadge = document.getElementById('mobile-cart-header-badge');
 
             if (cart.length === 0) {
-                container.innerHTML = '';
-                container.appendChild(emptyMsg);
+                container.innerHTML = `
+                    <div id="empty-cart-msg" class="h-full flex flex-col items-center justify-center text-gray-400 py-16">
+                        <div class="w-16 h-16 rounded-full bg-[#f0f8f5] flex items-center justify-center text-2xl mb-3 text-[#155d49]">
+                            🛒
+                        </div>
+                        <p class="text-sm font-bold text-gray-700">Order Cart is Empty</p>
+                        <p class="text-xs text-gray-400 mt-1">Select items from the Heim menu</p>
+                    </div>
+                `;
                 document.getElementById('cart-item-count').innerText = '0';
                 document.getElementById('cart-subtotal').innerText = '₱0.00';
                 document.getElementById('cart-total').innerText = '₱0.00';
@@ -754,14 +769,14 @@
 
                 if (data.success) {
                     closePaymentModal();
-                    showReceiptModal(data.order);
                     cart = [];
                     renderCart();
+                    showReceiptModal(data.order);
                 } else {
                     alert('Error: ' + data.message);
                 }
             } catch (err) {
-                alert('Failed to connect to server: ' + err.message);
+                alert('Checkout Error: ' + err.message);
             } finally {
                 submitBtn.disabled = false;
                 spinner.classList.add('hidden');
@@ -772,7 +787,10 @@
         // Receipt Modal
         function showReceiptModal(order) {
             document.getElementById('rec-order-no').innerText = order.order_number;
-            document.getElementById('rec-date').innerText = new Date(order.created_at).toLocaleString();
+            const orderDate = new Date(order.created_at);
+            document.getElementById('rec-date').innerText = isNaN(orderDate.getTime())
+                ? new Date().toLocaleString('en-US', { month: 'short', day: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit', hour12: true })
+                : orderDate.toLocaleString('en-US', { month: 'short', day: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit', hour12: true });
             document.getElementById('rec-cashier').innerText = order.cashier_name;
             document.getElementById('rec-subtotal').innerText = `₱${parseFloat(order.subtotal).toFixed(2)}`;
             document.getElementById('rec-total').innerText = `₱${parseFloat(order.total).toFixed(2)}`;
@@ -820,6 +838,25 @@
         function startNewOrder() {
             document.getElementById('receipt-modal').classList.add('hidden');
         }
+
+        // Live Clock Updater
+        function updatePosLiveClock() {
+            const clockEl = document.getElementById('pos-live-clock');
+            if (clockEl) {
+                const now = new Date();
+                clockEl.innerText = now.toLocaleString('en-US', {
+                    month: 'short',
+                    day: 'numeric',
+                    year: 'numeric',
+                    hour: 'numeric',
+                    minute: '2-digit',
+                    second: '2-digit',
+                    hour12: true
+                });
+            }
+        }
+        setInterval(updatePosLiveClock, 1000);
+        updatePosLiveClock();
     </script>
     @endpush
 </x-app-layout>

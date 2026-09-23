@@ -69,6 +69,22 @@
                     setTimeout(() => el.remove(), 500);
                 });
             }, 5000);
+
+            // Live Real-Time Clock
+            function updateAppNavClock() {
+                const clockEl = document.getElementById('nav-live-clock');
+                if (clockEl) {
+                    const now = new Date();
+                    clockEl.innerText = now.toLocaleString('en-US', {
+                        hour: 'numeric',
+                        minute: '2-digit',
+                        second: '2-digit',
+                        hour12: true
+                    });
+                }
+            }
+            setInterval(updateAppNavClock, 1000);
+            updateAppNavClock();
         </script>
     </body>
 </html>

@@ -69,6 +69,12 @@
 
             <!-- Right section: Notifications & User Profile -->
             <div class="hidden sm:flex sm:items-center sm:ms-3 lg:ms-6 gap-2 lg:gap-3 shrink-0">
+                <!-- Live Real-Time Clock Badge -->
+                <div class="hidden md:flex items-center gap-1.5 px-3 py-1.5 bg-[#f0f8f5] text-[#155d49] border border-emerald-100 rounded-xl text-xs font-semibold shadow-xs">
+                    <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+                    <span id="nav-live-clock" class="font-mono font-bold">--:--:-- --</span>
+                </div>
+
                 <!-- Notifications Bell -->
                 @if(auth()->user()->isAtLeast('manager'))
                     @php
