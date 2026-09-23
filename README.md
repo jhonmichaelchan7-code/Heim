@@ -6,7 +6,7 @@ Welcome to **Heim POS**! A fast, clean, and modern Point of Sale (POS) and inven
 
 ## 🌟 What Heim POS Does
 
-* **Point of Sale (POS)**: Fast, touch-friendly cashier checkout supporting sizes (12oz, 16oz, 22oz), customizable add-ons (extra shot, syrups, milk alternatives), discounts (Senior/PWD, custom discounts), and multiple payment options (Cash, GCash, Card).
+* **Point of Sale (POS)**: Fast, touch-friendly cashier checkout supporting sizes (12oz, 16oz, 22oz), customizable add-ons (extra shot, syrups, milk alternatives), discounts (Senior/PWD, custom discounts), streamlined payment options (Cash, Online Payment via GCash/Maya/QRPh), and Loyverse-compatible thermal receipt printing (80mm & 58mm).
 * **Automatic Recipe Inventory Deduction**: When a drink is sold, the exact ingredients (coffee beans, milk, syrups, cups, lids, and straws) are automatically deducted from your inventory in real-time.
 * **Waste & Restock Tracking**: Log newly purchased stocks (Stock In), record damaged or expired items (Waste/Spoilage), and track all movements.
 * **Supervisor-Protected Refunds**: Cashiers cannot cancel or refund an order without a supervisor or manager entering their password.

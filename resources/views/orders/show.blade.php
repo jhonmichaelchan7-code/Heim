@@ -24,9 +24,9 @@
             </div>
 
             <div class="flex items-center gap-2">
-                <button onclick="window.print()" class="inline-flex items-center px-4 py-2 bg-gray-800 hover:bg-gray-900 text-white font-bold text-xs rounded-xl transition gap-1.5 shadow-sm">
+                <button onclick="printThermalReceipt()" class="inline-flex items-center px-4 py-2 bg-gray-900 hover:bg-black text-white font-bold text-xs rounded-xl transition gap-1.5 shadow-sm">
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"/></svg>
-                    Print
+                    Print Thermal Receipt
                 </button>
 
                 @if($order->status === 'completed')
@@ -181,12 +181,12 @@
                             <div class="space-y-3 text-xs">
                                 <div class="flex justify-between items-center">
                                     <span class="text-gray-500 font-medium">Payment Method</span>
-                                    <span class="px-2.5 py-1 text-xs rounded-full uppercase font-bold
+                                    <span class="px-2.5 py-1 text-xs rounded-full font-bold
                                         {{ $order->payment->method === 'cash' ? 'bg-emerald-100 text-[#155d49]' : '' }}
-                                        {{ $order->payment->method === 'gcash' ? 'bg-blue-100 text-blue-800' : '' }}
+                                        {{ in_array($order->payment->method, ['online', 'gcash']) ? 'bg-sky-100 text-sky-800' : '' }}
                                         {{ $order->payment->method === 'card' ? 'bg-purple-100 text-purple-800' : '' }}
                                     ">
-                                        {{ $order->payment->method }}
+                                        {{ in_array($order->payment->method, ['online', 'gcash']) ? 'Online Payment' : ucfirst($order->payment->method) }}
                                     </span>
                                 </div>
 
@@ -270,6 +270,202 @@
         }
         function closeRefundModal() {
             document.getElementById('refund-modal').classList.add('hidden');
+        }
+
+        // Thermal Receipt Printing for Orders Show
+        const orderData = @json($order->loadMissing('items.addOns', 'payment'));
+
+        function printThermalReceipt() {
+            if (!orderData) return;
+
+            const is58 = (localStorage.getItem('heim_receipt_paper_width') || '80mm') === '58mm';
+            const paperCssWidth = is58 ? '58mm' : '80mm';
+            const bodyWidth = is58 ? '48mm' : '72mm';
+            const baseFontSize = is58 ? '10px' : '12px';
+
+            const itemsRows = (orderData.items || []).map(item => {
+                let addons = '';
+                const addOns = item.add_ons || item.addOns || [];
+                if (addOns.length > 0) {
+                    addons = addOns.map(a => `
+                        <div style="display:flex; justify-content:space-between; padding-left:10px; font-size:0.9em; color:#222;">
+                            <span>+ ${a.add_on_name}</span>
+                            <span>₱${parseFloat(a.add_on_price || 0).toFixed(2)}</span>
+                        </div>
+                    `).join('');
+                }
+                return `
+                    <div style="margin-bottom: 3px;">
+                        <div style="display:flex; justify-content:space-between; font-weight:bold;">
+                            <span>${item.quantity}x ${item.product_name} (${item.size_name})</span>
+                            <span>₱${parseFloat(item.subtotal).toFixed(2)}</span>
+                        </div>
+                        ${addons}
+                    </div>
+                `;
+            }).join('');
+
+            const payment = orderData.payment || {};
+            const isOnline = ['online', 'gcash'].includes((payment.method || '').toLowerCase());
+            const paymentName = isOnline ? 'ONLINE PAYMENT' : 'CASH';
+            const refHtml = payment.reference_number ? `
+                <div style="display:flex; justify-content:space-between;">
+                    <span>Ref #:</span>
+                    <span style="font-weight:bold;">${payment.reference_number}</span>
+                </div>
+            ` : '';
+
+            const dateFormatted = new Date(orderData.created_at).toLocaleString('en-US', {
+                month: 'short', day: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit', hour12: true
+            });
+
+            const receiptHtml = `
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>Receipt ${orderData.order_number}</title>
+    <style>
+        @page {
+            size: ${paperCssWidth} auto;
+            margin: 0mm;
+        }
+        @media print {
+            html, body {
+                width: ${bodyWidth};
+                margin: 0 auto !important;
+                padding: 3mm 2mm 8mm 2mm !important;
+                background: #fff !important;
+                color: #000 !important;
+                font-family: 'Courier New', Courier, 'Lucida Console', Monaco, monospace !important;
+                font-size: ${baseFontSize} !important;
+                line-height: 1.35 !important;
+                -webkit-print-color-adjust: exact;
+                print-color-adjust: exact;
+            }
+        }
+        body {
+            width: ${bodyWidth};
+            margin: 0 auto;
+            padding: 3mm 2mm 8mm 2mm;
+            background: #fff;
+            color: #000;
+            font-family: 'Courier New', Courier, 'Lucida Console', Monaco, monospace;
+            font-size: ${baseFontSize};
+            line-height: 1.35;
+        }
+        .center { text-align: center; }
+        .dashed { border-top: 1px dashed #000; margin: 5px 0; }
+        .double-dashed { border-top: 2px dashed #000; margin: 6px 0; }
+        .row { display: flex; justify-content: space-between; }
+        .bold { font-weight: bold; }
+        .store-name { font-size: ${is58 ? '14px' : '16px'}; font-weight: 900; letter-spacing: 1px; }
+        .total-amount { font-size: ${is58 ? '14px' : '16px'}; font-weight: 900; }
+    </style>
+</head>
+<body>
+    <div class="center">
+        <div class="store-name">HEIM COFFEE</div>
+        <div style="font-size: 0.9em; font-weight: bold;">FRESH BREWS & PASTRIES</div>
+        <div style="font-size: 0.85em;">Main Branch • Manila, PH</div>
+        <div style="font-size: 0.85em;">Tel: (02) 8123-4567</div>
+    </div>
+
+    <div class="dashed"></div>
+
+    <div class="row bold">
+        <span>ORDER:</span>
+        <span>${orderData.order_number}</span>
+    </div>
+    <div class="row">
+        <span>DATE:</span>
+        <span>${dateFormatted}</span>
+    </div>
+    <div class="row">
+        <span>CASHIER:</span>
+        <span>${orderData.cashier_name}</span>
+    </div>
+
+    <div class="dashed"></div>
+
+    <div class="row bold" style="font-size: 0.9em;">
+        <span>QTY ITEM</span>
+        <span>PRICE</span>
+    </div>
+    <div class="dashed" style="border-top-style: dotted;"></div>
+
+    <div>
+        ${itemsRows}
+    </div>
+
+    <div class="dashed"></div>
+
+    <div class="row">
+        <span>Subtotal:</span>
+        <span>₱${parseFloat(orderData.subtotal).toFixed(2)}</span>
+    </div>
+    <div class="row">
+        <span>Discount:</span>
+        <span>₱${parseFloat(orderData.discount || 0).toFixed(2)}</span>
+    </div>
+
+    <div class="double-dashed"></div>
+
+    <div class="row total-amount">
+        <span>TOTAL DUE:</span>
+        <span>₱${parseFloat(orderData.total).toFixed(2)}</span>
+    </div>
+
+    <div class="dashed"></div>
+
+    <div class="row">
+        <span>Payment:</span>
+        <span class="bold">${paymentName}</span>
+    </div>
+    ${refHtml}
+    <div class="row">
+        <span>Tendered:</span>
+        <span>₱${parseFloat(payment.amount_tendered || orderData.total).toFixed(2)}</span>
+    </div>
+    <div class="row">
+        <span class="bold">Change:</span>
+        <span class="bold">₱${parseFloat(payment.change || 0).toFixed(2)}</span>
+    </div>
+
+    <div class="dashed"></div>
+
+    <div class="center" style="font-size: 0.85em; margin-top: 4px;">
+        <div class="bold">THANK YOU FOR CHOOSING HEIM!</div>
+        <div>Please come again.</div>
+        <div style="font-size: 0.9em; margin-top: 2px;">Wi-Fi: HeimGuest</div>
+        <div style="font-size: 0.8em; margin-top: 4px;">*** Heim POS Thermal Slip ***</div>
+    </div>
+</body>
+</html>
+            `;
+
+            let printFrame = document.getElementById('heim-thermal-frame-order');
+            if (!printFrame) {
+                printFrame = document.createElement('iframe');
+                printFrame.id = 'heim-thermal-frame-order';
+                printFrame.style.position = 'fixed';
+                printFrame.style.right = '0';
+                printFrame.style.bottom = '0';
+                printFrame.style.width = '0';
+                printFrame.style.height = '0';
+                printFrame.style.border = '0';
+                document.body.appendChild(printFrame);
+            }
+
+            const doc = printFrame.contentWindow.document;
+            doc.open();
+            doc.write(receiptHtml);
+            doc.close();
+
+            setTimeout(() => {
+                printFrame.contentWindow.focus();
+                printFrame.contentWindow.print();
+            }, 300);
         }
     </script>
     @endpush

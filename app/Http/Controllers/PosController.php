@@ -34,7 +34,7 @@ class PosController extends Controller
             'items.*.quantity' => 'required|integer|min:1',
             'items.*.add_ons' => 'nullable|array',
             'items.*.add_ons.*' => 'exists:add_ons,id',
-            'payment_method' => 'required|in:cash,gcash,card',
+            'payment_method' => 'required|in:cash,online,gcash,card',
             'amount_tendered' => 'required|numeric|min:0',
             'reference_number' => 'nullable|string|max:255',
         ]);

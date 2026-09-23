@@ -91,12 +91,12 @@
                                         ₱{{ number_format($order->total, 2) }}
                                     </td>
                                     <td class="py-3.5 px-4">
-                                        <span class="px-2.5 py-1 text-xs rounded-full uppercase font-bold
+                                        <span class="px-2.5 py-1 text-xs rounded-full font-bold
                                             {{ $order->payment?->method === 'cash' ? 'bg-emerald-100 text-[#155d49]' : '' }}
-                                            {{ $order->payment?->method === 'gcash' ? 'bg-blue-100 text-blue-800' : '' }}
+                                            {{ in_array($order->payment?->method, ['online', 'gcash']) ? 'bg-sky-100 text-sky-800' : '' }}
                                             {{ $order->payment?->method === 'card' ? 'bg-purple-100 text-purple-800' : '' }}
                                         ">
-                                            {{ $order->payment?->method ?? 'N/A' }}
+                                            {{ in_array($order->payment?->method, ['online', 'gcash']) ? 'Online' : ($order->payment?->method ? ucfirst($order->payment->method) : 'N/A') }}
                                         </span>
                                     </td>
                                     <td class="py-3.5 px-4">

@@ -93,12 +93,12 @@
                         @forelse($paymentBreakdown as $method => $data)
                             <div class="p-3 bg-gray-50 rounded-xl flex items-center justify-between">
                                 <div class="flex items-center gap-3">
-                                    <span class="px-2.5 py-1 text-xs rounded-full uppercase font-bold
+                                    <span class="px-2.5 py-1 text-xs rounded-full font-bold
                                         {{ $method === 'cash' ? 'bg-emerald-100 text-[#155d49]' : '' }}
-                                        {{ $method === 'gcash' ? 'bg-blue-100 text-blue-800' : '' }}
+                                        {{ in_array($method, ['online', 'gcash']) ? 'bg-sky-100 text-sky-800' : '' }}
                                         {{ $method === 'card' ? 'bg-purple-100 text-purple-800' : '' }}
                                     ">
-                                        {{ $method }}
+                                        {{ in_array($method, ['online', 'gcash']) ? 'Online Payment' : ucfirst($method) }}
                                     </span>
                                     <span class="text-xs text-gray-500 font-medium">{{ $data['count'] }} transactions</span>
                                 </div>

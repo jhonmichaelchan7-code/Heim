@@ -241,18 +241,14 @@
                 <!-- Payment Method Tabs -->
                 <div>
                     <label class="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-2">Payment Method</label>
-                    <div class="grid grid-cols-3 gap-2.5">
-                        <button type="button" onclick="setPaymentMethod('cash')" id="pm-cash" class="pm-btn active py-3 px-3 border-2 border-[#155d49] bg-[#f0f8f5] text-[#155d49] rounded-xl font-bold text-sm flex flex-col items-center gap-1 transition">
-                            <span class="text-base">💵</span>
+                    <div class="grid grid-cols-2 gap-3">
+                        <button type="button" onclick="setPaymentMethod('cash')" id="pm-cash" class="pm-btn active py-3.5 px-4 border-2 border-[#155d49] bg-[#f0f8f5] text-[#155d49] rounded-xl font-bold text-sm flex items-center justify-center gap-2 transition shadow-sm">
+                            <span class="text-xl">💵</span>
                             <span>Cash</span>
                         </button>
-                        <button type="button" onclick="setPaymentMethod('gcash')" id="pm-gcash" class="pm-btn py-3 px-3 border-2 border-gray-200 bg-white text-gray-700 rounded-xl font-bold text-sm flex flex-col items-center gap-1 transition">
-                            <span class="text-base">📱</span>
-                            <span>GCash</span>
-                        </button>
-                        <button type="button" onclick="setPaymentMethod('card')" id="pm-card" class="pm-btn py-3 px-3 border-2 border-gray-200 bg-white text-gray-700 rounded-xl font-bold text-sm flex flex-col items-center gap-1 transition">
-                            <span class="text-base">💳</span>
-                            <span>Card</span>
+                        <button type="button" onclick="setPaymentMethod('online')" id="pm-online" class="pm-btn py-3.5 px-4 border-2 border-gray-200 bg-white text-gray-700 hover:border-gray-300 rounded-xl font-bold text-sm flex items-center justify-center gap-2 transition">
+                            <span class="text-xl">📲</span>
+                            <span>Online Payment</span>
                         </button>
                     </div>
                 </div>
@@ -280,10 +276,10 @@
                     </div>
                 </div>
 
-                <!-- Reference Number Section (For GCash/Card) -->
+                <!-- Reference Number Section (For Online Payment) -->
                 <div id="reference-section" class="hidden space-y-2">
-                    <label class="block text-xs font-bold text-gray-700">Reference / Approval Code</label>
-                    <input type="text" id="reference-number" class="w-full px-4 py-2.5 text-sm border border-gray-300 rounded-xl focus:ring-2 focus:ring-[#155d49] outline-none font-mono" placeholder="e.g. GCash Ref # or Card Auth Code" />
+                    <label class="block text-xs font-bold text-gray-700">Reference / Transaction Number (Optional)</label>
+                    <input type="text" id="reference-number" class="w-full px-4 py-2.5 text-sm border border-gray-300 rounded-xl focus:ring-2 focus:ring-[#155d49] outline-none font-mono" placeholder="e.g. GCash / Maya / QRPh Ref #" />
                 </div>
             </div>
 
@@ -297,76 +293,127 @@
         </div>
     </div>
 
-    <!-- Receipt / Order Complete Modal -->
-    <div id="receipt-modal" class="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
-        <div class="bg-white rounded-3xl max-w-sm w-full overflow-hidden shadow-2xl animate-fade-in flex flex-col max-h-[90vh] border border-emerald-100">
-            <div class="p-4 bg-[#f0f8f5] border-b border-emerald-100 flex items-center gap-2 text-[#155d49]">
-                <svg class="w-6 h-6 text-[#155d49]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
-                <h3 class="font-extrabold text-base">Payment Completed!</h3>
+    <!-- Receipt / Order Complete Modal (Loyverse-Style Thermal Receipt) -->
+    <div id="receipt-modal" class="fixed inset-0 bg-black/75 backdrop-blur-sm z-50 hidden flex items-center justify-center p-3 sm:p-4 overflow-y-auto">
+        <div class="bg-white rounded-3xl max-w-sm w-full overflow-hidden shadow-2xl animate-fade-in flex flex-col max-h-[92vh] border border-gray-200 my-auto">
+            <!-- Modal Header -->
+            <div class="p-3.5 sm:p-4 bg-[#f0f8f5] border-b border-emerald-100 flex items-center justify-between">
+                <div class="flex items-center gap-2 text-[#155d49]">
+                    <span class="w-6 h-6 rounded-full bg-[#155d49] text-white flex items-center justify-center text-xs font-black">✓</span>
+                    <h3 class="font-extrabold text-sm sm:text-base">Order Completed!</h3>
+                </div>
+                <!-- Paper Width Selector (80mm default / 58mm portable) -->
+                <div class="flex items-center gap-1 bg-white p-1 rounded-xl border border-emerald-200 text-[11px] font-bold">
+                    <button type="button" id="btn-paper-80" onclick="setReceiptPaperWidth('80mm')" class="px-2 py-0.5 rounded-lg bg-[#155d49] text-white transition">80mm</button>
+                    <button type="button" id="btn-paper-58" onclick="setReceiptPaperWidth('58mm')" class="px-2 py-0.5 rounded-lg text-gray-500 hover:text-gray-900 transition">58mm</button>
+                </div>
             </div>
 
-            <!-- Receipt Content (Printable) -->
-            <div id="receipt-area" class="p-6 overflow-y-auto font-mono text-xs text-gray-800 space-y-4 bg-white">
-                <div class="text-center space-y-1.5 flex flex-col items-center">
-                    <div class="w-14 h-14 rounded-full overflow-hidden bg-[#155d49] border-2 border-gray-200 shadow-sm">
-                        <img src="{{ asset('images/logo.png') }}" alt="Heim Logo" class="w-full h-full object-cover rounded-full" />
+            <!-- Receipt Content (Thermal Slip Preview) -->
+            <div class="p-3 sm:p-4 bg-gray-100 overflow-y-auto flex justify-center">
+                <div id="receipt-area" class="w-full max-w-[310px] bg-white p-4 sm:p-5 shadow-md border border-gray-200 rounded-sm font-mono text-[11px] leading-tight text-black select-text transition-all">
+                    <!-- Store Brand Header -->
+                    <div class="text-center space-y-1">
+                        <div class="w-12 h-12 rounded-full overflow-hidden bg-[#155d49] mx-auto border border-gray-300 shadow-sm flex items-center justify-center">
+                            <img src="{{ asset('images/logo.png') }}" alt="Heim Logo" class="w-full h-full object-cover" />
+                        </div>
+                        <h2 class="text-base font-black tracking-wider text-black">HEIM COFFEE</h2>
+                        <p class="text-[10px] text-gray-700 font-semibold uppercase tracking-wider">Fresh Brews & Pastries</p>
+                        <p class="text-[10px] text-gray-600">Main Branch • Manila, PH</p>
+                        <p class="text-[10px] text-gray-600">Tel: (02) 8123-4567</p>
                     </div>
-                    <h2 class="text-base font-black tracking-wider">HEIM COFFEE</h2>
-                    <p class="text-[11px] text-gray-500">Fresh Brews & Pastries</p>
-                    <p class="text-[10px] text-gray-400">Tel: (02) 8123-4567</p>
-                </div>
-                
-                <div class="border-t border-b border-dashed border-gray-300 py-2 space-y-1 text-[11px]">
-                    <div class="flex justify-between">
-                        <span>Order #:</span>
-                        <span id="rec-order-no" class="font-bold">-</span>
-                    </div>
-                    <div class="flex justify-between">
-                        <span>Date:</span>
-                        <span id="rec-date">-</span>
-                    </div>
-                    <div class="flex justify-between">
-                        <span>Cashier:</span>
-                        <span id="rec-cashier">-</span>
-                    </div>
-                </div>
 
-                <div id="rec-items-list" class="space-y-1.5 py-1">
-                    <!-- Populated dynamically -->
-                </div>
+                    <div class="border-t border-dashed border-gray-400 my-2.5"></div>
 
-                <div class="border-t border-dashed border-gray-300 pt-2 space-y-1 text-[11px]">
-                    <div class="flex justify-between">
-                        <span>Subtotal:</span>
-                        <span id="rec-subtotal">₱0.00</span>
+                    <!-- Order Metadata -->
+                    <div class="space-y-1 text-[11px]">
+                        <div class="flex justify-between font-bold text-xs text-black">
+                            <span>ORDER NO:</span>
+                            <span id="rec-order-no" class="font-black text-black">-</span>
+                        </div>
+                        <div class="flex justify-between text-gray-700">
+                            <span>DATE:</span>
+                            <span id="rec-date">-</span>
+                        </div>
+                        <div class="flex justify-between text-gray-700">
+                            <span>CASHIER:</span>
+                            <span id="rec-cashier">-</span>
+                        </div>
                     </div>
-                    <div class="flex justify-between font-bold text-sm text-black">
-                        <span>TOTAL:</span>
-                        <span id="rec-total">₱0.00</span>
-                    </div>
-                    <div class="flex justify-between">
-                        <span id="rec-pm-label">Payment:</span>
-                        <span id="rec-tendered">₱0.00</span>
-                    </div>
-                    <div class="flex justify-between font-bold">
-                        <span>Change:</span>
-                        <span id="rec-change">₱0.00</span>
-                    </div>
-                </div>
 
-                <div class="text-center pt-3 border-t border-dashed border-gray-300 space-y-0.5 text-[10px] text-gray-500">
-                    <p>Thank you for choosing Heim!</p>
-                    <p>Please come again.</p>
+                    <div class="border-t border-dashed border-gray-400 my-2.5"></div>
+
+                    <!-- Column Header -->
+                    <div class="flex justify-between font-bold text-[10px] text-gray-700 uppercase tracking-wider pb-1">
+                        <span>QTY ITEM</span>
+                        <span>PRICE</span>
+                    </div>
+                    <div class="border-t border-dashed border-gray-300 mb-2"></div>
+
+                    <!-- Dynamically Populated Line Items -->
+                    <div id="rec-items-list" class="space-y-1.5 py-0.5">
+                        <!-- Items & Add-ons injected here -->
+                    </div>
+
+                    <div class="border-t border-dashed border-gray-400 my-2.5"></div>
+
+                    <!-- Totals Breakdown -->
+                    <div class="space-y-1 text-[11px]">
+                        <div class="flex justify-between text-gray-700">
+                            <span>Subtotal:</span>
+                            <span id="rec-subtotal" class="font-semibold text-black">₱0.00</span>
+                        </div>
+                        <div class="flex justify-between text-gray-700">
+                            <span>Discount:</span>
+                            <span id="rec-discount" class="font-semibold text-black">₱0.00</span>
+                        </div>
+                        
+                        <div class="border-t-2 border-dashed border-black my-1.5"></div>
+                        
+                        <div class="flex justify-between items-baseline font-black text-sm text-black">
+                            <span>TOTAL DUE:</span>
+                            <span id="rec-total" class="text-base text-black">₱0.00</span>
+                        </div>
+
+                        <div class="border-t border-dashed border-gray-400 my-1.5"></div>
+
+                        <div class="flex justify-between text-gray-700">
+                            <span id="rec-pm-label">Payment:</span>
+                            <span id="rec-payment-method" class="font-bold text-black">CASH</span>
+                        </div>
+                        <div id="rec-ref-container" class="flex justify-between text-gray-700 hidden">
+                            <span>Ref #:</span>
+                            <span id="rec-ref-no" class="font-mono font-bold text-black">-</span>
+                        </div>
+                        <div class="flex justify-between text-gray-700">
+                            <span>Tendered:</span>
+                            <span id="rec-tendered" class="font-semibold text-black">₱0.00</span>
+                        </div>
+                        <div class="flex justify-between text-gray-700">
+                            <span class="font-bold">Change:</span>
+                            <span id="rec-change" class="font-bold text-black">₱0.00</span>
+                        </div>
+                    </div>
+
+                    <div class="border-t border-dashed border-gray-400 my-3"></div>
+
+                    <!-- Footer Notes -->
+                    <div class="text-center space-y-0.5 text-[10px] text-gray-600">
+                        <p class="font-bold text-black">THANK YOU FOR CHOOSING HEIM!</p>
+                        <p>Please come again.</p>
+                        <p class="pt-1 text-[9px] text-gray-400">Wi-Fi: HeimGuest | PW: heimcoffee</p>
+                        <p class="text-[9px] text-gray-400 font-mono tracking-tight">*** Thermal Receipt ***</p>
+                    </div>
                 </div>
             </div>
 
             <!-- Receipt Actions -->
-            <div class="p-4 bg-[#f0f8f5] border-t border-gray-100 flex gap-2">
-                <button onclick="printReceipt()" class="flex-1 py-3 bg-gray-800 hover:bg-gray-900 text-white font-bold rounded-xl text-xs flex items-center justify-center gap-1.5">
+            <div class="p-3.5 sm:p-4 bg-[#f0f8f5] border-t border-emerald-100 flex gap-2">
+                <button type="button" onclick="printReceipt()" class="flex-1 py-3 bg-gray-900 hover:bg-black text-white font-bold rounded-xl text-xs flex items-center justify-center gap-1.5 shadow transition">
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"/></svg>
                     Print Receipt
                 </button>
-                <button onclick="startNewOrder()" class="flex-1 py-3 bg-[#155d49] hover:bg-[#114a3b] text-white font-bold rounded-xl text-xs shadow">
+                <button type="button" onclick="startNewOrder()" class="flex-1 py-3 bg-[#155d49] hover:bg-[#114a3b] text-white font-bold rounded-xl text-xs shadow transition">
                     New Order
                 </button>
             </div>
@@ -663,17 +710,27 @@
         function setPaymentMethod(method) {
             paymentMethod = method;
             document.querySelectorAll('.pm-btn').forEach(btn => {
-                btn.className = 'pm-btn py-3 px-3 border-2 border-gray-200 bg-white text-gray-700 rounded-xl font-bold text-sm flex flex-col items-center gap-1 transition';
+                btn.className = 'pm-btn py-3.5 px-4 border-2 border-gray-200 bg-white text-gray-700 hover:border-gray-300 rounded-xl font-bold text-sm flex items-center justify-center gap-2 transition';
             });
             const activeBtn = document.getElementById(`pm-${method}`);
-            activeBtn.className = 'pm-btn py-3 px-3 border-2 border-[#155d49] bg-[#f0f8f5] text-[#155d49] rounded-xl font-bold text-sm flex flex-col items-center gap-1 transition';
+            if (activeBtn) {
+                activeBtn.className = 'pm-btn active py-3.5 px-4 border-2 border-[#155d49] bg-[#f0f8f5] text-[#155d49] rounded-xl font-bold text-sm flex items-center justify-center gap-2 transition shadow-sm';
+            }
 
             if (method === 'cash') {
                 document.getElementById('cash-section').classList.remove('hidden');
                 document.getElementById('reference-section').classList.add('hidden');
             } else {
+                // Online Payment (GCash / Maya / QRPh)
                 document.getElementById('cash-section').classList.add('hidden');
                 document.getElementById('reference-section').classList.remove('hidden');
+                const total = cart.reduce((sum, item) => sum + item.subtotal, 0);
+                document.getElementById('amount-tendered').value = total.toFixed(2);
+                calculateChange();
+                setTimeout(() => {
+                    const refInput = document.getElementById('reference-number');
+                    if (refInput) refInput.focus();
+                }, 50);
             }
         }
 
@@ -784,8 +841,50 @@
             }
         }
 
+        // Thermal Receipt State & Logic
+        let currentReceiptOrder = null;
+        let currentPaperWidth = localStorage.getItem('heim_receipt_paper_width') || '80mm';
+
+        function setReceiptPaperWidth(width) {
+            currentPaperWidth = width;
+            localStorage.setItem('heim_receipt_paper_width', width);
+
+            const btn80 = document.getElementById('btn-paper-80');
+            const btn58 = document.getElementById('btn-paper-58');
+            const receiptArea = document.getElementById('receipt-area');
+
+            if (width === '58mm') {
+                if (btn58) {
+                    btn58.className = 'px-2 py-0.5 rounded-lg bg-[#155d49] text-white transition';
+                }
+                if (btn80) {
+                    btn80.className = 'px-2 py-0.5 rounded-lg text-gray-500 hover:text-gray-900 transition';
+                }
+                if (receiptArea) {
+                    receiptArea.style.maxWidth = '230px';
+                    receiptArea.style.fontSize = '10px';
+                }
+            } else {
+                if (btn80) {
+                    btn80.className = 'px-2 py-0.5 rounded-lg bg-[#155d49] text-white transition';
+                }
+                if (btn58) {
+                    btn58.className = 'px-2 py-0.5 rounded-lg text-gray-500 hover:text-gray-900 transition';
+                }
+                if (receiptArea) {
+                    receiptArea.style.maxWidth = '310px';
+                    receiptArea.style.fontSize = '11px';
+                }
+            }
+        }
+
         // Receipt Modal
         function showReceiptModal(order) {
+            currentReceiptOrder = order;
+
+            // Apply saved paper width preference
+            setReceiptPaperWidth(currentPaperWidth);
+
             document.getElementById('rec-order-no').innerText = order.order_number;
             const orderDate = new Date(order.created_at);
             document.getElementById('rec-date').innerText = isNaN(orderDate.getTime())
@@ -793,50 +892,254 @@
                 : orderDate.toLocaleString('en-US', { month: 'short', day: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit', hour12: true });
             document.getElementById('rec-cashier').innerText = order.cashier_name;
             document.getElementById('rec-subtotal').innerText = `₱${parseFloat(order.subtotal).toFixed(2)}`;
+            const discount = parseFloat(order.discount || 0);
+            document.getElementById('rec-discount').innerText = `₱${discount.toFixed(2)}`;
             document.getElementById('rec-total').innerText = `₱${parseFloat(order.total).toFixed(2)}`;
             
-            const payment = order.payment;
-            document.getElementById('rec-pm-label').innerText = `Payment (${payment.method.toUpperCase()}):`;
-            document.getElementById('rec-tendered').innerText = `₱${parseFloat(payment.amount_tendered).toFixed(2)}`;
-            document.getElementById('rec-change').innerText = `₱${parseFloat(payment.change).toFixed(2)}`;
+            const payment = order.payment || {};
+            const isOnline = ['online', 'gcash'].includes((payment.method || '').toLowerCase());
+            document.getElementById('rec-payment-method').innerText = isOnline ? 'ONLINE PAYMENT' : 'CASH';
+            document.getElementById('rec-tendered').innerText = `₱${parseFloat(payment.amount_tendered || order.total).toFixed(2)}`;
+            document.getElementById('rec-change').innerText = `₱${parseFloat(payment.change || 0).toFixed(2)}`;
+
+            const refContainer = document.getElementById('rec-ref-container');
+            const refNo = document.getElementById('rec-ref-no');
+            if (payment.reference_number && payment.reference_number.trim() !== '') {
+                refNo.innerText = payment.reference_number;
+                refContainer.classList.remove('hidden');
+            } else {
+                refContainer.classList.add('hidden');
+            }
 
             const itemsContainer = document.getElementById('rec-items-list');
             itemsContainer.innerHTML = '';
             order.items.forEach(item => {
-                const div = document.createElement('div');
-                div.className = 'space-y-0.5';
-                
-                let addons = '';
+                const itemDiv = document.createElement('div');
+                itemDiv.className = 'space-y-0.5';
+
+                let addonsHtml = '';
                 if (item.add_ons && item.add_ons.length > 0) {
-                    addons = `<div class="text-[9px] text-[#155d49] pl-2">
-                        ${item.add_ons.map(a => `+ ${a.add_on_name}`).join(', ')}
-                    </div>`;
+                    addonsHtml = item.add_ons.map(a => `
+                        <div class="flex justify-between pl-3 text-[10px] text-gray-600">
+                            <span>+ ${a.add_on_name}</span>
+                            <span>₱${parseFloat(a.add_on_price || 0).toFixed(2)}</span>
+                        </div>
+                    `).join('');
                 }
 
-                div.innerHTML = `
-                    <div class="flex justify-between">
-                        <span>${item.quantity}x ${item.product_name} (${item.size_name})</span>
-                        <span>₱${parseFloat(item.subtotal).toFixed(2)}</span>
+                itemDiv.innerHTML = `
+                    <div class="flex justify-between font-bold text-black">
+                        <span class="truncate pr-2">${item.quantity}x ${item.product_name} (${item.size_name})</span>
+                        <span class="font-mono">₱${parseFloat(item.subtotal).toFixed(2)}</span>
                     </div>
-                    ${addons}
+                    ${addonsHtml}
                 `;
-                itemsContainer.appendChild(div);
+                itemsContainer.appendChild(itemDiv);
             });
 
             document.getElementById('receipt-modal').classList.remove('hidden');
         }
 
+        // Non-destructive thermal print via hidden isolated iframe
         function printReceipt() {
-            const printContent = document.getElementById('receipt-area').innerHTML;
-            const originalContent = document.body.innerHTML;
-            document.body.innerHTML = `<div style="width: 300px; margin: auto; padding: 20px; font-family: monospace;">${printContent}</div>`;
-            window.print();
-            document.body.innerHTML = originalContent;
-            window.location.reload();
+            if (!currentReceiptOrder) {
+                alert('No receipt to print.');
+                return;
+            }
+
+            const is58 = currentPaperWidth === '58mm';
+            const pageMargin = '0mm';
+            const paperCssWidth = is58 ? '58mm' : '80mm';
+            const bodyWidth = is58 ? '48mm' : '72mm';
+            const baseFontSize = is58 ? '10px' : '12px';
+
+            const itemsRows = currentReceiptOrder.items.map(item => {
+                let addons = '';
+                if (item.add_ons && item.add_ons.length > 0) {
+                    addons = item.add_ons.map(a => `
+                        <div style="display:flex; justify-content:space-between; padding-left:10px; font-size:0.9em; color:#222;">
+                            <span>+ ${a.add_on_name}</span>
+                            <span>₱${parseFloat(a.add_on_price || 0).toFixed(2)}</span>
+                        </div>
+                    `).join('');
+                }
+                return `
+                    <div style="margin-bottom: 3px;">
+                        <div style="display:flex; justify-content:space-between; font-weight:bold;">
+                            <span>${item.quantity}x ${item.product_name} (${item.size_name})</span>
+                            <span>₱${parseFloat(item.subtotal).toFixed(2)}</span>
+                        </div>
+                        ${addons}
+                    </div>
+                `;
+            }).join('');
+
+            const payment = currentReceiptOrder.payment || {};
+            const isOnline = ['online', 'gcash'].includes((payment.method || '').toLowerCase());
+            const paymentName = isOnline ? 'ONLINE PAYMENT' : 'CASH';
+            const refHtml = payment.reference_number ? `
+                <div style="display:flex; justify-content:space-between;">
+                    <span>Ref #:</span>
+                    <span style="font-weight:bold;">${payment.reference_number}</span>
+                </div>
+            ` : '';
+
+            const dateFormatted = new Date(currentReceiptOrder.created_at).toLocaleString('en-US', {
+                month: 'short', day: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit', hour12: true
+            });
+
+            const receiptHtml = `
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>Receipt ${currentReceiptOrder.order_number}</title>
+    <style>
+        @page {
+            size: ${paperCssWidth} auto;
+            margin: ${pageMargin};
+        }
+        @media print {
+            html, body {
+                width: ${bodyWidth};
+                margin: 0 auto !important;
+                padding: 3mm 2mm 8mm 2mm !important;
+                background: #fff !important;
+                color: #000 !important;
+                font-family: 'Courier New', Courier, 'Lucida Console', Monaco, monospace !important;
+                font-size: ${baseFontSize} !important;
+                line-height: 1.35 !important;
+                -webkit-print-color-adjust: exact;
+                print-color-adjust: exact;
+            }
+        }
+        body {
+            width: ${bodyWidth};
+            margin: 0 auto;
+            padding: 3mm 2mm 8mm 2mm;
+            background: #fff;
+            color: #000;
+            font-family: 'Courier New', Courier, 'Lucida Console', Monaco, monospace;
+            font-size: ${baseFontSize};
+            line-height: 1.35;
+        }
+        .center { text-align: center; }
+        .dashed { border-top: 1px dashed #000; margin: 5px 0; }
+        .double-dashed { border-top: 2px dashed #000; margin: 6px 0; }
+        .row { display: flex; justify-content: space-between; }
+        .bold { font-weight: bold; }
+        .store-name { font-size: ${is58 ? '14px' : '16px'}; font-weight: 900; letter-spacing: 1px; }
+        .total-amount { font-size: ${is58 ? '14px' : '16px'}; font-weight: 900; }
+    </style>
+</head>
+<body>
+    <div class="center">
+        <div class="store-name">HEIM COFFEE</div>
+        <div style="font-size: 0.9em; font-weight: bold;">FRESH BREWS & PASTRIES</div>
+        <div style="font-size: 0.85em;">Main Branch • Manila, PH</div>
+        <div style="font-size: 0.85em;">Tel: (02) 8123-4567</div>
+    </div>
+
+    <div class="dashed"></div>
+
+    <div class="row bold">
+        <span>ORDER:</span>
+        <span>${currentReceiptOrder.order_number}</span>
+    </div>
+    <div class="row">
+        <span>DATE:</span>
+        <span>${dateFormatted}</span>
+    </div>
+    <div class="row">
+        <span>CASHIER:</span>
+        <span>${currentReceiptOrder.cashier_name}</span>
+    </div>
+
+    <div class="dashed"></div>
+
+    <div class="row bold" style="font-size: 0.9em;">
+        <span>QTY ITEM</span>
+        <span>PRICE</span>
+    </div>
+    <div class="dashed" style="border-top-style: dotted;"></div>
+
+    <div>
+        ${itemsRows}
+    </div>
+
+    <div class="dashed"></div>
+
+    <div class="row">
+        <span>Subtotal:</span>
+        <span>₱${parseFloat(currentReceiptOrder.subtotal).toFixed(2)}</span>
+    </div>
+    <div class="row">
+        <span>Discount:</span>
+        <span>₱${parseFloat(currentReceiptOrder.discount || 0).toFixed(2)}</span>
+    </div>
+
+    <div class="double-dashed"></div>
+
+    <div class="row total-amount">
+        <span>TOTAL DUE:</span>
+        <span>₱${parseFloat(currentReceiptOrder.total).toFixed(2)}</span>
+    </div>
+
+    <div class="dashed"></div>
+
+    <div class="row">
+        <span>Payment:</span>
+        <span class="bold">${paymentName}</span>
+    </div>
+    ${refHtml}
+    <div class="row">
+        <span>Tendered:</span>
+        <span>₱${parseFloat(payment.amount_tendered || currentReceiptOrder.total).toFixed(2)}</span>
+    </div>
+    <div class="row">
+        <span class="bold">Change:</span>
+        <span class="bold">₱${parseFloat(payment.change || 0).toFixed(2)}</span>
+    </div>
+
+    <div class="dashed"></div>
+
+    <div class="center" style="font-size: 0.85em; margin-top: 4px;">
+        <div class="bold">THANK YOU FOR CHOOSING HEIM!</div>
+        <div>Please come again.</div>
+        <div style="font-size: 0.9em; margin-top: 2px;">Wi-Fi: HeimGuest</div>
+        <div style="font-size: 0.8em; margin-top: 4px;">*** Heim POS Thermal Slip ***</div>
+    </div>
+</body>
+</html>
+            `;
+
+            let printFrame = document.getElementById('heim-thermal-frame');
+            if (!printFrame) {
+                printFrame = document.createElement('iframe');
+                printFrame.id = 'heim-thermal-frame';
+                printFrame.style.position = 'fixed';
+                printFrame.style.right = '0';
+                printFrame.style.bottom = '0';
+                printFrame.style.width = '0';
+                printFrame.style.height = '0';
+                printFrame.style.border = '0';
+                document.body.appendChild(printFrame);
+            }
+
+            const doc = printFrame.contentWindow.document;
+            doc.open();
+            doc.write(receiptHtml);
+            doc.close();
+
+            setTimeout(() => {
+                printFrame.contentWindow.focus();
+                printFrame.contentWindow.print();
+            }, 300);
         }
 
         function startNewOrder() {
             document.getElementById('receipt-modal').classList.add('hidden');
+            currentReceiptOrder = null;
         }
 
         // Live Clock Updater
