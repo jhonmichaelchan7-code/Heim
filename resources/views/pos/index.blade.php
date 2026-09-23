@@ -2,78 +2,74 @@
     <div class="py-3 min-h-[calc(100vh-4.5rem)] md:h-[calc(100vh-4.5rem)] flex flex-col">
         <div class="max-w-[1650px] w-full mx-auto px-4 sm:px-6 lg:px-8 flex-1 flex flex-col md:flex-row gap-4 md:overflow-hidden overflow-visible">
             
-            <!-- Left Column: Catalog & Categories -->
+            <!-- Left Column: Catalog & Categories (65% width) -->
             <div class="flex-1 flex flex-col bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden min-h-[480px] md:min-h-0">
                 <!-- Search & Category Filters -->
-                <div class="p-3.5 sm:p-4 border-b border-gray-100 flex flex-col sm:flex-row gap-3 items-center justify-between bg-[#f0f8f5]/40">
-                    <div class="relative w-full sm:w-80">
-                        <span class="absolute inset-y-0 left-0 flex items-center pl-3.5 pointer-events-none text-gray-400">
-                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                <div class="p-4 border-b border-gray-100 flex flex-col sm:flex-row gap-3 items-center justify-between bg-[#f0f8f5]/60">
+                    <div class="flex items-center gap-2 w-full sm:w-72">
+                        <div class="relative flex-1">
+                            <span class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none text-[#155d49]">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                                </svg>
+                            </span>
+                            <input type="text" id="search-input" onkeyup="filterProducts()" placeholder="Search menu, coffee, pastries..." class="w-full pl-9 pr-4 py-2 text-sm bg-white border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#155d49] focus:border-[#155d49] outline-none transition shadow-sm font-medium" />
+                        </div>
+
+                        <!-- Mobile-only Quick Jump to Cart Button (HCI: Visibility of System Status & Fitts's Law) -->
+                        <button type="button" 
+                                onclick="scrollToCart()" 
+                                title="View Current Order"
+                                class="md:hidden relative shrink-0 p-2.5 bg-white hover:bg-emerald-50 text-[#155d49] border border-gray-200 hover:border-[#155d49] rounded-xl shadow-sm transition-all flex items-center justify-center active:scale-95">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
                             </svg>
-                        </span>
-                        <input type="text" id="search-input" onkeyup="filterProducts()" placeholder="Search menu..." class="w-full pl-10 pr-4 py-2 text-sm bg-white border border-gray-200 rounded-full focus:ring-2 focus:ring-[#155d49] focus:border-[#155d49] outline-none transition shadow-xs font-medium placeholder-gray-400" />
+                            <span id="mobile-cart-header-badge" class="hidden absolute -top-1.5 -right-1.5 min-w-[18px] h-[18px] px-1 bg-rose-600 text-white text-[10px] font-black rounded-full items-center justify-center shadow-sm ring-2 ring-white leading-none">
+                                0
+                            </span>
+                        </button>
                     </div>
 
-                    <!-- Category Pills (Horizontal Scroll) -->
-                    <div class="flex items-center gap-2 overflow-x-auto w-full sm:w-auto pb-1 sm:pb-0 scrollbar-none">
-                        <button onclick="selectCategory('all', this)" class="category-btn active px-4 py-2 rounded-full text-xs font-bold whitespace-nowrap bg-gray-900 text-white border border-gray-900 shadow-xs transition">
-                            All menu
+                    <!-- Category Pills -->
+                    <div class="flex gap-2 overflow-x-auto w-full sm:w-auto pb-1 sm:pb-0 scrollbar-none">
+                        <button onclick="selectCategory('all', this)" class="category-btn active px-4 py-2 rounded-xl text-xs font-bold whitespace-nowrap bg-[#155d49] text-white shadow-sm transition">
+                            All Menu
                         </button>
                         @foreach($categories as $category)
-                            <button onclick="selectCategory('{{ $category->id }}', this)" class="category-btn px-4 py-2 rounded-full text-xs font-bold whitespace-nowrap bg-white text-gray-700 hover:bg-gray-50 border border-gray-200 transition">
-                                {{ $category->name }}
+                            <button onclick="selectCategory('{{ $category->id }}', this)" class="category-btn px-4 py-2 rounded-xl text-xs font-bold whitespace-nowrap bg-white text-gray-700 hover:bg-emerald-50 hover:text-[#155d49] border border-gray-200 transition">
+                                {{ $category->name }} ({{ $category->activeProducts->count() }})
                             </button>
                         @endforeach
                     </div>
                 </div>
 
                 <!-- Products Grid (Scrollable) -->
-                <div class="flex-1 p-3.5 sm:p-4 overflow-y-auto pb-24 md:pb-4">
-                    <div id="product-grid" class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-3.5">
+                <div class="flex-1 p-4 overflow-y-auto">
+                    <div id="product-grid" class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3.5">
                         @foreach($categories as $category)
-                            @php
-                                $catName = strtolower($category->name);
-                                if (str_contains($catName, 'hot')) {
-                                    $badgeBg = 'bg-[#e2f5ea]';
-                                    $iconSvg = '<svg class="w-8 h-8 text-emerald-700" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18 8h1a4 4 0 010 8h-1M2 8h16v9a4 4 0 01-4 4H6a4 4 0 01-4-4V8z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 2v3M10 2v3M14 2v3"/></svg>';
-                                } elseif (str_contains($catName, 'iced')) {
-                                    $badgeBg = 'bg-[#dbeafe]';
-                                    $iconSvg = '<svg class="w-8 h-8 text-blue-700" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg>';
-                                } elseif (str_contains($catName, 'frappe')) {
-                                    $badgeBg = 'bg-[#ede9fe]';
-                                    $iconSvg = '<svg class="w-8 h-8 text-purple-700" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 2l3 6H9l3-6zm0 6v14m-5-4h10"/></svg>';
-                                } elseif (str_contains($catName, 'snack') || str_contains($catName, 'pastr')) {
-                                    $badgeBg = 'bg-[#ffe4e6]';
-                                    $iconSvg = '<svg class="w-8 h-8 text-rose-700" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v13m0-13V4a2 2 0 114 0v4m-4-4a2 2 0 10-4 0v4m-5 9h18"/></svg>';
-                                } else {
-                                    $badgeBg = 'bg-[#fef3c7]';
-                                    $iconSvg = '<svg class="w-8 h-8 text-amber-700" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/></svg>';
-                                }
-                            @endphp
-
                             @foreach($category->activeProducts as $product)
                                 @php
                                     $minPrice = $product->sizes->min('pivot.price');
                                     $maxPrice = $product->sizes->max('pivot.price');
-                                    $priceDisplay = $minPrice == $maxPrice ? "₱" . number_format($minPrice, 0) : "₱" . number_format($minPrice, 0);
+                                    $priceDisplay = $minPrice == $maxPrice ? "₱" . number_format($minPrice, 2) : "₱" . number_format($minPrice, 0) . " - ₱" . number_format($maxPrice, 0);
                                 @endphp
-                                <div class="product-card bg-white border border-gray-200/80 hover:border-[#155d49] rounded-2xl p-3 flex flex-col justify-between cursor-pointer transition-all duration-150 shadow-xs hover:shadow-md group relative overflow-hidden active:scale-98"
+                                <div class="product-card bg-white border border-gray-100 hover:border-[#155d49] rounded-2xl p-3.5 flex flex-col justify-between cursor-pointer transition-all duration-150 shadow-sm hover:shadow-md group relative overflow-hidden"
                                      data-category="{{ $category->id }}"
                                      data-name="{{ strtolower($product->name) }}"
                                      onclick="openProductModal({{ json_encode($product) }})">
                                     <div>
-                                        <!-- Pastel Thumbnail with Category Icon -->
-                                        <div class="w-full h-24 rounded-2xl {{ $badgeBg }} flex items-center justify-center transition-transform group-hover:scale-102">
-                                            {!! $iconSvg !!}
+                                        <div class="w-full h-24 rounded-xl bg-gradient-to-br from-[#f0f8f5] to-[#dcf0e9] flex items-center justify-center text-3xl group-hover:scale-105 transition-transform duration-200">
+                                            ☕
                                         </div>
                                         <h4 class="font-bold text-gray-900 text-sm mt-2.5 line-clamp-1 group-hover:text-[#155d49] transition">{{ $product->name }}</h4>
                                         <p class="text-xs text-gray-400 capitalize">{{ $category->name }}</p>
                                     </div>
-                                    <div class="mt-3 pt-2.5 border-t border-gray-100 flex items-center justify-between">
+                                    <div class="mt-3 pt-2.5 border-t border-gray-50 flex items-center justify-between">
                                         <span class="font-black text-[#155d49] text-sm">{{ $priceDisplay }}</span>
-                                        <span class="w-8 h-8 rounded-full border border-gray-200 text-gray-600 flex items-center justify-center font-bold text-base group-hover:border-[#155d49] group-hover:text-white group-hover:bg-[#155d49] transition shadow-xs">
-                                            +
+                                        <span class="p-1.5 bg-[#f0f8f5] text-[#155d49] rounded-lg group-hover:bg-[#155d49] group-hover:text-white transition">
+                                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 4v16m8-8H4" />
+                                            </svg>
                                         </span>
                                     </div>
                                 </div>
@@ -83,10 +79,8 @@
                 </div>
             </div>
 
-            <!-- Right Column: Order Cart Panel (Desktop Sidebar & Mobile Slide-Up Bottom Drawer) -->
-            <div id="pos-cart-backdrop" onclick="closeMobileCartDrawer()" class="fixed inset-0 bg-black/60 backdrop-blur-xs z-40 hidden md:hidden transition-opacity"></div>
-
-            <div id="pos-cart-panel" class="fixed md:static inset-x-0 bottom-0 top-auto z-40 md:z-auto w-full md:w-[420px] max-h-[88vh] md:max-h-none flex flex-col bg-white rounded-t-3xl md:rounded-2xl shadow-2xl md:shadow-sm border border-gray-100 overflow-hidden shrink-0 transition-transform duration-300 translate-y-full md:translate-y-0">
+            <!-- Right Column: Order Cart Panel (35% width) -->
+            <div id="pos-cart-panel" class="w-full md:w-[420px] flex flex-col bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden shrink-0">
                 <!-- Cart Header & Cashier Assignment -->
                 <div class="p-4 border-b border-gray-100 bg-[#f0f8f5]/60 space-y-3">
                     <div class="flex items-center justify-between">
@@ -96,13 +90,7 @@
                             </div>
                             <h3 class="font-bold text-gray-900 text-base">Heim Order Cart</h3>
                         </div>
-                        <div class="flex items-center gap-2">
-                            <button onclick="clearCart()" class="text-xs text-rose-600 hover:text-rose-800 font-bold transition">Clear All</button>
-                            <!-- Mobile Close Button -->
-                            <button type="button" onclick="closeMobileCartDrawer()" class="md:hidden w-8 h-8 rounded-full bg-gray-100 hover:bg-gray-200 text-gray-700 flex items-center justify-center transition" title="Close Cart">
-                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12"/></svg>
-                            </button>
-                        </div>
+                        <button onclick="clearCart()" class="text-xs text-rose-600 hover:text-rose-800 font-bold transition">Clear All</button>
                     </div>
 
                     <!-- Cashier Name Field (Shared login support) -->
@@ -156,28 +144,6 @@
                         Proceed to Payment (₱<span id="btn-total">0.00</span>)
                     </button>
                 </div>
-            </div>
-
-            <!-- Sticky Bottom Floating Cart Bar (Mobile Only) -->
-            <div id="mobile-floating-cart-bar" class="fixed bottom-0 inset-x-0 z-30 bg-white/95 backdrop-blur-md border-t border-gray-200 shadow-[0_-6px_25px_rgba(0,0,0,0.12)] px-4 py-3 md:hidden flex items-center justify-between">
-                <div class="flex items-center gap-3">
-                    <div class="relative flex items-center justify-center w-10 h-10 rounded-xl bg-gray-100 text-gray-800">
-                        <svg class="w-5 h-5 text-gray-800" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
-                        </svg>
-                        <span id="mobile-float-badge" class="absolute -top-1.5 -right-1.5 min-w-[20px] h-[20px] px-1 bg-rose-600 text-white text-[11px] font-black rounded-full flex items-center justify-center ring-2 ring-white">0</span>
-                    </div>
-                    <div class="flex flex-col">
-                        <span id="mobile-float-items-text" class="text-[11px] font-bold text-gray-500">0 items</span>
-                        <span id="mobile-float-total-text" class="text-base font-black text-gray-900 leading-tight">₱0.00</span>
-                    </div>
-                </div>
-
-                <button type="button" 
-                        onclick="openMobileCartDrawer()" 
-                        class="px-5 py-2.5 bg-gray-900 hover:bg-black active:scale-95 text-white font-black text-xs rounded-xl shadow-md transition flex items-center gap-1.5">
-                    <span>View cart</span>
-                </button>
             </div>
 
         </div>
@@ -419,11 +385,11 @@
         // Filter products by category
         function selectCategory(categoryId, btn) {
             document.querySelectorAll('.category-btn').forEach(b => {
-                b.classList.remove('active', 'bg-gray-900', 'text-white', 'border-gray-900');
-                b.classList.add('bg-white', 'text-gray-700', 'border-gray-200');
+                b.classList.remove('active', 'bg-[#155d49]', 'text-white');
+                b.classList.add('bg-white', 'text-gray-700', 'border', 'border-gray-200');
             });
-            btn.classList.add('active', 'bg-gray-900', 'text-white', 'border-gray-900');
-            btn.classList.remove('bg-white', 'text-gray-700', 'border-gray-200');
+            btn.classList.add('active', 'bg-[#155d49]', 'text-white');
+            btn.classList.remove('bg-white', 'text-gray-700', 'border', 'border-gray-200');
 
             const cards = document.querySelectorAll('.product-card');
             cards.forEach(card => {
@@ -571,9 +537,6 @@
         function renderCart() {
             const container = document.getElementById('cart-items');
             const mobileBadge = document.getElementById('mobile-cart-header-badge');
-            const floatBadge = document.getElementById('mobile-float-badge');
-            const floatItemsText = document.getElementById('mobile-float-items-text');
-            const floatTotalText = document.getElementById('mobile-float-total-text');
 
             if (cart.length === 0) {
                 container.innerHTML = `
@@ -596,9 +559,6 @@
                     mobileBadge.classList.add('hidden');
                     mobileBadge.classList.remove('flex');
                 }
-                if (floatBadge) floatBadge.innerText = '0';
-                if (floatItemsText) floatItemsText.innerText = '0 items';
-                if (floatTotalText) floatTotalText.innerText = '₱0.00';
                 return;
             }
 
@@ -651,34 +611,6 @@
                 mobileBadge.innerText = count;
                 mobileBadge.classList.remove('hidden');
                 mobileBadge.classList.add('flex');
-            }
-            if (floatBadge) floatBadge.innerText = count;
-            if (floatItemsText) floatItemsText.innerText = `${count} ${count === 1 ? 'item' : 'items'}`;
-            if (floatTotalText) floatTotalText.innerText = `₱${total.toFixed(2)}`;
-        }
-
-        // Mobile Cart Drawer Control
-        function openMobileCartDrawer() {
-            const panel = document.getElementById('pos-cart-panel');
-            const backdrop = document.getElementById('pos-cart-backdrop');
-            if (panel) {
-                panel.classList.remove('translate-y-full');
-                panel.classList.add('translate-y-0');
-            }
-            if (backdrop) {
-                backdrop.classList.remove('hidden');
-            }
-        }
-
-        function closeMobileCartDrawer() {
-            const panel = document.getElementById('pos-cart-panel');
-            const backdrop = document.getElementById('pos-cart-backdrop');
-            if (panel) {
-                panel.classList.remove('translate-y-0');
-                panel.classList.add('translate-y-full');
-            }
-            if (backdrop) {
-                backdrop.classList.add('hidden');
             }
         }
 
@@ -837,7 +769,6 @@
 
                 if (data.success) {
                     closePaymentModal();
-                    closeMobileCartDrawer();
                     cart = [];
                     renderCart();
                     showReceiptModal(data.order);
