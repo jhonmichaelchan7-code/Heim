@@ -32,32 +32,14 @@ The system comes with 4 pre-configured roles out of the box:
 
 ---
 
-## 🚀 Deploying or Resetting to a Fresh Demo Database
-
-To deploy on a new client PC or reset the system for a fresh demo with preloaded menus and ingredients (with 0 orders and 0 shift records):
-
-* **Option 1 (1-Click):** Double-click **[`RESET-FRESH-DEMO-DATABASE.bat`](file:///c:/Users/user/Documents/PROJECT/PROJECT/RESET-FRESH-DEMO-DATABASE.bat)**.
-* **Option 2 (Terminal):** Run:
-  ```bash
-  php artisan migrate:fresh --seed
-  ```
-
-This will automatically:
-1. Clear all old test orders, shifts, and drawer reconciliations.
-2. Seed the 4 default staff roles (`owner`, `manager`, `supervisor`, `anna` / `cashier`).
-3. Seed the sample coffee menu (Hot Coffee, Iced Coffee, Frappe, Non-Coffee), sizes, add-ons, ingredients, and recipes.
-4. Set default POS settings (float requirement, Bangkal Davao store branch).
-
----
-
 ## ⚡ 1-Click Quick Start & Shutdown
 
 If you are on the main server PC, you can start or stop the entire system in one click:
 
-* **To START:** Double-click **[`START-HEIM.bat`](file:///c:/Users/user/Documents/PROJECT/PROJECT/START-HEIM.bat)**.  
+* **To START:** Double-click **[`START-HEIM.bat`](file:///c:/Users/user/Documents/PROJECT/START-HEIM.bat)**.  
   It checks MySQL, boots up the Laravel server on port 8000, and starts the Cloudflare tunnel with your live shareable link.
   *(Keep the opened windows open while using the system!)*
-* **To STOP:** Double-click **[`STOP-HEIM.bat`](file:///c:/Users/user/Documents/PROJECT/PROJECT/STOP-HEIM.bat)**.  
+* **To STOP:** Double-click **[`STOP-HEIM.bat`](file:///c:/Users/user/Documents/PROJECT/STOP-HEIM.bat)**.  
   Safely shuts down the background server and tunnel with zero leftover processes.
 
 ---

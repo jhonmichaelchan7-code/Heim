@@ -7,7 +7,8 @@ echo        HEIM COFFEE SHOP POS - SERVER LAUNCHER
 echo ========================================================
 echo.
 
-set "PROJECT_DIR=C:\Users\user\Documents\PROJECT"
+set "PROJECT_DIR=%~dp0"
+if "%PROJECT_DIR:~-1%"=="\" set "PROJECT_DIR=%PROJECT_DIR:~0,-1%"
 cd /d "%PROJECT_DIR%"
 
 echo [1/3] Checking MySQL Database...
