@@ -10,7 +10,7 @@ class Order extends Model
     use HasFactory;
 
     protected $fillable = [
-        'order_number', 'cashier_name', 'user_id',
+        'order_number', 'cashier_name', 'user_id', 'shift_id',
         'subtotal', 'discount', 'total', 'status', 'notes',
     ];
 
@@ -19,6 +19,11 @@ class Order extends Model
         'discount' => 'decimal:2',
         'total' => 'decimal:2',
     ];
+
+    public function shift()
+    {
+        return $this->belongsTo(Shift::class);
+    }
 
     public function user()
     {

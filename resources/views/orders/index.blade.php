@@ -6,7 +6,7 @@
                     {{ __('Orders Management') }}
                 </h2>
                 <p class="text-xs text-gray-500 mt-0.5">
-                    View transaction histories, cashier shift records, and manage order statuses
+                    {{ !auth()->user()->isAtLeast('supervisor') ? 'View your cashier transaction history and manage order statuses' : 'View transaction histories, cashier shift records, and manage order statuses' }}
                 </p>
             </div>
             <a href="{{ route('pos.index') }}" class="inline-flex items-center px-4 py-2 bg-[#155d49] hover:bg-[#114a3b] text-white font-bold text-sm rounded-xl shadow-sm transition gap-2">
@@ -17,14 +17,16 @@
     </x-slot>
 
     <div class="py-4 sm:py-6">
-        <div class="max-w-[1650px] mx-auto px-4 sm:px-6 lg:px-8 space-y-4 sm:space-y-6">
+        <div class="w-full px-4 sm:px-6 lg:px-8 xl:px-10 2xl:max-w-[1880px] 2xl:mx-auto space-y-4 sm:space-y-6">
 
             <!-- Filters Bar -->
             <div class="bg-white p-4 rounded-2xl shadow-sm border border-gray-100">
                 <form method="GET" action="{{ route('orders.index') }}" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 items-end">
                     <div>
-                        <label class="block text-xs font-bold uppercase tracking-wider text-gray-600 mb-1">Search Order # or Cashier</label>
-                        <input type="text" name="search" value="{{ request('search') }}" placeholder="e.g. ORD-2026... or John" class="w-full px-3 py-2 text-sm border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#155d49] outline-none" />
+                        <label class="block text-xs font-bold uppercase tracking-wider text-gray-600 mb-1">
+                            {{ auth()->user()->isAtLeast('supervisor') ? 'Search Order # or Cashier' : 'Search Order #' }}
+                        </label>
+                        <input type="text" name="search" value="{{ request('search') }}" placeholder="{{ auth()->user()->isAtLeast('supervisor') ? 'e.g. ORD-2026... or John' : 'e.g. ORD-2026...' }}" class="w-full px-3 py-2 text-sm border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#155d49] outline-none" />
                     </div>
 
                     <div>

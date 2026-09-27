@@ -20,7 +20,7 @@
     </x-slot>
 
     <div class="py-4 sm:py-6">
-        <div class="max-w-[1650px] mx-auto px-4 sm:px-6 lg:px-8 space-y-4">
+        <div class="w-full px-4 sm:px-6 lg:px-8 xl:px-10 2xl:max-w-[1880px] 2xl:mx-auto space-y-4">
             <div class="space-y-3">
                 @forelse($notifications as $notif)
                     <div class="bg-white rounded-2xl shadow-sm border p-4 transition flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 {{ !$notif->is_read ? 'border-emerald-300 bg-[#f0f8f5]/40' : 'border-gray-100' }}">

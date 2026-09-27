@@ -12,6 +12,7 @@ use App\Http\Controllers\ProductController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\RecipeController;
 use App\Http\Controllers\ReportController;
+use App\Http\Controllers\ShiftController;
 use App\Http\Controllers\UserController;
 use Illuminate\Support\Facades\Route;
 
@@ -34,6 +35,14 @@ Route::middleware(['auth'])->group(function () {
     // POS (all authenticated users)
     Route::get('/pos', [PosController::class, 'index'])->name('pos.index');
     Route::post('/pos/order', [PosController::class, 'store'])->name('pos.store');
+
+    // Shifts
+    Route::get('/shifts/current', [ShiftController::class, 'current'])->name('shifts.current');
+    Route::post('/shifts/start', [ShiftController::class, 'start'])->name('shifts.start');
+    Route::post('/shifts/cash-movement', [ShiftController::class, 'recordCashMovement'])->name('shifts.cash-movement');
+    Route::post('/shifts/end', [ShiftController::class, 'end'])->name('shifts.end');
+    Route::post('/shifts/settings', [ShiftController::class, 'updateSettings'])->name('shifts.settings');
+    Route::post('/shifts/open-drawer', [ShiftController::class, 'openDrawer'])->name('shifts.open-drawer');
 
     // CSRF Token Refresh (for long-lived POS sessions)
     Route::get('/csrf-token', function () {

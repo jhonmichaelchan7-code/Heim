@@ -40,7 +40,7 @@
     </x-slot>
 
     <div class="py-4 sm:py-6">
-        <div class="max-w-[1650px] mx-auto px-4 sm:px-6 lg:px-8 space-y-4 sm:space-y-6">
+        <div class="w-full px-4 sm:px-6 lg:px-8 xl:px-10 2xl:max-w-[1880px] 2xl:mx-auto space-y-4 sm:space-y-6">
 
             <!-- Refund Banner if refunded -->
             @if($order->status === 'refunded' && $order->refunds->count() > 0)
@@ -367,8 +367,8 @@
     <div class="center">
         <div class="store-name">HEIM COFFEE</div>
         <div style="font-size: 0.9em; font-weight: bold;">FRESH BREWS & PASTRIES</div>
-        <div style="font-size: 0.85em;">Main Branch • Manila, PH</div>
-        <div style="font-size: 0.85em;">Tel: (02) 8123-4567</div>
+        <div style="font-size: 0.85em;">Main Branch • Bangkal, Davao City, PH</div>
+        <div style="font-size: 0.85em;">Tel: </div>
     </div>
 
     <div class="dashed"></div>

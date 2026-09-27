@@ -13,7 +13,16 @@ class OrderController extends Controller
 {
     public function index(Request $request)
     {
+        $user = auth()->user();
         $query = Order::with('items', 'payment')->latest();
+
+        // Cashiers only view their own orders; Supervisors, Managers, and Owners view all orders
+        if (!$user->isAtLeast('supervisor')) {
+            $query->where(function ($q) use ($user) {
+                $q->where('user_id', $user->id)
+                  ->orWhere('cashier_name', $user->name);
+            });
+        }
 
         if ($request->filled('status')) {
             $query->where('status', $request->status);
@@ -35,6 +44,13 @@ class OrderController extends Controller
 
     public function show(Order $order)
     {
+        $user = auth()->user();
+
+        // Cashiers can only view their own order details
+        if (!$user->isAtLeast('supervisor') && $order->user_id !== $user->id && $order->cashier_name !== $user->name) {
+            abort(403, 'Unauthorized access to order details.');
+        }
+
         $order->load('items.addOns', 'payment', 'refunds.authorizer');
         return view('orders.show', compact('order'));
     }

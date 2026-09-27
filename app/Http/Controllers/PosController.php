@@ -12,6 +12,8 @@ use App\Models\Payment;
 use App\Models\ProductSize;
 use App\Services\InventoryService;
 use Illuminate\Http\Request;
+use App\Models\PosSetting;
+use App\Models\Shift;
 use Illuminate\Support\Facades\DB;
 
 class PosController extends Controller
@@ -20,12 +22,24 @@ class PosController extends Controller
     {
         $categories = Category::active()->ordered()->with(['activeProducts.sizes'])->get();
         $addOns = AddOn::active()->orderBy('name')->get();
+        $activeShift = Shift::where('status', 'open')->latest()->first();
+        $requireShift = (bool) PosSetting::get('require_user_shift', true);
 
-        return view('pos.index', compact('categories', 'addOns'));
+        return view('pos.index', compact('categories', 'addOns', 'activeShift', 'requireShift'));
     }
 
     public function store(Request $request, InventoryService $inventoryService)
     {
+        $requireShift = (bool) PosSetting::get('require_user_shift', true);
+        $activeShift = Shift::where('status', 'open')->latest()->first();
+
+        if ($requireShift && !$activeShift) {
+            return response()->json([
+                'success' => false,
+                'message' => 'A shift must be started before processing orders. Please click Start Shift.',
+            ], 422);
+        }
+
         $request->validate([
             'cashier_name' => 'required|string|max:255',
             'items' => 'required|array|min:1',
@@ -40,12 +54,13 @@ class PosController extends Controller
         ]);
 
         try {
-            $order = DB::transaction(function () use ($request, $inventoryService) {
+            $order = DB::transaction(function () use ($request, $inventoryService, $activeShift) {
                 // Create order
                 $order = Order::create([
                     'order_number' => Order::generateOrderNumber(),
                     'cashier_name' => $request->cashier_name,
                     'user_id' => auth()->id(),
+                    'shift_id' => $activeShift?->id,
                     'status' => 'completed',
                 ]);
 
@@ -120,6 +135,16 @@ class PosController extends Controller
                     $order->id,
                     ['total' => $order->total, 'payment_method' => $request->payment_method]
                 );
+
+                // Update active shift metrics
+                if ($activeShift) {
+                    $metrics = $activeShift->calculateMetrics();
+                    $activeShift->update([
+                        'cash_in' => $metrics['cash_in'],
+                        'cash_out' => $metrics['cash_out'],
+                        'expected_cash' => $metrics['expected_cash'],
+                    ]);
+                }
 
                 return $order;
             });

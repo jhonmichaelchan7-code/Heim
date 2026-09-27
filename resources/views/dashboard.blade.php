@@ -26,7 +26,67 @@
     </x-slot>
 
     <div class="py-4 sm:py-6">
-        <div class="max-w-[1650px] mx-auto px-4 sm:px-6 lg:px-8 space-y-4 sm:space-y-6">
+        <div class="w-full px-4 sm:px-6 lg:px-8 xl:px-10 2xl:max-w-[1880px] 2xl:mx-auto space-y-4 sm:space-y-6">
+
+            <!-- Cashier Shift Operations Widget -->
+            @if($activeShift)
+                <div class="bg-gradient-to-r from-[#155d49] to-[#1a6e57] rounded-3xl p-5 sm:p-6 text-white shadow-lg shadow-emerald-950/15 flex flex-col lg:flex-row items-start lg:items-center justify-between gap-5 border border-emerald-600/30">
+                    <div class="space-y-1.5">
+                        <div class="inline-flex items-center gap-2 px-3 py-1 bg-white/15 backdrop-blur-md rounded-full text-xs font-bold text-emerald-100">
+                            <span class="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-pulse"></span>
+                            <span>Active Terminal Shift</span>
+                        </div>
+                        <h3 class="text-xl sm:text-2xl font-black tracking-tight">Shift in Progress: {{ $activeShift->opened_by }}</h3>
+                        <p class="text-xs text-emerald-100/90 font-medium">
+                            Started {{ $activeShift->opened_at->format('M d, Y • h:i A') }} • Initial Starting Cash: <span class="font-bold text-white">₱{{ number_format($activeShift->starting_cash, 2) }}</span>
+                        </p>
+                    </div>
+
+                    <div class="flex flex-wrap items-center gap-3 sm:gap-6 bg-white/10 backdrop-blur-md px-5 py-3.5 rounded-2xl border border-white/15 w-full lg:w-auto justify-between sm:justify-start">
+                        <div>
+                            <p class="text-[10px] uppercase font-bold tracking-wider text-emerald-200">Cash In (POS)</p>
+                            <p class="text-base sm:text-lg font-black text-white">₱{{ number_format($activeShiftMetrics['pos_cash_sales'] ?? 0, 2) }}</p>
+                        </div>
+                        <div class="hidden sm:block w-px h-8 bg-white/20"></div>
+                        <div>
+                            <p class="text-[10px] uppercase font-bold tracking-wider text-emerald-200">Expected Drawer</p>
+                            <p class="text-base sm:text-lg font-black text-emerald-300">₱{{ number_format($activeShiftMetrics['expected_cash'] ?? $activeShift->starting_cash, 2) }}</p>
+                        </div>
+                        <div class="hidden sm:block w-px h-8 bg-white/20"></div>
+                        <div>
+                            <p class="text-[10px] uppercase font-bold tracking-wider text-emerald-200">Transactions</p>
+                            <p class="text-base sm:text-lg font-black text-white">{{ $activeShiftMetrics['transactions_count'] ?? 0 }}</p>
+                        </div>
+                    </div>
+
+                    <div class="flex items-center gap-2.5 w-full lg:w-auto">
+                        <a href="{{ route('pos.index') }}" class="flex-1 lg:flex-none px-6 py-3 bg-white text-[#155d49] hover:bg-emerald-50 font-bold text-xs rounded-xl shadow transition text-center flex items-center justify-center gap-1.5">
+                            <span>Open POS & Reconcile</span>
+                            <span>➔</span>
+                        </a>
+                    </div>
+                </div>
+            @else
+                <div class="bg-amber-50/90 border border-amber-200/90 rounded-3xl p-5 sm:p-6 text-amber-900 shadow-sm flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+                    <div class="flex items-center gap-4">
+                        <div class="w-12 h-12 rounded-2xl bg-amber-100 border border-amber-200 text-amber-800 flex items-center justify-center text-2xl shrink-0">
+                            ⏱️
+                        </div>
+                        <div>
+                            <div class="flex items-center gap-2">
+                                <span class="w-2 h-2 rounded-full bg-amber-500"></span>
+                                <span class="text-[11px] font-bold uppercase tracking-wider text-amber-800">Cashier Notice</span>
+                            </div>
+                            <h3 class="text-lg font-extrabold text-gray-900 mt-0.5">No Active Shift Opened</h3>
+                            <p class="text-xs text-gray-600 mt-0.5">Start your morning or afternoon shift float (e.g. ₱2,000) on the POS before taking orders.</p>
+                        </div>
+                    </div>
+                    <a href="{{ route('pos.index') }}" class="w-full sm:w-auto inline-flex items-center justify-center px-6 py-3 bg-[#155d49] hover:bg-[#114a3b] text-white font-bold text-xs rounded-xl shadow transition gap-2 shrink-0">
+                        <span>Launch POS to Start Shift</span>
+                        <span>➔</span>
+                    </a>
+                </div>
+            @endif
 
             <!-- KPI Metric Cards -->
             <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
@@ -127,10 +187,55 @@
 
             <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
                 <!-- Recent Orders (2 cols) -->
-                <div class="lg:col-span-2 bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
-                    <div class="flex justify-between items-center mb-4">
-                        <h3 class="font-bold text-gray-900 text-lg">Recent Orders</h3>
-                        <a href="{{ route('orders.index') }}" class="text-xs font-bold text-[#155d49] hover:underline">View all orders &rarr;</a>
+                <div class="lg:col-span-2 bg-white rounded-2xl shadow-sm border border-gray-100 p-6" x-data="{ tab: '{{ $activeShift ? 'current' : 'all' }}' }">
+                    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4">
+                        <div>
+                            <div class="flex items-center gap-2">
+                                <h3 class="font-bold text-gray-900 text-lg">
+                                    {{ !auth()->user()->isAtLeast('supervisor') ? 'Current Shift Orders' : 'Recent Orders' }}
+                                </h3>
+                                @if(!auth()->user()->isAtLeast('supervisor'))
+                                    <span class="px-2 py-0.5 text-[10px] font-bold rounded-full bg-emerald-100 text-[#155d49]">Active Shift</span>
+                                @endif
+                            </div>
+                            <p class="text-xs text-gray-500 mt-0.5">
+                                @if(!auth()->user()->isAtLeast('supervisor'))
+                                    Showing orders from your current active shift • Matches your POS cash drawer
+                                @else
+                                    <span x-show="tab === 'current'">Showing orders from current active shift (matches Cash in POS)</span>
+                                    <span x-show="tab === 'all'" style="display: none;">Showing all staff orders recorded today</span>
+                                @endif
+                            </p>
+                        </div>
+
+                        <div class="flex items-center gap-3">
+                            {{-- Toggle Tabs visible ONLY for Manager, Supervisor, and Owner --}}
+                            @if(auth()->user()->isAtLeast('supervisor') && $activeShift)
+                                <div class="inline-flex p-1 bg-gray-100 rounded-xl">
+                                    <button type="button" 
+                                        @click="tab = 'current'" 
+                                        :class="tab === 'current' ? 'bg-white text-[#155d49] font-bold shadow-xs' : 'text-gray-500 hover:text-gray-900 font-medium'"
+                                        class="px-3 py-1 rounded-lg text-xs transition flex items-center gap-1.5 cursor-pointer">
+                                        <span>Current Shift</span>
+                                        <span class="px-1.5 py-0.2 rounded-full text-[10px] font-bold"
+                                            :class="tab === 'current' ? 'bg-emerald-100 text-[#155d49]' : 'bg-gray-200 text-gray-600'">
+                                            {{ $recentOrders->where('shift_id', $activeShift->id)->count() }}
+                                        </span>
+                                    </button>
+                                    <button type="button" 
+                                        @click="tab = 'all'" 
+                                        :class="tab === 'all' ? 'bg-white text-[#155d49] font-bold shadow-xs' : 'text-gray-500 hover:text-gray-900 font-medium'"
+                                        class="px-3 py-1 rounded-lg text-xs transition flex items-center gap-1.5 cursor-pointer">
+                                        <span>All Today</span>
+                                        <span class="px-1.5 py-0.2 rounded-full text-[10px] font-bold"
+                                            :class="tab === 'all' ? 'bg-emerald-100 text-[#155d49]' : 'bg-gray-200 text-gray-600'">
+                                            {{ $recentOrders->count() }}
+                                        </span>
+                                    </button>
+                                </div>
+                            @endif
+                            <a href="{{ route('orders.index') }}" class="text-xs font-bold text-[#155d49] hover:underline whitespace-nowrap">View all orders &rarr;</a>
+                        </div>
                     </div>
 
                     <div class="overflow-x-auto">
@@ -148,8 +253,23 @@
                             </thead>
                             <tbody class="divide-y divide-gray-100">
                                 @forelse($recentOrders as $order)
-                                    <tr class="hover:bg-gray-50">
-                                        <td class="py-3 px-4 font-mono font-bold text-gray-900">{{ $order->order_number }}</td>
+                                    @php
+                                        $isCurrent = $activeShift && $order->shift_id === $activeShift->id;
+                                    @endphp
+                                    <tr class="hover:bg-gray-50 transition" 
+                                        @if(auth()->user()->isAtLeast('supervisor'))
+                                            x-show="tab === 'all' || {{ $isCurrent ? 'true' : 'false' }}"
+                                            @if(!$isCurrent) style="display: none;" @endif
+                                        @endif
+                                    >
+                                        <td class="py-3 px-4 font-mono font-bold text-gray-900">
+                                            <div class="flex items-center gap-1.5">
+                                                <span>{{ $order->order_number }}</span>
+                                                @if(auth()->user()->isAtLeast('supervisor') && $activeShift && !$isCurrent)
+                                                    <span class="px-1.5 py-0.5 rounded text-[9px] font-semibold bg-gray-100 text-gray-500 border border-gray-200">Prev Shift</span>
+                                                @endif
+                                            </div>
+                                        </td>
                                         <td class="py-3 px-4 text-gray-600 font-medium">{{ $order->cashier_name }}</td>
                                         <td class="py-3 px-4 text-gray-600">{{ $order->items->sum('quantity') }}</td>
                                         <td class="py-3 px-4 font-extrabold text-gray-900">₱{{ number_format($order->total, 2) }}</td>
@@ -176,12 +296,102 @@
                                     </tr>
                                 @empty
                                     <tr>
-                                        <td colspan="7" class="py-6 text-center text-gray-400">No orders recorded yet today.</td>
+                                        <td colspan="7" class="py-6 text-center text-gray-400">
+                                            {{ !auth()->user()->isAtLeast('supervisor') ? 'No orders recorded in your current shift yet.' : 'No orders recorded yet today.' }}
+                                        </td>
                                     </tr>
                                 @endforelse
                             </tbody>
                         </table>
                     </div>
+
+                    <!-- Sub-total reconciliation helper -->
+                    @if($activeShift)
+                        <div class="mt-4 pt-3 border-t border-gray-100 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 text-xs text-gray-500">
+                            <div>
+                                @if(!auth()->user()->isAtLeast('supervisor'))
+                                    <span>Current Shift Orders Total: </span>
+                                    <span class="font-extrabold text-[#155d49] text-sm">₱{{ number_format($recentOrders->sum('total'), 2) }}</span>
+                                    <span class="text-gray-400">({{ $recentOrders->count() }} orders)</span>
+                                @else
+                                    <div x-show="tab === 'current'">
+                                        <span>Current Shift Orders Total: </span>
+                                        <span class="font-extrabold text-[#155d49] text-sm">₱{{ number_format($recentOrders->where('shift_id', $activeShift->id)->sum('total'), 2) }}</span>
+                                        <span class="text-gray-400">({{ $recentOrders->where('shift_id', $activeShift->id)->count() }} orders)</span>
+                                    </div>
+                                    <div x-show="tab === 'all'" style="display: none;">
+                                        <span>All Recorded Orders Today: </span>
+                                        <span class="font-extrabold text-gray-900 text-sm">₱{{ number_format($recentOrders->sum('total'), 2) }}</span>
+                                        <span class="text-gray-400">({{ $recentOrders->count() }} orders)</span>
+                                    </div>
+                                @endif
+                            </div>
+                            <div class="text-[11px] text-gray-400">
+                                <span class="inline-flex items-center gap-1 text-emerald-700 font-medium">
+                                    <svg class="w-3.5 h-3.5 text-emerald-600" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/></svg>
+                                    Matches POS Cash in Drawer
+                                </span>
+                            </div>
+                        </div>
+                    @endif
+
+                    <!-- Recent Shift History Card (Visible only to Manager and Owner) -->
+                    @if(in_array(auth()->user()->role, ['manager', 'owner']) || auth()->user()->isManager())
+                    <div class="mt-6 bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
+                        <div class="flex justify-between items-center mb-4">
+                            <div>
+                                <h3 class="font-bold text-gray-900 text-lg">Recent Shift Records</h3>
+                                <p class="text-xs text-gray-500">Summary of cashier float settlements and drawer balances</p>
+                            </div>
+                            <span class="text-xs font-bold text-gray-400">Showing last 5 shifts</span>
+                        </div>
+
+                        <div class="overflow-x-auto">
+                            <table class="w-full text-left text-sm">
+                                <thead class="bg-gray-50 text-gray-500 text-xs uppercase font-semibold">
+                                    <tr>
+                                        <th class="py-3 px-4 rounded-l-lg">Cashier</th>
+                                        <th class="py-3 px-4">Opened</th>
+                                        <th class="py-3 px-4">Starting</th>
+                                        <th class="py-3 px-4">Actual Cash</th>
+                                        <th class="py-3 px-4">Difference</th>
+                                        <th class="py-3 px-4 rounded-r-lg">Status</th>
+                                    </tr>
+                                </thead>
+                                <tbody class="divide-y divide-gray-100">
+                                    @forelse($recentShifts as $s)
+                                        <tr class="hover:bg-gray-50">
+                                            <td class="py-3 px-4 font-semibold text-gray-800">{{ $s->opened_by }}</td>
+                                            <td class="py-3 px-4 text-xs text-gray-500">{{ $s->opened_at->format('M d, h:i A') }}</td>
+                                            <td class="py-3 px-4 font-medium text-gray-800">₱{{ number_format($s->starting_cash, 2) }}</td>
+                                            <td class="py-3 px-4 font-bold text-gray-900">{{ $s->actual_cash !== null ? '₱' . number_format($s->actual_cash, 2) : '—' }}</td>
+                                            <td class="py-3 px-4 font-bold {{ $s->difference < 0 ? 'text-rose-600' : ($s->difference > 0 ? 'text-emerald-700' : 'text-gray-900') }}">
+                                                {{ $s->difference !== null ? ($s->difference < 0 ? '-' : ($s->difference > 0 ? '+' : '')) . '₱' . number_format(abs($s->difference), 2) : '—' }}
+                                            </td>
+                                            <td class="py-3 px-4">
+                                                @if($s->status === 'open')
+                                                    <span class="px-2.5 py-0.5 rounded-full text-xs font-bold bg-emerald-100 text-emerald-800 animate-pulse">Open</span>
+                                                @elseif($s->status === 'balanced')
+                                                    <span class="px-2.5 py-0.5 rounded-full text-xs font-bold bg-emerald-100 text-emerald-800">Balanced</span>
+                                                @elseif($s->status === 'short')
+                                                    <span class="px-2.5 py-0.5 rounded-full text-xs font-bold bg-rose-100 text-rose-800">Cash Short</span>
+                                                @elseif($s->status === 'over')
+                                                    <span class="px-2.5 py-0.5 rounded-full text-xs font-bold bg-teal-100 text-teal-800">Cash Over</span>
+                                                @else
+                                                    <span class="px-2.5 py-0.5 rounded-full text-xs font-bold bg-gray-100 text-gray-700">{{ ucfirst($s->status) }}</span>
+                                                @endif
+                                            </td>
+                                        </tr>
+                                    @empty
+                                        <tr>
+                                            <td colspan="6" class="py-6 text-center text-gray-400">No shift records recorded yet.</td>
+                                        </tr>
+                                    @endforelse
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                    @endif
                 </div>
 
                 <!-- Right Column: Stock Alerts & Best Sellers -->

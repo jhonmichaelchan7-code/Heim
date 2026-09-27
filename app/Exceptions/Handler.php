@@ -26,5 +26,17 @@ class Handler extends ExceptionHandler
         $this->reportable(function (Throwable $e) {
             //
         });
+
+        // Automatically handle 419 Page Expired (CSRF Token Mismatch) gracefully
+        $this->renderable(function (\Illuminate\Session\TokenMismatchException $e, $request) {
+            if ($request->expectsJson()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Session expired. Please refresh the page and try again.',
+                ], 419);
+            }
+
+            return redirect()->route('login')->with('status', 'Your session expired. Please sign in again.');
+        });
     }
 }

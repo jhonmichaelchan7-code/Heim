@@ -36,7 +36,7 @@ class DatabaseSeeder extends Seeder
             'role' => 'supervisor',
         ]);
         User::create([
-            'name' => 'POS Cashier',
+            'name' => 'anna',
             'email' => 'cashier@coffee.com',
             'password' => bcrypt('password'),
             'role' => 'cashier',
@@ -229,5 +229,19 @@ class DatabaseSeeder extends Seeder
         RecipeIngredient::create(['recipe_id' => $r->id, 'ingredient_id' => $cup16->id, 'quantity' => 1]);
         RecipeIngredient::create(['recipe_id' => $r->id, 'ingredient_id' => $lid->id, 'quantity' => 1]);
         RecipeIngredient::create(['recipe_id' => $r->id, 'ingredient_id' => $straw->id, 'quantity' => 1]);
+
+        // ── Branch ──
+        \App\Models\Branch::create([
+            'name' => 'Main Branch',
+            'code' => 'MAIN-01',
+            'address' => 'Main Branch • Bangkal, Davao City, PH',
+            'phone' => '',
+            'is_active' => true,
+        ]);
+
+        // ── Default POS Settings ──
+        \App\Models\PosSetting::set('require_user_shift', true);
+        \App\Models\PosSetting::set('default_shift_starting_cash', 2000.00);
+        \App\Models\PosSetting::set('print_shift_report_on_close', true);
     }
 }

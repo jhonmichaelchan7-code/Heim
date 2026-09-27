@@ -1,6 +1,41 @@
 <x-app-layout>
+@push('styles')
+<style>
+@keyframes modalPopIn {
+    0% {
+        opacity: 0;
+        transform: scale(0.96) translateY(12px);
+    }
+    100% {
+        opacity: 1;
+        transform: scale(1) translateY(0);
+    }
+}
+.shift-modal-box {
+    animation: modalPopIn 0.22s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+.custom-modal-scrollbar {
+    scrollbar-width: thin;
+    scrollbar-color: #cbd5e1 #f8fafc;
+}
+.custom-modal-scrollbar::-webkit-scrollbar {
+    width: 6px;
+}
+.custom-modal-scrollbar::-webkit-scrollbar-track {
+    background: #f8fafc;
+    border-radius: 9999px;
+}
+.custom-modal-scrollbar::-webkit-scrollbar-thumb {
+    background: #cbd5e1;
+    border-radius: 9999px;
+}
+.custom-modal-scrollbar::-webkit-scrollbar-thumb:hover {
+    background: #94a3b8;
+}
+</style>
+@endpush
     <div class="py-3 min-h-[calc(100vh-4.5rem)] md:h-[calc(100vh-4.5rem)] flex flex-col">
-        <div class="max-w-[1650px] w-full mx-auto px-4 sm:px-6 lg:px-8 flex-1 flex flex-col md:flex-row gap-4 md:overflow-hidden overflow-visible">
+        <div class="w-full px-4 sm:px-6 lg:px-8 xl:px-10 2xl:max-w-[1880px] 2xl:mx-auto flex-1 flex flex-col md:flex-row gap-4 md:overflow-hidden overflow-visible">
             
             <!-- Left Column: Catalog & Categories (65% width) -->
             <div class="flex-1 flex flex-col bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden min-h-[480px] md:min-h-0">
@@ -90,13 +125,51 @@
                             </div>
                             <h3 class="font-bold text-gray-900 text-base">Heim Order Cart</h3>
                         </div>
-                        <button onclick="clearCart()" class="text-xs text-rose-600 hover:text-rose-800 font-bold transition">Clear All</button>
+                        <div class="flex items-center gap-2">
+                            <button type="button" onclick="clearCart()" class="text-xs text-rose-600 hover:text-rose-800 font-bold transition">Clear All</button>
+
+                            <!-- Inventify 3-dot Menu ⋮ -->
+                            <div class="relative" id="pos-menu-container">
+                                <button type="button" onclick="togglePosMenu(event)" id="pos-three-dots-btn" title="Shift & POS Menu" class="w-8 h-8 rounded-xl bg-white hover:bg-emerald-50 text-gray-700 hover:text-[#155d49] border border-gray-200 flex items-center justify-center font-bold text-lg leading-none transition shadow-xs">
+                                    ⋮
+                                </button>
+                                <!-- Dropdown (Matching video 00:01) -->
+                                <div id="pos-menu-dropdown" class="hidden absolute right-0 mt-2 w-48 bg-white rounded-2xl shadow-xl border border-gray-100 py-1.5 z-50 animate-fade-in text-sm font-medium">
+                                    <button type="button" onclick="triggerOpenDrawer()" class="w-full px-4 py-2.5 text-left text-gray-700 hover:bg-[#f0f8f5] hover:text-[#155d49] flex items-center gap-2.5 transition">
+                                        <svg class="w-4 h-4 text-emerald-600 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4"/></svg>
+                                        <span>Open Drawer</span>
+                                    </button>
+                                    <button type="button" onclick="handleShiftMenuClick()" class="w-full px-4 py-2.5 text-left text-gray-700 hover:bg-[#f0f8f5] hover:text-[#155d49] flex items-center gap-2.5 transition">
+                                        <svg class="w-4 h-4 text-emerald-600 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                                        <span>Shifts</span>
+                                    </button>
+                                    @if(auth()->user()->isManager())
+                                    <button type="button" onclick="openSettingsModal()" class="w-full px-4 py-2.5 text-left text-gray-700 hover:bg-[#f0f8f5] hover:text-[#155d49] flex items-center gap-2.5 transition">
+                                        <svg class="w-4 h-4 text-emerald-600 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+                                        <span>Settings</span>
+                                    </button>
+                                    @endif
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Shift Status Bar (Interactive trigger for Start Shift / View Shift) -->
+                    <div id="pos-shift-status-bar" onclick="handleShiftMenuClick()" class="cursor-pointer flex items-center justify-between px-3 py-2 rounded-xl border text-[11px] font-semibold transition hover:shadow-xs {{ $activeShift ? 'bg-emerald-50/90 border-emerald-200 text-emerald-800' : 'bg-amber-50/90 border-amber-200 text-amber-800' }}">
+                        <div class="flex items-center gap-2">
+                            <span id="pos-shift-indicator-dot" class="w-2.5 h-2.5 rounded-full {{ $activeShift ? 'bg-emerald-500 animate-pulse' : 'bg-amber-500' }}"></span>
+                            <span id="pos-shift-status-text" class="font-bold">{{ $activeShift ? 'Shift Active: ' . $activeShift->opened_by : 'No Shift Active (Required)' }}</span>
+                        </div>
+                        <span id="pos-shift-action-label" class="text-[10px] font-extrabold uppercase tracking-wider text-[#155d49] hover:underline flex items-center gap-1">
+                            <span>{{ $activeShift ? 'Reconcile / End' : 'Start Shift' }}</span>
+                            <span>➔</span>
+                        </span>
                     </div>
 
                     <!-- Cashier Name Field (Shared login support) -->
                     <div>
                         <label class="block text-[11px] font-bold uppercase tracking-wider text-gray-600 mb-1">Cashier on Shift</label>
-                        <input type="text" id="cashier-name" value="{{ Auth::user()->name }}" class="w-full px-3 py-1.5 text-sm bg-white border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#155d49] outline-none font-semibold text-gray-800" placeholder="Cashier Name..." required />
+                        <input type="text" id="cashier-name" value="{{ $activeShift ? $activeShift->opened_by : Auth::user()->name }}" class="w-full px-3 py-1.5 text-sm bg-white border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#155d49] outline-none font-semibold text-gray-800" placeholder="Cashier Name..." required />
                     </div>
 
                     <!-- Real-time Live Clock -->
@@ -146,6 +219,408 @@
                 </div>
             </div>
 
+        </div>
+    </div>
+
+    <!-- ========================================== -->
+    <!-- INVENTIFY SHIFT MANAGEMENT MODALS (VIDEO DUPLICATE) -->
+    <!-- ========================================== -->
+
+    <!-- 1. Settings Modal (Matching video 00:02-00:03) -->
+    <div id="pos-settings-modal" class="fixed inset-0 bg-black/60 backdrop-blur-xs z-50 flex items-center justify-center p-3 sm:p-4 overflow-hidden" style="display: none;" onclick="if(event.target === this) closeSettingsModal()">
+        <div class="shift-modal-box bg-white rounded-3xl max-w-md w-full overflow-hidden shadow-2xl border border-gray-100 flex flex-col my-auto" style="max-height: 90vh;">
+            <div class="p-5 border-b border-gray-100 flex justify-between items-center bg-[#f0f8f5]/60 shrink-0">
+                <h3 class="font-bold text-gray-900 text-lg">Settings</h3>
+                <button type="button" onclick="closeSettingsModal()" class="text-gray-400 hover:text-gray-600 p-1">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                </button>
+            </div>
+            <div class="p-6 space-y-6 overflow-y-auto flex-1 custom-modal-scrollbar" style="min-height: 0;">
+                <!-- User Shift Toggle -->
+                <div>
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <h4 class="font-bold text-gray-900 text-sm">User Shift</h4>
+                            <p class="text-xs text-gray-500 mt-0.5">Require users to start a shift before accessing POS</p>
+                        </div>
+                        <!-- Toggle Switch -->
+                        <label class="relative inline-flex items-center cursor-pointer">
+                            <input type="checkbox" id="setting-user-shift" class="sr-only peer" onchange="toggleUserShiftLabel(this)">
+                            <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[#155d49]"></div>
+                        </label>
+                    </div>
+                    <div class="mt-1 text-right">
+                        <span id="setting-user-shift-text" class="text-xs font-semibold text-[#155d49]">Enabled</span>
+                    </div>
+                </div>
+
+                <!-- Shift Report Permission -->
+                <div class="border-t border-gray-100 pt-5">
+                    <h4 class="font-bold text-gray-900 text-sm">Shift Report Permission</h4>
+                    <p class="text-xs text-gray-500 mt-0.5 mb-3">Choose which data non-admin users can view</p>
+                    <div class="space-y-2.5">
+                        <label class="flex items-center gap-2.5 text-xs font-semibold text-gray-700 cursor-pointer">
+                            <input type="checkbox" id="perm-cash-movement" checked class="rounded text-[#155d49] focus:ring-[#155d49] w-4 h-4">
+                            <span>Cash Movement</span>
+                        </label>
+                        <label class="flex items-center gap-2.5 text-xs font-semibold text-gray-700 cursor-pointer">
+                            <input type="checkbox" id="perm-sales-summary" checked class="rounded text-[#155d49] focus:ring-[#155d49] w-4 h-4">
+                            <span>Sales Summary</span>
+                        </label>
+                    </div>
+                </div>
+            </div>
+            <div class="p-4 bg-gray-50 border-t border-gray-100 flex items-center justify-end gap-2.5 shrink-0">
+                <button type="button" onclick="closeSettingsModal()" class="px-5 py-2.5 rounded-xl border border-gray-200 text-xs font-bold text-gray-600 hover:bg-gray-100 transition">Cancel</button>
+                <button type="button" onclick="saveSettings()" id="btn-save-settings" class="px-6 py-2.5 rounded-xl bg-[#155d49] hover:bg-[#114a3b] text-xs font-bold text-white shadow-sm transition">Save</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 2. Start Shift Modal (Matching video 00:04-00:05) -->
+    <div id="start-shift-modal" class="fixed inset-0 bg-black/60 backdrop-blur-xs z-50 flex items-center justify-center p-3 sm:p-4 overflow-hidden" style="display: none;" onclick="if(event.target === this) closeStartShiftModal()">
+        <div class="shift-modal-box bg-white rounded-3xl max-w-md w-full overflow-hidden shadow-2xl border border-gray-100 flex flex-col my-auto" style="max-height: 90vh;">
+            <div class="p-5 border-b border-gray-100 flex justify-between items-center bg-[#f0f8f5]/60 shrink-0">
+                <h3 class="font-bold text-gray-900 text-lg">Shift</h3>
+                <button type="button" onclick="closeStartShiftModal()" class="text-gray-400 hover:text-gray-600 p-1">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                </button>
+            </div>
+            <div class="p-6 space-y-5 overflow-y-auto flex-1 custom-modal-scrollbar" style="min-height: 0;">
+                <p class="text-xs text-gray-500 leading-relaxed">
+                    Set the starting cash amount and compare it with the actual cash at the end of the shift
+                </p>
+
+                <!-- Starting Cash Input Box -->
+                <div class="border border-gray-300 focus-within:border-[#155d49] focus-within:ring-2 focus-within:ring-[#155d49]/20 rounded-2xl p-3 bg-white transition">
+                    <label class="block text-[11px] font-bold uppercase tracking-wider text-gray-500 mb-1">Starting Cash</label>
+                    <div class="flex items-center gap-1.5">
+                        <span class="text-lg font-bold text-gray-400">₱</span>
+                        <input type="number" step="0.01" min="0" id="start-shift-cash" value="2000" class="w-full p-0 border-0 text-2xl font-black text-gray-900 focus:ring-0 outline-none" placeholder="0.00" required />
+                    </div>
+                </div>
+
+                <!-- Quick Denomination Chips -->
+                <div class="flex flex-wrap gap-2">
+                    <button type="button" onclick="setStartingCash(500)" class="px-3 py-1 bg-gray-100 hover:bg-emerald-50 hover:text-[#155d49] text-gray-700 text-xs font-bold rounded-xl border border-gray-200 transition">₱500</button>
+                    <button type="button" onclick="setStartingCash(1000)" class="px-3 py-1 bg-gray-100 hover:bg-emerald-50 hover:text-[#155d49] text-gray-700 text-xs font-bold rounded-xl border border-gray-200 transition">₱1,000</button>
+                    <button type="button" onclick="setStartingCash(2000)" class="px-3 py-1 bg-emerald-50 text-[#155d49] border border-emerald-200 text-xs font-bold rounded-xl transition">₱2,000</button>
+                    <button type="button" onclick="setStartingCash(5000)" class="px-3 py-1 bg-gray-100 hover:bg-emerald-50 hover:text-[#155d49] text-gray-700 text-xs font-bold rounded-xl border border-gray-200 transition">₱5,000</button>
+                    <button type="button" onclick="setStartingCash(0)" class="px-2.5 py-1 text-gray-400 hover:text-gray-600 text-xs font-semibold transition">Clear</button>
+                </div>
+
+                <!-- Open Cash Drawer Checkbox -->
+                <div class="flex items-center gap-2.5 pt-1">
+                    <input type="checkbox" id="start-shift-drawer-checkbox" checked class="rounded text-[#155d49] focus:ring-[#155d49] w-4 h-4">
+                    <label for="start-shift-drawer-checkbox" class="text-xs font-semibold text-gray-700 cursor-pointer">Open Cash Drawer</label>
+                </div>
+            </div>
+            <div class="p-4 bg-gray-50 border-t border-gray-100 flex items-center justify-end gap-2.5 shrink-0">
+                <button type="button" onclick="closeStartShiftModal()" class="px-5 py-2.5 rounded-xl border border-gray-200 text-xs font-bold text-gray-600 hover:bg-gray-100 transition">Cancel</button>
+                <button type="button" onclick="submitStartShift()" id="btn-submit-start-shift" class="px-6 py-2.5 rounded-xl bg-[#155d49] hover:bg-[#114a3b] text-xs font-bold text-white shadow-sm transition flex items-center gap-2">
+                    <span>Start Shift</span>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 3. Active Shift & End Shift Reconciliation Modal (Matching video 00:07-00:22) -->
+    <div id="shift-reconcile-modal" class="fixed inset-0 bg-black/60 backdrop-blur-xs z-50 flex items-center justify-center p-2 sm:p-4 overflow-hidden" style="display: none;" onclick="if(event.target === this) closeReconcileModal()">
+        <div class="shift-modal-box bg-white rounded-2xl sm:rounded-3xl w-full shadow-2xl border border-gray-100 flex flex-col overflow-hidden my-auto relative" style="max-width: 520px; height: 86vh; max-height: 720px;">
+            <!-- Modal Header (Fixed at top) -->
+            <div class="px-5 py-4 border-b border-gray-100 flex justify-between items-center bg-[#f0f8f5]/80 shrink-0 select-none">
+                <div class="flex items-center gap-2.5">
+                    <span class="w-8 h-8 rounded-xl bg-white border border-emerald-100 flex items-center justify-center text-emerald-800 shadow-xs text-sm">⏱️</span>
+                    <h3 class="font-bold text-gray-900 text-lg">Shift</h3>
+                </div>
+                <button type="button" onclick="closeReconcileModal()" class="text-gray-400 hover:text-gray-700 p-1.5 rounded-xl hover:bg-gray-100 transition">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                </button>
+            </div>
+
+            <!-- Modal Body (Scrollable with min-h-0) -->
+            <div class="p-4 sm:p-6 space-y-4 overflow-y-auto flex-1 custom-modal-scrollbar" style="min-height: 0; overscroll-behavior: contain;">
+                <!-- Shift Started By & Datetime (Matching video 00:07) -->
+                <div class="flex items-center justify-between text-xs text-gray-600 border-b border-gray-100 pb-3">
+                    <div class="flex items-center gap-2">
+                        <span class="font-medium text-gray-500">Shift Started By :</span>
+                        <span id="reconcile-opened-by" class="font-bold text-gray-900">Admin</span>
+                    </div>
+                    <div id="reconcile-opened-at" class="font-semibold text-gray-500">
+                        --/--/----, --:-- --
+                    </div>
+                </div>
+
+                <!-- Cash Drawer Summary Box (Matching video 00:07) -->
+                <div class="bg-gray-50/80 rounded-2xl p-4 border border-gray-200/80 space-y-2 text-xs">
+                    <div class="font-bold text-gray-900 uppercase tracking-wider text-[11px] mb-2">Cash Drawer</div>
+                    <div class="flex justify-between items-center py-1">
+                        <span class="text-gray-500 font-medium">Starting Cash</span>
+                        <span id="reconcile-starting-cash" class="font-bold text-gray-900">: ₱ 0.00</span>
+                    </div>
+                    <div class="flex justify-between items-center py-1">
+                        <span class="text-gray-500 font-medium">Cash In</span>
+                        <span id="reconcile-cash-in" class="font-bold text-gray-900">: ₱ 0.00</span>
+                    </div>
+                    <div class="flex justify-between items-center py-1">
+                        <span class="text-gray-500 font-medium">Cash Out</span>
+                        <span id="reconcile-cash-out" class="font-bold text-gray-900">: ₱ 0.00</span>
+                    </div>
+                    <div class="flex justify-between items-center py-1.5 border-t border-gray-200/60 pt-2 font-bold">
+                        <span class="text-gray-800">Expected Cash</span>
+                        <span id="reconcile-expected-cash" class="text-gray-900 text-sm">: ₱ 0.00</span>
+                    </div>
+                    <div class="flex justify-between items-center py-1">
+                        <span class="text-gray-500 font-medium">Difference</span>
+                        <span id="reconcile-difference" class="font-bold text-gray-900">: ₱ 0.00</span>
+                    </div>
+                    <div class="flex justify-between items-center py-1">
+                        <span class="text-gray-500 font-medium">Status</span>
+                        <div class="flex items-center gap-1.5">
+                            <span>:</span>
+                            <span id="reconcile-status-badge" class="px-2 py-0.5 rounded-md text-[11px] font-bold bg-emerald-100 text-emerald-800">Cash Balanced</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Actual Cash Input Box (Matching video 00:09) -->
+                <div class="space-y-2">
+                    <div class="border border-gray-300 focus-within:border-[#155d49] focus-within:ring-2 focus-within:ring-[#155d49]/20 rounded-2xl p-3 bg-white transition">
+                        <label class="block text-[11px] font-bold uppercase tracking-wider text-gray-500 mb-1">Actual Cash</label>
+                        <div class="flex items-center gap-1.5">
+                            <span class="text-lg font-bold text-gray-400">₱</span>
+                            <input type="number" step="0.01" min="0" id="reconcile-actual-cash" oninput="liveUpdateReconciliation()" class="w-full p-0 border-0 text-2xl font-black text-gray-900 focus:ring-0 outline-none" placeholder="Enter actual cash" />
+                        </div>
+                    </div>
+
+                    <!-- Sub-row: Open Cash Drawer Checkbox & Live Status Indicator -->
+                    <div class="flex items-center justify-between px-1">
+                        <button type="button" onclick="triggerOpenDrawer()" class="flex items-center gap-1.5 text-xs font-semibold text-gray-600 hover:text-[#155d49] transition">
+                            <svg class="w-4 h-4 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4"/></svg>
+                            <span>Open Cash Drawer</span>
+                        </button>
+                        <span id="reconcile-live-indicator" class="text-xs font-bold px-2.5 py-0.5 rounded-md bg-emerald-100 text-emerald-800">Cash Balanced</span>
+                    </div>
+                </div>
+
+                <!-- Accordion 1: Cash Movement (Matching video 00:15) -->
+                <div class="border border-gray-200 rounded-2xl overflow-hidden transition">
+                    <div onclick="toggleAccordion('acc-cash-movement')" class="w-full p-3.5 bg-gray-50/70 hover:bg-gray-100/70 flex items-center justify-between text-xs font-bold text-gray-800 transition cursor-pointer select-none">
+                        <span class="flex items-center gap-1.5">
+                            <span id="acc-cash-movement-caret" class="text-emerald-700 text-[10px] transition-transform">▼</span>
+                            <span>Cash Movement</span>
+                        </span>
+                        <button type="button" onclick="event.stopPropagation(); openCashMovementModal()" class="px-2.5 py-1 text-[11px] bg-white border border-gray-200 rounded-lg text-[#155d49] hover:bg-emerald-50 transition shadow-xs">+ Add Cash In/Out</button>
+                    </div>
+                    <div id="acc-cash-movement" class="p-4 space-y-3 border-t border-gray-100 bg-white">
+                        <div class="flex gap-2">
+                            <button type="button" onclick="setCashMovementTab('in')" id="tab-cm-in" class="px-3 py-1 bg-[#155d49] text-white text-xs font-bold rounded-lg shadow-xs">Cash In</button>
+                            <button type="button" onclick="setCashMovementTab('out')" id="tab-cm-out" class="px-3 py-1 bg-gray-100 text-gray-600 text-xs font-bold rounded-lg hover:bg-gray-200">Cash Out</button>
+                        </div>
+                        <div id="cm-tab-in-content" class="space-y-2 text-xs">
+                            <div class="flex justify-between items-center py-1">
+                                <span class="text-gray-600 font-medium">POS Transaction</span>
+                                <span id="reconcile-pos-cash-sales" class="font-bold text-gray-900">: ₱ 0.00</span>
+                            </div>
+                            <div id="reconcile-manual-in-list" class="space-y-1.5 pt-1 border-t border-gray-100"></div>
+                        </div>
+                        <div id="cm-tab-out-content" class="hidden space-y-2 text-xs">
+                            <div id="reconcile-manual-out-list" class="space-y-1.5">
+                                <p class="text-gray-400 text-center py-2">No Cash Out recorded</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Accordion 2: Sales Summary (Matching video 00:18) -->
+                <div class="border border-gray-200 rounded-2xl overflow-hidden transition">
+                    <div onclick="toggleAccordion('acc-sales-summary')" class="w-full p-3.5 bg-gray-50/70 hover:bg-gray-100/70 flex items-center justify-between text-xs font-bold text-gray-800 transition cursor-pointer select-none">
+                        <span class="flex items-center gap-1.5">
+                            <span id="acc-sales-summary-caret" class="text-emerald-700 text-[10px] transition-transform">▼</span>
+                            <span>Sales Summary</span>
+                        </span>
+                    </div>
+                    <div id="acc-sales-summary" class="p-4 space-y-3 border-t border-gray-100 bg-white">
+                        <div class="flex gap-2">
+                            <button type="button" onclick="setSalesSummaryTab('sales')" id="tab-ss-sales" class="px-3 py-1 bg-[#155d49] text-white text-xs font-bold rounded-lg shadow-xs">Sales</button>
+                            <button type="button" onclick="setSalesSummaryTab('tx')" id="tab-ss-tx" class="px-3 py-1 bg-gray-100 text-gray-600 text-xs font-bold rounded-lg hover:bg-gray-200">Transactions</button>
+                        </div>
+                        <div id="ss-tab-sales-content" class="space-y-1.5 text-xs">
+                            <div class="flex justify-between items-center py-1">
+                                <span class="text-gray-600 font-medium">Gross Sales</span>
+                                <span id="reconcile-gross-sales" class="font-bold text-gray-900">: ₱ 0.00</span>
+                            </div>
+                            <div class="flex justify-between items-center py-1">
+                                <span class="text-gray-600 font-medium">Discounts</span>
+                                <span id="reconcile-discounts" class="font-bold text-gray-900">: ₱ 0.00</span>
+                            </div>
+                            <div class="flex justify-between items-center py-1">
+                                <span class="text-gray-600 font-medium">Service Fee</span>
+                                <span class="font-bold text-gray-900">: ₱ 0.00</span>
+                            </div>
+                            <div class="flex justify-between items-center py-1">
+                                <span class="text-gray-600 font-medium">Delivery Fee</span>
+                                <span class="font-bold text-gray-900">: ₱ 0.00</span>
+                            </div>
+                            <div class="flex justify-between items-center py-1.5 border-t border-gray-100 pt-2 font-bold">
+                                <span class="text-gray-900">Net Sales</span>
+                                <span id="reconcile-net-sales" class="text-emerald-700 font-black">: ₱ 0.00</span>
+                            </div>
+                        </div>
+                        <div id="ss-tab-tx-content" class="hidden space-y-2 text-xs">
+                            <div class="flex justify-between items-center py-1">
+                                <span class="text-gray-600 font-medium">Completed Transactions</span>
+                                <span id="reconcile-tx-count" class="font-bold text-gray-900">: 0</span>
+                            </div>
+                            <div class="flex justify-between items-center py-1">
+                                <span class="text-gray-600 font-medium">Voids & Refunds</span>
+                                <span id="reconcile-void-count" class="font-bold text-rose-600">: 0</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Accordion 3: Sales Breakdown (Matching video 00:21) -->
+                <div class="border border-gray-200 rounded-2xl overflow-hidden transition">
+                    <div onclick="toggleAccordion('acc-sales-breakdown')" class="w-full p-3.5 bg-gray-50/70 hover:bg-gray-100/70 flex items-center justify-between text-xs font-bold text-gray-800 transition cursor-pointer select-none">
+                        <span class="flex items-center gap-1.5">
+                            <span id="acc-sales-breakdown-caret" class="text-emerald-700 text-[10px] transition-transform">▼</span>
+                            <span>Sales Breakdown</span>
+                        </span>
+                        <span class="text-[11px] font-semibold text-gray-500">Payment Method</span>
+                    </div>
+                    <div id="acc-sales-breakdown" class="p-4 space-y-2 border-t border-gray-100 bg-white text-xs">
+                        <div class="flex justify-between items-center py-1">
+                            <span class="text-gray-600 font-medium">Cash</span>
+                            <span id="reconcile-breakdown-cash" class="font-bold text-gray-900">: ₱ 0.00</span>
+                        </div>
+                        <div class="flex justify-between items-center py-1">
+                            <span class="text-gray-600 font-medium">Online Payment</span>
+                            <span id="reconcile-breakdown-online" class="font-bold text-gray-900">: ₱ 0.00</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Discrepancy Reason Input (Shown if difference != 0) -->
+                <div id="reconcile-discrepancy-box" class="hidden space-y-1.5 pt-2">
+                    <label class="block text-xs font-bold text-rose-700">Reason for Cash Discrepancy (Optional)</label>
+                    <input type="text" id="reconcile-discrepancy-reason" placeholder="e.g. Cash is short ₱150 / change discrepancy" class="w-full px-3 py-2 text-xs bg-rose-50/40 border border-rose-200 rounded-xl focus:ring-2 focus:ring-rose-500 outline-none text-gray-800 font-medium" />
+                </div>
+            </div>
+
+            <!-- Modal Footer (Fixed at bottom) -->
+            <div class="px-5 py-3.5 bg-gray-50 border-t border-gray-100 flex items-center justify-between gap-2.5 shrink-0 select-none">
+                <button type="button" onclick="printShiftThermalReport()" class="px-3.5 py-2.5 rounded-xl border border-gray-300 bg-white text-xs font-bold text-gray-700 hover:bg-gray-100 transition flex items-center gap-1.5 shadow-xs">
+                    <span>🖨️</span>
+                    <span>Print Summary</span>
+                </button>
+                <div class="flex items-center gap-2">
+                    <button type="button" onclick="closeReconcileModal()" class="px-4 sm:px-5 py-2.5 rounded-xl border border-gray-200 bg-white text-xs font-bold text-gray-600 hover:bg-gray-100 transition">Cancel</button>
+                    <button type="button" onclick="promptEndShiftSecurityAuth()" id="btn-submit-end-shift" class="px-5 sm:px-6 py-2.5 rounded-xl bg-[#155d49] hover:bg-[#114a3b] text-xs font-bold text-white shadow-sm transition flex items-center gap-1.5">
+                        <svg class="w-3.5 h-3.5 text-emerald-200" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/></svg>
+                        <span>End Shift</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 3b. Security Authorization Modal for Ending Shift -->
+    <div id="shift-auth-modal" class="fixed inset-0 bg-black/70 backdrop-blur-xs z-[70] flex items-center justify-center p-3 sm:p-4 overflow-hidden" style="display: none;" onclick="if(event.target === this) closeShiftAuthModal()">
+        <div class="shift-modal-box bg-white rounded-3xl max-w-md w-full overflow-hidden shadow-2xl border border-gray-100 flex flex-col my-auto" style="max-height: 90vh;">
+            <!-- Header -->
+            <div class="p-5 border-b border-gray-100 flex justify-between items-center bg-[#f0f8f5]/80 shrink-0">
+                <div class="flex items-center gap-2.5">
+                    <span class="w-9 h-9 rounded-xl bg-emerald-100/80 border border-emerald-200 text-emerald-800 flex items-center justify-center text-lg">🛡️</span>
+                    <div>
+                        <h3 class="font-bold text-gray-900 text-base leading-tight">Supervisor Authorization</h3>
+                        <p class="text-[11px] text-gray-500 font-medium">Supervisor, Manager, or Owner required</p>
+                    </div>
+                </div>
+                <button type="button" onclick="closeShiftAuthModal()" class="text-gray-400 hover:text-gray-600 p-1.5 rounded-xl hover:bg-gray-100 transition">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                </button>
+            </div>
+
+            <!-- Body -->
+            <div class="p-6 space-y-4 overflow-y-auto flex-1 custom-modal-scrollbar" style="min-height: 0;">
+                <!-- Summary preview box -->
+                <div class="bg-gray-50 border border-gray-200/80 rounded-2xl p-3.5 space-y-1.5 text-xs">
+                    <div class="flex justify-between items-center">
+                        <span class="text-gray-500 font-medium">Cashier Ending Shift:</span>
+                        <span id="shift-auth-summary-cashier" class="font-bold text-gray-800">Admin</span>
+                    </div>
+                    <div class="flex justify-between items-center">
+                        <span class="text-gray-500 font-medium">Actual Cash Declared:</span>
+                        <span id="shift-auth-summary-actual" class="font-black text-gray-900">₱0.00</span>
+                    </div>
+                    <div class="flex justify-between items-center pt-1 border-t border-gray-200/60">
+                        <span class="text-gray-500 font-medium">Drawer Reconciliation:</span>
+                        <span id="shift-auth-summary-status" class="px-2 py-0.5 rounded text-[11px] font-bold bg-emerald-100 text-emerald-800">Cash Balanced</span>
+                    </div>
+                </div>
+
+                <!-- Error message alert -->
+                <div id="shift-auth-error" class="hidden p-3 rounded-xl bg-rose-50 border border-rose-200 text-rose-700 text-xs font-semibold"></div>
+
+                <!-- Credential Inputs -->
+                <div class="space-y-3 pt-1">
+                    <div>
+                        <label class="block text-xs font-bold text-gray-700 mb-1">Supervisor / Manager / Owner Email</label>
+                        <input type="email" id="shift-auth-email" placeholder="e.g. supervisor@coffee.com" autocomplete="username" class="w-full px-3.5 py-2.5 text-xs bg-white border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#155d49] font-medium text-gray-900 outline-none transition" required />
+                    </div>
+
+                    <div>
+                        <label class="block text-xs font-bold text-gray-700 mb-1">Password</label>
+                        <input type="password" id="shift-auth-password" placeholder="Enter supervisor or manager password" autocomplete="current-password" class="w-full px-3.5 py-2.5 text-xs bg-white border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#155d49] font-medium text-gray-900 outline-none transition" required />
+                    </div>
+                </div>
+
+                <p class="text-[11px] text-gray-400 leading-relaxed italic">
+                    🔒 An audit log entry with the authorizing supervisor's name and role will be recorded upon closing this shift.
+                </p>
+            </div>
+
+            <!-- Footer -->
+            <div class="p-4 bg-gray-50 border-t border-gray-100 flex items-center justify-end gap-2.5 shrink-0">
+                <button type="button" onclick="closeShiftAuthModal()" class="px-4 py-2.5 rounded-xl border border-gray-200 text-xs font-bold text-gray-600 hover:bg-gray-100 transition">Cancel</button>
+                <button type="button" onclick="confirmEndShiftWithAuth()" id="btn-confirm-auth-end-shift" class="px-5 py-2.5 rounded-xl bg-[#155d49] hover:bg-[#114a3b] text-xs font-bold text-white shadow-sm transition flex items-center gap-1.5">
+                    <span>Authorize & End Shift</span>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 4. Record Cash Movement Modal (Pay-In / Pay-Out) -->
+    <div id="cash-movement-modal" class="fixed inset-0 bg-black/60 backdrop-blur-xs z-[60] flex items-center justify-center p-3 sm:p-4 overflow-hidden" style="display: none;" onclick="if(event.target === this) closeCashMovementModal()">
+        <div class="shift-modal-box bg-white rounded-3xl max-w-sm w-full overflow-hidden shadow-2xl border border-gray-100 flex flex-col my-auto" style="max-height: 90vh;">
+            <div class="p-5 border-b border-gray-100 flex justify-between items-center bg-[#f0f8f5]/60 shrink-0">
+                <h3 class="font-bold text-gray-900 text-base">Record Cash Movement</h3>
+                <button type="button" onclick="closeCashMovementModal()" class="text-gray-400 hover:text-gray-600 p-1">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                </button>
+            </div>
+            <div class="p-5 space-y-4 overflow-y-auto flex-1 custom-modal-scrollbar" style="min-height: 0;">
+                <div>
+                    <label class="block text-xs font-bold text-gray-700 mb-1.5">Movement Type</label>
+                    <div class="grid grid-cols-2 gap-2">
+                        <button type="button" onclick="selectCmType('cash_in')" id="cm-btn-in" class="py-2 rounded-xl text-xs font-bold border-2 border-[#155d49] bg-[#f0f8f5] text-[#155d49] transition">Cash In (Pay-in)</button>
+                        <button type="button" onclick="selectCmType('cash_out')" id="cm-btn-out" class="py-2 rounded-xl text-xs font-bold border-2 border-gray-200 bg-white text-gray-700 hover:border-gray-300 transition">Cash Out (Drop)</button>
+                    </div>
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-gray-700 mb-1">Amount (₱)</label>
+                    <input type="number" step="0.01" min="0.01" id="cm-amount" placeholder="0.00" class="w-full px-3 py-2 text-sm bg-white border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#155d49] font-bold text-gray-900 outline-none" required />
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-gray-700 mb-1">Reason / Description</label>
+                    <input type="text" id="cm-reason" placeholder="e.g. Added change fund / Ice purchase payout" class="w-full px-3 py-2 text-xs bg-white border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#155d49] font-medium text-gray-800 outline-none" required />
+                </div>
+            </div>
+            <div class="p-4 bg-gray-50 border-t border-gray-100 flex items-center justify-end gap-2 shrink-0">
+                <button type="button" onclick="closeCashMovementModal()" class="px-4 py-2 rounded-xl border border-gray-200 text-xs font-bold text-gray-600 hover:bg-gray-100 transition">Cancel</button>
+                <button type="button" onclick="submitCashMovement()" id="btn-save-cm" class="px-5 py-2 rounded-xl bg-[#155d49] hover:bg-[#114a3b] text-xs font-bold text-white shadow-sm transition">Save Movement</button>
+            </div>
         </div>
     </div>
 
@@ -319,8 +794,8 @@
                         </div>
                         <h2 class="text-base font-black tracking-wider text-black">HEIM COFFEE</h2>
                         <p class="text-[10px] text-gray-700 font-semibold uppercase tracking-wider">Fresh Brews & Pastries</p>
-                        <p class="text-[10px] text-gray-600">Main Branch • Manila, PH</p>
-                        <p class="text-[10px] text-gray-600">Tel: (02) 8123-4567</p>
+                        <p class="text-[10px] text-gray-600">Main Branch • Bangkal, Davao City, PH</p>
+                        <p class="text-[10px] text-gray-600">Tel: </p>
                     </div>
 
                     <div class="border-t border-dashed border-gray-400 my-2.5"></div>
@@ -688,6 +1163,13 @@
 
         // Payment Modal & Methods
         function openPaymentModal() {
+            if (window.requireUserShift && !window.activeShift) {
+                if (confirm('A shift must be started before processing orders.\n\nWould you like to start a shift now?')) {
+                    openStartShiftModal();
+                }
+                return;
+            }
+
             const cashierName = document.getElementById('cashier-name').value.trim();
             if (!cashierName) {
                 alert('Please enter cashier name before proceeding.');
@@ -1036,8 +1518,8 @@
     <div class="center">
         <div class="store-name">HEIM COFFEE</div>
         <div style="font-size: 0.9em; font-weight: bold;">FRESH BREWS & PASTRIES</div>
-        <div style="font-size: 0.85em;">Main Branch • Manila, PH</div>
-        <div style="font-size: 0.85em;">Tel: (02) 8123-4567</div>
+        <div style="font-size: 0.85em;">Main Branch • Bangkal, Davao City, PH</div>
+        <div style="font-size: 0.85em;">Tel: </div>
     </div>
 
     <div class="dashed"></div>
@@ -1160,6 +1642,806 @@
         }
         setInterval(updatePosLiveClock, 1000);
         updatePosLiveClock();
+
+        // =======================================================
+        // INVENTIFY SHIFT MANAGEMENT LOGIC (VIDEO DUPLICATE)
+        // =======================================================
+        window.activeShift = @json($activeShift);
+        window.requireUserShift = @json($requireShift);
+        window.shiftMetrics = null;
+        window.recentMovements = [];
+        window.currentCmType = 'cash_in';
+        window.currentCmTab = 'in';
+        window.currentSsTab = 'sales';
+
+        // 1. Three-dot menu toggle (Matching video 00:01)
+        function togglePosMenu(e) {
+            if (e) e.stopPropagation();
+            const dropdown = document.getElementById('pos-menu-dropdown');
+            if (dropdown) {
+                dropdown.classList.toggle('hidden');
+            }
+        }
+
+        document.addEventListener('click', function(e) {
+            const container = document.getElementById('pos-menu-container');
+            const dropdown = document.getElementById('pos-menu-dropdown');
+            if (container && dropdown && !container.contains(e.target)) {
+                dropdown.classList.add('hidden');
+            }
+        });
+
+        // 2. Open Cash Drawer
+        async function triggerOpenDrawer() {
+            const dropdown = document.getElementById('pos-menu-dropdown');
+            if (dropdown) dropdown.classList.add('hidden');
+
+            try {
+                const res = await fetch("{{ route('shifts.open-drawer') }}", {
+                    method: 'POST',
+                    headers: {
+                        'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                        'Accept': 'application/json',
+                    }
+                });
+                const data = await res.json();
+                if (data.success) {
+                    showToast('🗄️ Cash Drawer opened');
+                }
+            } catch (err) {
+                console.error(err);
+                showToast('🗄️ Cash Drawer kicked');
+            }
+        }
+
+        function showToast(msg) {
+            let toast = document.getElementById('pos-toast-msg');
+            if (!toast) {
+                toast = document.createElement('div');
+                toast.id = 'pos-toast-msg';
+                toast.className = 'fixed bottom-5 left-1/2 -translate-x-1/2 z-[100] px-4 py-2.5 bg-gray-900 text-white font-bold text-xs rounded-xl shadow-xl transition-all duration-300 pointer-events-none opacity-0 translate-y-2';
+                document.body.appendChild(toast);
+            }
+            toast.innerText = msg;
+            toast.classList.remove('opacity-0', 'translate-y-2');
+            toast.classList.add('opacity-100', 'translate-y-0');
+            setTimeout(() => {
+                toast.classList.remove('opacity-100', 'translate-y-0');
+                toast.classList.add('opacity-0', 'translate-y-2');
+            }, 2500);
+        }
+
+        // 3. Shift Menu click (Routes to Start Shift or View/End Shift)
+        function handleShiftMenuClick() {
+            const dropdown = document.getElementById('pos-menu-dropdown');
+            if (dropdown) dropdown.classList.add('hidden');
+
+            if (window.activeShift) {
+                openReconcileModal();
+            } else {
+                openStartShiftModal();
+            }
+        }
+
+        // 4. Settings Modal (Matching video 00:02-00:03)
+        function openSettingsModal() {
+            const dropdown = document.getElementById('pos-menu-dropdown');
+            if (dropdown) dropdown.classList.add('hidden');
+
+            const toggle = document.getElementById('setting-user-shift');
+            if (toggle) {
+                toggle.checked = !!window.requireUserShift;
+                toggleUserShiftLabel(toggle);
+            }
+            const m = document.getElementById('pos-settings-modal');
+            m.classList.remove('hidden');
+            m.style.display = 'flex';
+        }
+
+        function closeSettingsModal() {
+            const m = document.getElementById('pos-settings-modal');
+            m.classList.add('hidden');
+            m.style.display = 'none';
+        }
+
+        function toggleUserShiftLabel(cb) {
+            const lbl = document.getElementById('setting-user-shift-text');
+            if (lbl) {
+                if (cb.checked) {
+                    lbl.innerText = 'Enabled';
+                    lbl.className = 'text-xs font-semibold text-[#155d49]';
+                } else {
+                    lbl.innerText = 'Disabled';
+                    lbl.className = 'text-xs font-semibold text-gray-400';
+                }
+            }
+        }
+
+        async function saveSettings() {
+            const btn = document.getElementById('btn-save-settings');
+            btn.disabled = true;
+            btn.innerText = 'Saving...';
+
+            const userShift = document.getElementById('setting-user-shift').checked;
+            const cashMov = document.getElementById('perm-cash-movement').checked;
+            const salesSum = document.getElementById('perm-sales-summary').checked;
+
+            try {
+                const res = await fetch("{{ route('shifts.settings') }}", {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                        'Accept': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        require_user_shift: userShift,
+                        shift_report_permission: {
+                            cash_movement: cashMov,
+                            sales_summary: salesSum
+                        }
+                    })
+                });
+                const data = await res.json();
+                if (data.success) {
+                    window.requireUserShift = userShift;
+                    updateShiftStatusUI();
+                    closeSettingsModal();
+                    showToast('✓ Settings saved successfully');
+                } else {
+                    alert(data.message || 'Failed to save settings');
+                }
+            } catch (err) {
+                console.error(err);
+                alert('An error occurred while saving settings.');
+            } finally {
+                btn.disabled = false;
+                btn.innerText = 'Save';
+            }
+        }
+
+        // 5. Start Shift Modal (Matching video 00:04-00:05)
+        function openStartShiftModal() {
+            document.getElementById('start-shift-cash').value = '2000';
+            const m = document.getElementById('start-shift-modal');
+            m.classList.remove('hidden');
+            m.style.display = 'flex';
+        }
+
+        function closeStartShiftModal() {
+            const m = document.getElementById('start-shift-modal');
+            m.classList.add('hidden');
+            m.style.display = 'none';
+        }
+
+        function setStartingCash(val) {
+            document.getElementById('start-shift-cash').value = val > 0 ? val.toFixed(2) : '';
+        }
+
+        async function submitStartShift() {
+            const btn = document.getElementById('btn-submit-start-shift');
+            const cashVal = parseFloat(document.getElementById('start-shift-cash').value || 0);
+            const cashierName = document.getElementById('cashier-name').value.trim() || 'Admin';
+            const openDrawer = document.getElementById('start-shift-drawer-checkbox').checked;
+
+            if (isNaN(cashVal) || cashVal < 0) {
+                alert('Please enter a valid starting cash amount.');
+                return;
+            }
+
+            btn.disabled = true;
+            btn.innerHTML = '<span>Starting...</span>';
+
+            try {
+                const res = await fetch("{{ route('shifts.start') }}", {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                        'Accept': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        starting_cash: cashVal,
+                        cashier_name: cashierName,
+                        open_cash_drawer: openDrawer
+                    })
+                });
+
+                const data = await res.json();
+                if (data.success) {
+                    window.activeShift = data.shift;
+                    window.shiftMetrics = data.metrics;
+                    updateShiftStatusUI();
+                    closeStartShiftModal();
+                    showToast(`✓ Shift started with ₱${cashVal.toLocaleString(undefined, {minimumFractionDigits: 2})}`);
+
+                    if (openDrawer) {
+                        triggerOpenDrawer();
+                    }
+                } else {
+                    alert(data.message || 'Failed to start shift');
+                }
+            } catch (err) {
+                console.error(err);
+                alert('Error starting shift. Please try again.');
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = '<span>Start Shift</span>';
+            }
+        }
+
+        // 6. Active Shift / Reconciliation Modal (Matching video 00:07-00:22)
+        async function openReconcileModal() {
+            const m = document.getElementById('shift-reconcile-modal');
+            m.classList.remove('hidden');
+            m.style.display = 'flex';
+            await fetchCurrentShift();
+        }
+
+        function closeReconcileModal() {
+            const m = document.getElementById('shift-reconcile-modal');
+            m.classList.add('hidden');
+            m.style.display = 'none';
+        }
+
+        async function fetchCurrentShift() {
+            try {
+                const res = await fetch("{{ route('shifts.current') }}");
+                const data = await res.json();
+                if (data.success && data.has_active_shift) {
+                    window.activeShift = data.shift;
+                    window.shiftMetrics = data.metrics;
+                    window.recentMovements = data.recent_movements || [];
+                    renderReconcileModal();
+                    updateShiftStatusUI();
+                } else if (!data.has_active_shift) {
+                    window.activeShift = null;
+                    window.shiftMetrics = null;
+                    updateShiftStatusUI();
+                    closeReconcileModal();
+                }
+            } catch (err) {
+                console.error('Error fetching shift:', err);
+            }
+        }
+
+        function renderReconcileModal() {
+            if (!window.activeShift || !window.shiftMetrics) return;
+
+            const shift = window.activeShift;
+            const m = window.shiftMetrics;
+
+            document.getElementById('reconcile-opened-by').innerText = shift.opened_by || 'Admin';
+            
+            // Format datetime matching video: 12/14/2025, 07:59 PM
+            const openDate = new Date(shift.opened_at);
+            document.getElementById('reconcile-opened-at').innerText = openDate.toLocaleString('en-US', {
+                month: '2-digit',
+                day: '2-digit',
+                year: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit',
+                hour12: true
+            });
+
+            document.getElementById('reconcile-starting-cash').innerText = `: ₱ ${m.starting_cash.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}`;
+            document.getElementById('reconcile-cash-in').innerText = `: ₱ ${m.cash_in.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}`;
+            document.getElementById('reconcile-cash-out').innerText = `: ₱ ${m.cash_out.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}`;
+            document.getElementById('reconcile-expected-cash').innerText = `: ₱ ${m.expected_cash.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}`;
+
+            // Cash movements
+            document.getElementById('reconcile-pos-cash-sales').innerText = `: ₱ ${m.pos_cash_sales.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}`;
+            
+            // Render list
+            renderCashMovementsList();
+
+            // Sales Summary
+            document.getElementById('reconcile-gross-sales').innerText = `: ₱ ${m.gross_sales.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}`;
+            document.getElementById('reconcile-discounts').innerText = `: ₱ ${m.discounts.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}`;
+            document.getElementById('reconcile-net-sales').innerText = `: ₱ ${m.net_sales.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}`;
+            document.getElementById('reconcile-tx-count').innerText = `: ${m.transactions_count}`;
+            document.getElementById('reconcile-void-count').innerText = `: ${m.voids_count}`;
+
+            // Breakdown
+            document.getElementById('reconcile-breakdown-cash').innerText = `: ₱ ${m.pos_cash_sales.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}`;
+            document.getElementById('reconcile-breakdown-online').innerText = `: ₱ ${m.online_sales.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}`;
+
+            // Set actual cash default to expected if empty
+            const actualInput = document.getElementById('reconcile-actual-cash');
+            if (!actualInput.value) {
+                actualInput.value = m.expected_cash;
+            }
+            liveUpdateReconciliation();
+        }
+
+        function renderCashMovementsList() {
+            const inContainer = document.getElementById('reconcile-manual-in-list');
+            const outContainer = document.getElementById('reconcile-manual-out-list');
+            if (!inContainer || !outContainer) return;
+
+            const ins = (window.recentMovements || []).filter(m => m.type === 'cash_in');
+            const outs = (window.recentMovements || []).filter(m => m.type === 'cash_out');
+
+            if (ins.length > 0) {
+                inContainer.innerHTML = ins.map(i => `
+                    <div class="flex justify-between items-center text-gray-700 py-0.5">
+                        <span class="truncate max-w-[200px] text-gray-500">• ${i.reason}</span>
+                        <span class="font-bold text-gray-900">+₱${parseFloat(i.amount).toFixed(2)}</span>
+                    </div>
+                `).join('');
+            } else {
+                inContainer.innerHTML = '';
+            }
+
+            if (outs.length > 0) {
+                outContainer.innerHTML = outs.map(o => `
+                    <div class="flex justify-between items-center text-gray-700 py-0.5">
+                        <span class="truncate max-w-[200px] text-gray-500">• ${o.reason}</span>
+                        <span class="font-bold text-rose-600">-₱${parseFloat(o.amount).toFixed(2)}</span>
+                    </div>
+                `).join('');
+            } else {
+                outContainer.innerHTML = '<p class="text-gray-400 text-center py-2">No Cash Out recorded</p>';
+            }
+        }
+
+        // Live calculation when typing actual cash (Matching video 00:09 - 00:14)
+        function liveUpdateReconciliation() {
+            if (!window.shiftMetrics) return;
+
+            const expected = window.shiftMetrics.expected_cash;
+            const actualRaw = document.getElementById('reconcile-actual-cash').value;
+            const actual = actualRaw !== '' ? parseFloat(actualRaw) : 0;
+            const diff = actual - expected;
+
+            const diffEl = document.getElementById('reconcile-difference');
+            const badgeEl = document.getElementById('reconcile-status-badge');
+            const liveInd = document.getElementById('reconcile-live-indicator');
+            const discBox = document.getElementById('reconcile-discrepancy-box');
+
+            const diffFormatted = Math.abs(diff).toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2});
+
+            if (Math.abs(diff) < 0.01) {
+                diffEl.innerText = `: ₱ 0.00`;
+                diffEl.className = 'font-bold text-gray-900';
+
+                badgeEl.innerText = 'Cash Balanced';
+                badgeEl.className = 'px-2 py-0.5 rounded-md text-[11px] font-bold bg-emerald-100 text-emerald-800';
+
+                liveInd.innerText = 'Cash Balanced';
+                liveInd.className = 'text-xs font-bold px-2.5 py-0.5 rounded-md bg-emerald-100 text-emerald-800';
+
+                discBox.classList.add('hidden');
+            } else if (diff < 0) {
+                diffEl.innerText = `: - ₱ ${diffFormatted}`;
+                diffEl.className = 'font-bold text-rose-600';
+
+                badgeEl.innerText = 'Cash Short';
+                badgeEl.className = 'px-2 py-0.5 rounded-md text-[11px] font-bold bg-rose-100 text-rose-700';
+
+                liveInd.innerText = `Cash Short (₱${diffFormatted})`;
+                liveInd.className = 'text-xs font-bold px-2.5 py-0.5 rounded-md bg-rose-100 text-rose-700';
+
+                discBox.classList.remove('hidden');
+            } else {
+                diffEl.innerText = `: + ₱ ${diffFormatted}`;
+                diffEl.className = 'font-bold text-emerald-700';
+
+                badgeEl.innerText = 'Cash Over';
+                badgeEl.className = 'px-2 py-0.5 rounded-md text-[11px] font-bold bg-teal-100 text-teal-800';
+
+                liveInd.innerText = `Cash Over (+₱${diffFormatted})`;
+                liveInd.className = 'text-xs font-bold px-2.5 py-0.5 rounded-md bg-teal-100 text-teal-800';
+
+                discBox.classList.remove('hidden');
+            }
+        }
+
+        // Accordion Helpers
+        function toggleAccordion(id) {
+            const el = document.getElementById(id);
+            const caret = document.getElementById(id + '-caret');
+            if (el) {
+                const isHidden = el.classList.toggle('hidden');
+                if (caret) {
+                    caret.style.transform = isHidden ? 'rotate(-90deg)' : 'rotate(0deg)';
+                }
+            }
+        }
+
+        function setCashMovementTab(tab) {
+            window.currentCmTab = tab;
+            const btnIn = document.getElementById('tab-cm-in');
+            const btnOut = document.getElementById('tab-cm-out');
+            const cIn = document.getElementById('cm-tab-in-content');
+            const cOut = document.getElementById('cm-tab-out-content');
+
+            if (tab === 'in') {
+                btnIn.className = 'px-3 py-1 bg-[#155d49] text-white text-xs font-bold rounded-lg shadow-xs';
+                btnOut.className = 'px-3 py-1 bg-gray-100 text-gray-600 text-xs font-bold rounded-lg hover:bg-gray-200';
+                cIn.classList.remove('hidden');
+                cOut.classList.add('hidden');
+            } else {
+                btnOut.className = 'px-3 py-1 bg-[#155d49] text-white text-xs font-bold rounded-lg shadow-xs';
+                btnIn.className = 'px-3 py-1 bg-gray-100 text-gray-600 text-xs font-bold rounded-lg hover:bg-gray-200';
+                cOut.classList.remove('hidden');
+                cIn.classList.add('hidden');
+            }
+        }
+
+        function setSalesSummaryTab(tab) {
+            window.currentSsTab = tab;
+            const btnSales = document.getElementById('tab-ss-sales');
+            const btnTx = document.getElementById('tab-ss-tx');
+            const cSales = document.getElementById('ss-tab-sales-content');
+            const cTx = document.getElementById('ss-tab-tx-content');
+
+            if (tab === 'sales') {
+                btnSales.className = 'px-3 py-1 bg-[#155d49] text-white text-xs font-bold rounded-lg shadow-xs';
+                btnTx.className = 'px-3 py-1 bg-gray-100 text-gray-600 text-xs font-bold rounded-lg hover:bg-gray-200';
+                cSales.classList.remove('hidden');
+                cTx.classList.add('hidden');
+            } else {
+                btnTx.className = 'px-3 py-1 bg-[#155d49] text-white text-xs font-bold rounded-lg shadow-xs';
+                btnSales.className = 'px-3 py-1 bg-gray-100 text-gray-600 text-xs font-bold rounded-lg hover:bg-gray-200';
+                cTx.classList.remove('hidden');
+                cSales.classList.add('hidden');
+            }
+        }
+
+        // 7. Manual Cash Movement (Pay In / Out)
+        function openCashMovementModal() {
+            selectCmType('cash_in');
+            document.getElementById('cm-amount').value = '';
+            document.getElementById('cm-reason').value = '';
+            const m = document.getElementById('cash-movement-modal');
+            m.classList.remove('hidden');
+            m.style.display = 'flex';
+        }
+
+        function closeCashMovementModal() {
+            const m = document.getElementById('cash-movement-modal');
+            m.classList.add('hidden');
+            m.style.display = 'none';
+        }
+
+        function selectCmType(type) {
+            window.currentCmType = type;
+            const btnIn = document.getElementById('cm-btn-in');
+            const btnOut = document.getElementById('cm-btn-out');
+
+            if (type === 'cash_in') {
+                btnIn.className = 'py-2 rounded-xl text-xs font-bold border-2 border-[#155d49] bg-[#f0f8f5] text-[#155d49] transition';
+                btnOut.className = 'py-2 rounded-xl text-xs font-bold border-2 border-gray-200 bg-white text-gray-700 hover:border-gray-300 transition';
+            } else {
+                btnOut.className = 'py-2 rounded-xl text-xs font-bold border-2 border-rose-600 bg-rose-50 text-rose-700 transition';
+                btnIn.className = 'py-2 rounded-xl text-xs font-bold border-2 border-gray-200 bg-white text-gray-700 hover:border-gray-300 transition';
+            }
+        }
+
+        async function submitCashMovement() {
+            const btn = document.getElementById('btn-save-cm');
+            const amount = parseFloat(document.getElementById('cm-amount').value || 0);
+            const reason = document.getElementById('cm-reason').value.trim();
+
+            if (isNaN(amount) || amount <= 0) {
+                alert('Please enter a valid amount.');
+                return;
+            }
+            if (!reason) {
+                alert('Please enter a reason or description.');
+                return;
+            }
+
+            btn.disabled = true;
+            btn.innerText = 'Saving...';
+
+            try {
+                const res = await fetch("{{ route('shifts.cash-movement') }}", {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                        'Accept': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        type: window.currentCmType,
+                        amount: amount,
+                        reason: reason,
+                    })
+                });
+
+                const data = await res.json();
+                if (data.success) {
+                    window.shiftMetrics = data.metrics;
+                    closeCashMovementModal();
+                    await fetchCurrentShift();
+                    showToast(`✓ Cash movement saved: ₱${amount.toFixed(2)}`);
+                } else {
+                    alert(data.message || 'Failed to save cash movement');
+                }
+            } catch (err) {
+                console.error(err);
+                alert('Error saving cash movement');
+            } finally {
+                btn.disabled = false;
+                btn.innerText = 'Save Movement';
+            }
+        }
+
+        // 8. End Shift with Supervisor Authorization Popup
+        function promptEndShiftSecurityAuth() {
+            const actualInput = document.getElementById('reconcile-actual-cash');
+            const actualVal = parseFloat(actualInput.value || 0);
+
+            if (isNaN(actualVal) || actualVal < 0 || actualInput.value.trim() === '') {
+                alert('Please enter a valid Actual Cash amount in the shift drawer before ending the shift.');
+                actualInput.focus();
+                return;
+            }
+
+            // Populate preview details in the authorization modal
+            const shift = window.activeShift || {};
+            const cashier = shift.opened_by || 'Cashier';
+            document.getElementById('shift-auth-summary-cashier').innerText = cashier;
+            document.getElementById('shift-auth-summary-actual').innerText = `₱${actualVal.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}`;
+
+            const badge = document.getElementById('reconcile-status-badge');
+            const authStatus = document.getElementById('shift-auth-summary-status');
+            if (badge && authStatus) {
+                authStatus.innerText = badge.innerText;
+                authStatus.className = badge.className;
+            }
+
+            // Reset credentials & errors
+            document.getElementById('shift-auth-email').value = '';
+            document.getElementById('shift-auth-password').value = '';
+            const errDiv = document.getElementById('shift-auth-error');
+            errDiv.innerText = '';
+            errDiv.classList.add('hidden');
+
+            // Open auth popup modal
+            const authModal = document.getElementById('shift-auth-modal');
+            authModal.classList.remove('hidden');
+            authModal.style.display = 'flex';
+            setTimeout(() => {
+                document.getElementById('shift-auth-email').focus();
+            }, 100);
+        }
+
+        function closeShiftAuthModal() {
+            const authModal = document.getElementById('shift-auth-modal');
+            authModal.classList.add('hidden');
+            authModal.style.display = 'none';
+        }
+
+        async function confirmEndShiftWithAuth() {
+            const email = document.getElementById('shift-auth-email').value.trim();
+            const password = document.getElementById('shift-auth-password').value;
+            const errDiv = document.getElementById('shift-auth-error');
+            const btn = document.getElementById('btn-confirm-auth-end-shift');
+
+            if (!email || !password) {
+                errDiv.innerText = 'Please enter both supervisor/manager email and password.';
+                errDiv.classList.remove('hidden');
+                return;
+            }
+
+            const actualVal = parseFloat(document.getElementById('reconcile-actual-cash').value || 0);
+            const reason = document.getElementById('reconcile-discrepancy-reason').value.trim();
+
+            btn.disabled = true;
+            btn.innerHTML = `
+                <svg class="animate-spin -ml-1 mr-2 h-4 w-4 text-white inline-block" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"></path></svg>
+                <span>Verifying Authorization...</span>
+            `;
+            errDiv.classList.add('hidden');
+
+            try {
+                const res = await fetch("{{ route('shifts.end') }}", {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                        'Accept': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        actual_cash: actualVal,
+                        discrepancy_reason: reason,
+                        auth_email: email,
+                        auth_password: password
+                    })
+                });
+
+                const data = await res.json();
+                if (data.success) {
+                    const closedShift = data.shift;
+                    const metrics = data.metrics;
+
+                    // Trigger thermal summary receipt print
+                    printShiftSummarySlip(closedShift, metrics);
+
+                    window.activeShift = null;
+                    window.shiftMetrics = null;
+                    updateShiftStatusUI();
+                    closeShiftAuthModal();
+                    closeReconcileModal();
+
+                    alert(`✓ Shift successfully ended!\nStatus: ${data.status_label}\nAuthorized By: ${data.authorized_by} (${data.authorizer_role})\nActual Cash: ₱${actualVal.toFixed(2)}\nDifference: ₱${parseFloat(closedShift.difference).toFixed(2)}`);
+                } else {
+                    errDiv.innerText = data.message || 'Authorization failed. Please try again.';
+                    errDiv.classList.remove('hidden');
+                }
+            } catch (err) {
+                console.error(err);
+                errDiv.innerText = 'Network or server error verifying authorization.';
+                errDiv.classList.remove('hidden');
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = '<span>Authorize & End Shift</span>';
+            }
+        }
+
+        // 9. Update UI Status Bar
+        function updateShiftStatusUI() {
+            const bar = document.getElementById('pos-shift-status-bar');
+            const dot = document.getElementById('pos-shift-indicator-dot');
+            const text = document.getElementById('pos-shift-status-text');
+            const actLabel = document.getElementById('pos-shift-action-label');
+            const cashierInput = document.getElementById('cashier-name');
+
+            if (!bar) return;
+
+            if (window.activeShift) {
+                bar.className = 'cursor-pointer flex items-center justify-between px-3 py-2 rounded-xl border text-[11px] font-semibold transition hover:shadow-xs bg-emerald-50/90 border-emerald-200 text-emerald-800';
+                if (dot) dot.className = 'w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse';
+                if (text) text.innerText = 'Shift Active: ' + (window.activeShift.opened_by || 'Admin');
+                if (actLabel) actLabel.innerHTML = '<span>Reconcile / End</span> <span>➔</span>';
+                if (cashierInput && window.activeShift.opened_by) {
+                    cashierInput.value = window.activeShift.opened_by;
+                }
+            } else {
+                bar.className = 'cursor-pointer flex items-center justify-between px-3 py-2 rounded-xl border text-[11px] font-semibold transition hover:shadow-xs bg-amber-50/90 border-amber-200 text-amber-800';
+                if (dot) dot.className = 'w-2.5 h-2.5 rounded-full bg-amber-500';
+                if (text) text.innerText = window.requireUserShift ? 'No Shift Active (Required)' : 'No Shift Active';
+                if (actLabel) actLabel.innerHTML = '<span>Start Shift</span> <span>➔</span>';
+            }
+        }
+
+        // 10. Thermal Shift Summary Slip Printing (Loyverse / Inventify Style)
+        function printShiftThermalReport() {
+            if (!window.activeShift || !window.shiftMetrics) {
+                alert('No active shift data available to print.');
+                return;
+            }
+            printShiftSummarySlip(window.activeShift, window.shiftMetrics);
+        }
+
+        function printShiftSummarySlip(shift, metrics) {
+            const expected = metrics.expected_cash;
+            const actual = parseFloat(document.getElementById('reconcile-actual-cash')?.value || shift.actual_cash || expected);
+            const diff = actual - expected;
+            const statusLabel = Math.abs(diff) < 0.01 ? 'CASH BALANCED' : (diff < 0 ? 'CASH SHORT' : 'CASH OVER');
+
+            const openedAtStr = new Date(shift.opened_at).toLocaleString('en-US', {
+                month: 'short', day: 'numeric', year: 'numeric',
+                hour: 'numeric', minute: '2-digit', hour12: true
+            });
+            const closedAtStr = shift.closed_at ? new Date(shift.closed_at).toLocaleString('en-US', {
+                month: 'short', day: 'numeric', year: 'numeric',
+                hour: 'numeric', minute: '2-digit', hour12: true
+            }) : 'Current (Active)';
+
+            const receiptHtml = `
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>Heim Shift Report</title>
+    <style>
+        @page { size: 58mm auto; margin: 0; }
+        @media print { body { width: 58mm; margin: 0; padding: 4px 6px; } }
+        body {
+            font-family: 'Courier New', Courier, monospace;
+            font-size: 11px;
+            line-height: 1.25;
+            color: #000;
+            background: #fff;
+            width: 58mm;
+            margin: 0 auto;
+            padding: 6px;
+            box-sizing: border-box;
+        }
+        .center { text-align: center; }
+        .bold { font-weight: bold; }
+        .dashed { border-top: 1px dashed #000; margin: 5px 0; }
+        .double { border-top: 2px solid #000; margin: 5px 0; }
+        .row { display: flex; justify-content: space-between; margin-bottom: 2px; }
+        .badge { display: inline-block; padding: 2px 4px; border: 1px solid #000; font-weight: bold; margin-top: 2px; }
+    </style>
+</head>
+<body>
+    <div class="center">
+        <div class="bold" style="font-size: 1.2em;">HEIM COFFEE SHOP</div>
+        <div class="bold" style="letter-spacing: 1px; margin-top: 2px;">*** SHIFT REPORT ***</div>
+    </div>
+
+    <div class="dashed"></div>
+
+    <div class="row"><span>Cashier:</span><span class="bold">${shift.opened_by || 'Admin'}</span></div>
+    <div class="row"><span>Opened:</span><span>${openedAtStr}</span></div>
+    <div class="row"><span>Closed:</span><span>${closedAtStr}</span></div>
+
+    <div class="double"></div>
+    <div class="bold center" style="margin-bottom: 4px;">CASH RECONCILIATION</div>
+
+    <div class="row"><span>Starting Cash:</span><span>₱${parseFloat(metrics.starting_cash).toFixed(2)}</span></div>
+    <div class="row"><span>Cash In (POS):</span><span>₱${parseFloat(metrics.pos_cash_sales).toFixed(2)}</span></div>
+    ${metrics.manual_cash_in > 0 ? `<div class="row"><span>Manual Cash In:</span><span>₱${parseFloat(metrics.manual_cash_in).toFixed(2)}</span></div>` : ''}
+    <div class="row"><span>Cash Out:</span><span>₱${parseFloat(metrics.cash_out).toFixed(2)}</span></div>
+    
+    <div class="dashed"></div>
+    <div class="row bold"><span>Expected Cash:</span><span>₱${parseFloat(expected).toFixed(2)}</span></div>
+    <div class="row bold"><span>Actual Cash:</span><span>₱${parseFloat(actual).toFixed(2)}</span></div>
+    <div class="row bold"><span>Difference:</span><span>${diff < 0 ? '-' : '+'}₱${Math.abs(diff).toFixed(2)}</span></div>
+
+    <div class="center" style="margin-top: 4px;">
+        <span class="badge">${statusLabel}</span>
+    </div>
+
+    <div class="dashed"></div>
+    <div class="bold center" style="margin-bottom: 4px;">SALES SUMMARY</div>
+    <div class="row"><span>Gross Sales:</span><span>₱${parseFloat(metrics.gross_sales).toFixed(2)}</span></div>
+    <div class="row"><span>Discounts:</span><span>₱${parseFloat(metrics.discounts).toFixed(2)}</span></div>
+    <div class="row bold"><span>Net Sales:</span><span>₱${parseFloat(metrics.net_sales).toFixed(2)}</span></div>
+    <div class="row"><span>Completed Trans:</span><span>${metrics.transactions_count}</span></div>
+    <div class="row"><span>Voids / Refunds:</span><span>${metrics.voids_count}</span></div>
+
+    <div class="dashed"></div>
+    <div class="bold center" style="margin-bottom: 4px;">PAYMENT BREAKDOWN</div>
+    <div class="row"><span>Cash Sales:</span><span>₱${parseFloat(metrics.pos_cash_sales).toFixed(2)}</span></div>
+    <div class="row"><span>Online Payment:</span><span>₱${parseFloat(metrics.online_sales).toFixed(2)}</span></div>
+
+    <div class="dashed"></div>
+    <div class="center" style="font-size: 0.85em; margin-top: 6px;">
+        <div>*** End of Shift Report ***</div>
+        <div style="margin-top: 4px;">Verified by: _________________</div>
+    </div>
+</body>
+</html>
+            `;
+
+            let printFrame = document.getElementById('heim-thermal-frame');
+            if (!printFrame) {
+                printFrame = document.createElement('iframe');
+                printFrame.id = 'heim-thermal-frame';
+                printFrame.style.position = 'fixed';
+                printFrame.style.right = '0';
+                printFrame.style.bottom = '0';
+                printFrame.style.width = '0';
+                printFrame.style.height = '0';
+                printFrame.style.border = '0';
+                document.body.appendChild(printFrame);
+            }
+
+            const doc = printFrame.contentWindow.document;
+            doc.open();
+            doc.write(receiptHtml);
+            doc.close();
+
+            setTimeout(() => {
+                printFrame.contentWindow.focus();
+                printFrame.contentWindow.print();
+            }, 300);
+        }
+
+        // Initialize shift on load
+        document.addEventListener('DOMContentLoaded', function() {
+            if (window.activeShift) {
+                fetchCurrentShift();
+            }
+            updateShiftStatusUI();
+        });
     </script>
     @endpush
 </x-app-layout>

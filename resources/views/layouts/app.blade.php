@@ -22,7 +22,7 @@
 
             <!-- Flash Messages -->
             @if (session('success'))
-                <div id="flash-success" class="max-w-[1650px] mx-auto mt-4 px-4 sm:px-6 lg:px-8">
+                <div id="flash-success" class="w-full px-4 sm:px-6 lg:px-8 xl:px-10 2xl:max-w-[1880px] 2xl:mx-auto mt-4">
                     <div class="bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded-xl relative shadow-sm" role="alert">
                         <span class="block sm:inline font-medium">{{ session('success') }}</span>
                         <button onclick="this.parentElement.parentElement.remove()" class="absolute top-0 bottom-0 right-0 px-4 py-3">
@@ -33,7 +33,7 @@
             @endif
 
             @if (session('error'))
-                <div id="flash-error" class="max-w-[1650px] mx-auto mt-4 px-4 sm:px-6 lg:px-8">
+                <div id="flash-error" class="w-full px-4 sm:px-6 lg:px-8 xl:px-10 2xl:max-w-[1880px] 2xl:mx-auto mt-4">
                     <div class="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-xl relative shadow-sm" role="alert">
                         <span class="block sm:inline font-medium">{{ session('error') }}</span>
                         <button onclick="this.parentElement.parentElement.remove()" class="absolute top-0 bottom-0 right-0 px-4 py-3">
@@ -46,7 +46,7 @@
             <!-- Page Heading (HCI: Information Scent, Clean Vertical Rhythm) -->
             @if (isset($header))
                 <header class="bg-white border-b border-gray-100 shadow-[0_1px_2px_rgba(0,0,0,0.02)]">
-                    <div class="max-w-[1650px] mx-auto py-3.5 sm:py-4 px-4 sm:px-6 lg:px-8">
+                    <div class="w-full px-4 sm:px-6 lg:px-8 xl:px-10 2xl:max-w-[1880px] 2xl:mx-auto py-3.5 sm:py-4">
                         {{ $header }}
                     </div>
                 </header>
