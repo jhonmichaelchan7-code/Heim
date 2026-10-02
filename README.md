@@ -131,6 +131,28 @@ If you are setting up the project on a fresh computer for the first time:
 
 ---
 
+## 🔧 Troubleshooting Guide
+
+### ❌ Problem: "These credentials do not match our records."
+If you try to log in with `owner@coffee.com` and password `password` and see this error:
+* **Cause**: The database was cleared or fresh migrations were run without seeding default accounts.
+* **Fix (Method 1 — 5-Second Terminal Command)**:
+  Open your terminal or Command Prompt in the project folder and run:
+  ```cmd
+  C:\xampp\php\php.exe artisan db:seed
+  ```
+  *(This immediately restores all default accounts, menu categories, sizes, and recipes without losing your system settings).*
+* **Fix (Method 2 — 1-Click Reset)**:
+  Double-click **`RESET-FRESH-DEMO-DATABASE.bat`** in the project folder to do a complete clean reset with all default data.
+
+### ❌ Problem: "419 | Page Expired"
+* **Cause**: Your browser tab was left open or idle for a long time, causing the security session token to expire.
+* **Fix**:
+  1. Simply refresh the page (press `F5` or `Ctrl + R`).
+  2. If on the logout page, you will automatically be redirected to `/login` smoothly.
+
+---
+
 ## 💡 Common Questions & Tips
 
 * **Why didn't I need to run `npm run build` when starting manually?**  
