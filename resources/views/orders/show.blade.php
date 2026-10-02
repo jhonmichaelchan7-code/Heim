@@ -106,6 +106,37 @@
                                                         @endforeach
                                                     </div>
                                                 @endif
+                                                @if($item->discount > 0 || ($item->discount_type && $item->discount_type !== 'none'))
+                                                    <div class="mt-1 flex flex-wrap items-center gap-1.5">
+                                                        @if($item->discount_type === 'pwd_senior')
+                                                            <span class="inline-flex items-center px-2 py-0.5 rounded text-[11px] font-bold bg-amber-100 text-amber-900 border border-amber-200">
+                                                                Senior/PWD (20% Off & VAT Exempt)
+                                                            </span>
+                                                            @if($item->id_number)
+                                                                <span class="text-[11px] font-mono font-semibold text-gray-600 bg-gray-100 px-1.5 py-0.5 rounded">
+                                                                    ID: {{ $item->id_number }}
+                                                                </span>
+                                                            @endif
+                                                        @elseif($item->discount_type === 'staff')
+                                                            <span class="inline-flex items-center px-2 py-0.5 rounded text-[11px] font-bold bg-blue-100 text-blue-900 border border-blue-200">
+                                                                Staff (10% Off)
+                                                            </span>
+                                                        @elseif($item->discount_type === 'custom_percentage')
+                                                            <span class="inline-flex items-center px-2 py-0.5 rounded text-[11px] font-bold bg-purple-100 text-purple-900 border border-purple-200">
+                                                                Custom ({{ $item->discount_rate }}% Off)
+                                                            </span>
+                                                        @elseif($item->discount_type === 'custom_fixed')
+                                                            <span class="inline-flex items-center px-2 py-0.5 rounded text-[11px] font-bold bg-purple-100 text-purple-900 border border-purple-200">
+                                                                Fixed (-₱{{ number_format($item->discount, 2) }})
+                                                            </span>
+                                                        @else
+                                                            <span class="inline-flex items-center px-2 py-0.5 rounded text-[11px] font-bold bg-gray-100 text-gray-700 border border-gray-200">
+                                                                Discount
+                                                            </span>
+                                                        @endif
+                                                        <span class="text-xs text-rose-600 font-bold">-₱{{ number_format($item->discount, 2) }}</span>
+                                                    </div>
+                                                @endif
                                             </td>
                                             <td class="py-4 px-4 text-center">
                                                 <span class="px-2.5 py-0.5 rounded-full text-xs font-bold bg-gray-100 text-gray-700 uppercase">
@@ -118,8 +149,13 @@
                                             <td class="py-4 px-4 text-center font-bold text-gray-900">
                                                 {{ $item->quantity }}
                                             </td>
-                                            <td class="py-4 px-4 text-right font-black text-gray-900">
-                                                ₱{{ number_format($item->subtotal, 2) }}
+                                            <td class="py-4 px-4 text-right">
+                                                @if($item->discount > 0)
+                                                    <span class="line-through text-xs text-gray-400 block font-normal">₱{{ number_format($item->subtotal, 2) }}</span>
+                                                    <span class="font-black text-gray-900">₱{{ number_format($item->total ?? ($item->subtotal - $item->discount), 2) }}</span>
+                                                @else
+                                                    <span class="font-black text-gray-900">₱{{ number_format($item->subtotal, 2) }}</span>
+                                                @endif
                                             </td>
                                         </tr>
                                     @endforeach
@@ -129,9 +165,29 @@
 
                         <div class="p-5 bg-[#f0f8f5]/50 border-t border-gray-100 space-y-2">
                             <div class="flex justify-between text-sm text-gray-600">
-                                <span>Subtotal</span>
+                                <span>Subtotal (Gross)</span>
                                 <span class="font-semibold text-gray-800">₱{{ number_format($order->subtotal, 2) }}</span>
                             </div>
+                            @if($order->discount > 0)
+                            <div class="flex justify-between text-sm text-rose-600">
+                                <span>Total Discounts</span>
+                                <span class="font-semibold">-₱{{ number_format($order->discount, 2) }}</span>
+                            </div>
+                            @endif
+                            <div class="flex justify-between text-sm text-gray-600">
+                                <span>Vatable Sales</span>
+                                <span class="font-semibold text-gray-800">₱{{ number_format($order->vatable_sales ?? max(0, $order->subtotal - $order->discount), 2) }}</span>
+                            </div>
+                            <div class="flex justify-between text-sm text-gray-600">
+                                <span>VAT ({{ number_format($order->tax_rate ?? 12, 0) }}%)</span>
+                                <span class="font-semibold text-gray-800">₱{{ number_format($order->tax, 2) }}</span>
+                            </div>
+                            @if(isset($order->vat_exempt_sales) && $order->vat_exempt_sales > 0)
+                            <div class="flex justify-between text-sm text-amber-700">
+                                <span>VAT-Exempt Sales (RA 9994/10754)</span>
+                                <span class="font-bold text-amber-800">₱{{ number_format($order->vat_exempt_sales, 2) }}</span>
+                            </div>
+                            @endif
                             <div class="flex justify-between text-base font-extrabold text-gray-900 pt-2 border-t border-gray-200">
                                 <span>Total Amount</span>
                                 <span class="text-2xl font-black text-[#155d49]">₱{{ number_format($order->total, 2) }}</span>
@@ -294,6 +350,20 @@
                         </div>
                     `).join('');
                 }
+
+                let discRow = '';
+                if (parseFloat(item.discount || 0) > 0) {
+                    const dLabel = item.discount_type === 'pwd_senior' 
+                        ? 'SC/PWD 20% (VAT-Exempt)' 
+                        : (item.discount_type === 'staff' ? 'Staff 10%' : 'Disc');
+                    discRow = `
+                        <div style="display:flex; justify-content:space-between; padding-left:10px; font-size:0.85em; color:#333; font-style:italic;">
+                            <span>> ${dLabel}${item.id_number ? ' ID:' + item.id_number : ''}</span>
+                            <span>-₱${parseFloat(item.discount).toFixed(2)}</span>
+                        </div>
+                    `;
+                }
+
                 return `
                     <div style="margin-bottom: 3px;">
                         <div style="display:flex; justify-content:space-between; font-weight:bold;">
@@ -301,6 +371,7 @@
                             <span>₱${parseFloat(item.subtotal).toFixed(2)}</span>
                         </div>
                         ${addons}
+                        ${discRow}
                     </div>
                 `;
             }).join('');
@@ -318,6 +389,9 @@
             const dateFormatted = new Date(orderData.created_at).toLocaleString('en-US', {
                 month: 'short', day: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit', hour12: true
             });
+
+            const vatablePrint = parseFloat(orderData.vatable_sales !== undefined && orderData.vatable_sales !== null ? orderData.vatable_sales : Math.max(0, orderData.subtotal - orderData.discount));
+            const vatExemptPrint = parseFloat(orderData.vat_exempt_sales || 0);
 
             const receiptHtml = `
 <!DOCTYPE html>
@@ -401,13 +475,27 @@
     <div class="dashed"></div>
 
     <div class="row">
-        <span>Subtotal:</span>
+        <span>Subtotal (Gross):</span>
         <span>₱${parseFloat(orderData.subtotal).toFixed(2)}</span>
     </div>
     <div class="row">
-        <span>Discount:</span>
-        <span>₱${parseFloat(orderData.discount || 0).toFixed(2)}</span>
+        <span>Total Discounts:</span>
+        <span>-₱${parseFloat(orderData.discount || 0).toFixed(2)}</span>
     </div>
+    <div class="row">
+        <span>Vatable Sales:</span>
+        <span>₱${vatablePrint.toFixed(2)}</span>
+    </div>
+    <div class="row">
+        <span>VAT (${parseFloat(orderData.tax_rate || 12).toFixed(0)}%):</span>
+        <span>₱${parseFloat(orderData.tax || 0).toFixed(2)}</span>
+    </div>
+    ${vatExemptPrint > 0 ? `
+    <div class="row">
+        <span>VAT-Exempt Sales:</span>
+        <span>₱${vatExemptPrint.toFixed(2)}</span>
+    </div>
+    ` : ''}
 
     <div class="double-dashed"></div>
 

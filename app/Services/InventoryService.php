@@ -97,6 +97,44 @@ class InventoryService
     }
 
     /**
+     * Process a stock-out transaction (waste, damage, expiration, transfer, manual pull-out).
+     */
+    public function stockOut(Ingredient $ingredient, float $quantity, string $reason, ?string $notes = null): InventoryTransaction
+    {
+        return DB::transaction(function () use ($ingredient, $quantity, $reason, $notes) {
+            $previousStock = $ingredient->current_stock;
+            $newStock = $previousStock - $quantity;
+
+            $ingredient->update(['current_stock' => $newStock]);
+
+            $transaction = InventoryTransaction::create([
+                'ingredient_id' => $ingredient->id,
+                'type' => 'stock_out',
+                'quantity' => $quantity,
+                'previous_stock' => $previousStock,
+                'new_stock' => $newStock,
+                'reason' => $reason,
+                'notes' => $notes,
+                'performed_by' => auth()->id(),
+            ]);
+
+            AuditLog::log(
+                'stock_out',
+                'inventory',
+                "Stock out: {$quantity} {$ingredient->unit} of {$ingredient->name} - {$reason}",
+                null,
+                'ingredient',
+                $ingredient->id,
+                ['quantity' => $quantity, 'reason' => $reason]
+            );
+
+            $this->checkStockLevel($ingredient->fresh());
+
+            return $transaction;
+        });
+    }
+
+    /**
      * Record waste/spoilage.
      */
     public function recordWaste(Ingredient $ingredient, float $quantity, string $reason, ?string $notes = null): InventoryTransaction

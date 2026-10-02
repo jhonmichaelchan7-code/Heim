@@ -34,8 +34,8 @@
 }
 </style>
 @endpush
-    <div class="py-3 min-h-[calc(100vh-4.5rem)] md:h-[calc(100vh-4.5rem)] flex flex-col">
-        <div class="w-full px-4 sm:px-6 lg:px-8 xl:px-10 2xl:max-w-[1880px] 2xl:mx-auto flex-1 flex flex-col md:flex-row gap-4 md:overflow-hidden overflow-visible">
+    <div class="py-3 min-h-[calc(100vh-4rem)] lg:h-screen lg:min-h-0 flex flex-col">
+        <div class="w-full px-3 sm:px-4 lg:px-6 2xl:max-w-[1880px] 2xl:mx-auto flex-1 flex flex-col md:flex-row gap-4 md:overflow-hidden overflow-visible">
             
             <!-- Left Column: Catalog & Categories (65% width) -->
             <div class="flex-1 flex flex-col bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden min-h-[480px] md:min-h-0">
@@ -195,14 +195,43 @@
 
                 <!-- Cart Footer & Checkout -->
                 <div class="p-4 border-t border-gray-100 bg-[#f0f8f5]/40 space-y-3">
-                    <div class="space-y-1.5 text-sm">
-                        <div class="flex justify-between text-gray-500 text-xs font-medium">
-                            <span>Total Drinks/Items</span>
+                    <!-- Quick Bulk Actions -->
+                    <div class="flex items-center justify-between text-xs">
+                        <span class="font-bold text-gray-700 uppercase tracking-wider text-[10px]">Line Item Discounts</span>
+                        <div class="flex items-center gap-1.5">
+                            <button type="button" onclick="openBulkSeniorModal()" class="px-2 py-0.5 rounded-lg font-bold text-[10px] bg-amber-100 hover:bg-amber-200 text-amber-900 transition" title="Apply Senior/PWD 20% to all items in cart">
+                                + Senior to All
+                            </button>
+                            <button type="button" onclick="clearAllCartDiscounts()" class="px-2 py-0.5 rounded-lg font-bold text-[10px] bg-gray-100 hover:bg-gray-200 text-gray-600 transition" title="Reset all line discounts">
+                                Reset
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="space-y-1 text-xs">
+                        <div class="flex justify-between text-gray-500 font-medium">
+                            <span>Total Items</span>
                             <span id="cart-item-count" class="font-bold text-gray-800">0</span>
                         </div>
-                        <div class="flex justify-between text-gray-500 text-xs font-medium">
-                            <span>Subtotal</span>
+                        <div class="flex justify-between text-gray-500 font-medium">
+                            <span>Subtotal (Gross)</span>
                             <span id="cart-subtotal" class="font-bold text-gray-800">₱0.00</span>
+                        </div>
+                        <div class="flex justify-between text-rose-600 font-medium">
+                            <span>Line Discounts</span>
+                            <span id="cart-discount" class="font-bold">-₱0.00</span>
+                        </div>
+                        <div class="flex justify-between text-gray-500 font-medium">
+                            <span>Vatable Sales</span>
+                            <span id="cart-taxable" class="font-bold text-gray-800">₱0.00</span>
+                        </div>
+                        <div class="flex justify-between text-gray-500 font-medium">
+                            <span>VAT (12%)</span>
+                            <span id="cart-tax" class="font-bold text-gray-800">₱0.00</span>
+                        </div>
+                        <div id="cart-vat-exempt-row" class="hidden flex justify-between text-amber-800 font-medium bg-amber-50/80 px-1.5 py-0.5 rounded-md">
+                            <span>VAT-Exempt Sales (RA 9994/10754)</span>
+                            <span id="cart-vat-exempt" class="font-bold">₱0.00</span>
                         </div>
                         <div class="flex justify-between text-base font-bold text-gray-900 pt-2 border-t border-gray-200">
                             <span>Total Due</span>
@@ -688,6 +717,144 @@
         </div>
     </div>
 
+    <!-- Line Item Discount Modal (RA 9994 / RA 10754 Compliant) -->
+    <div id="line-discount-modal" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+        <div class="bg-white rounded-3xl max-w-md w-full overflow-hidden shadow-2xl animate-fade-in border border-emerald-100 flex flex-col max-h-[90vh]">
+            <div class="p-5 border-b border-gray-100 flex justify-between items-center bg-[#f0f8f5] shrink-0">
+                <div class="flex items-center gap-2 text-[#155d49]">
+                    <span class="text-xl">🏷️</span>
+                    <div>
+                        <h3 class="font-extrabold text-gray-900 text-base">Line Item Discount</h3>
+                        <p id="line-disc-item-name" class="text-xs text-gray-500 font-semibold truncate max-w-[260px]">Product Name</p>
+                    </div>
+                </div>
+                <button type="button" onclick="closeLineDiscountModal()" class="text-gray-400 hover:text-gray-600 p-1">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                </button>
+            </div>
+
+            <div class="p-5 space-y-4 overflow-y-auto flex-1 custom-modal-scrollbar">
+                <div class="space-y-2">
+                    <label class="block text-xs font-bold text-gray-700 uppercase tracking-wider">Select Discount Type</label>
+
+                    <!-- None / Regular -->
+                    <label class="flex items-center justify-between p-3 rounded-2xl border-2 border-gray-200 hover:border-gray-300 cursor-pointer transition line-disc-opt" id="opt-disc-none">
+                        <div class="flex items-center gap-3">
+                            <input type="radio" name="line_discount_choice" value="none" onchange="onLineDiscountChoiceChange('none')" class="text-[#155d49] focus:ring-[#155d49]">
+                            <div>
+                                <div class="font-bold text-sm text-gray-900">Regular (No Discount)</div>
+                                <div class="text-[11px] text-gray-500">Standard 12% VAT applies</div>
+                            </div>
+                        </div>
+                        <span class="text-xs font-bold text-gray-400">0%</span>
+                    </label>
+
+                    <!-- Senior / PWD -->
+                    <label class="flex items-center justify-between p-3 rounded-2xl border-2 border-amber-200 bg-amber-50/50 hover:bg-amber-50 cursor-pointer transition line-disc-opt" id="opt-disc-pwd_senior">
+                        <div class="flex items-center gap-3">
+                            <input type="radio" name="line_discount_choice" value="pwd_senior" onchange="onLineDiscountChoiceChange('pwd_senior')" class="text-[#155d49] focus:ring-[#155d49]">
+                            <div>
+                                <div class="font-bold text-sm text-amber-950 flex items-center gap-1.5">
+                                    <span>Senior Citizen / PWD</span>
+                                    <span class="px-1.5 py-0.5 rounded bg-amber-200 text-amber-900 text-[10px] font-black uppercase">RA 9994/10754</span>
+                                </div>
+                                <div class="text-[11px] text-amber-800">20% Discount + 100% VAT Exemption</div>
+                            </div>
+                        </div>
+                        <span class="text-xs font-black text-amber-900">20%</span>
+                    </label>
+
+                    <!-- Senior / PWD ID Input (Visible when Senior/PWD is chosen) -->
+                    <div id="line-disc-id-section" class="hidden p-3 space-y-1 bg-amber-50/90 rounded-xl border border-amber-200">
+                        <label class="block text-[11px] font-bold text-amber-950">Senior Citizen / PWD ID Number (OSCA / LGU)</label>
+                        <input type="text" id="line-disc-id-input" placeholder="e.g. OSCA-2024-00123 / PWD-0987" class="w-full px-3 py-1.5 text-xs bg-white border border-amber-300 rounded-lg focus:ring-2 focus:ring-amber-500 outline-none font-mono" />
+                        <p class="text-[10px] text-amber-700">Records OSCA/PWD ID for Philippine regulatory audit compliance.</p>
+                    </div>
+
+                    <!-- Staff / Employee -->
+                    <label class="flex items-center justify-between p-3 rounded-2xl border-2 border-gray-200 hover:border-gray-300 cursor-pointer transition line-disc-opt" id="opt-disc-employee">
+                        <div class="flex items-center gap-3">
+                            <input type="radio" name="line_discount_choice" value="employee" onchange="onLineDiscountChoiceChange('employee')" class="text-[#155d49] focus:ring-[#155d49]">
+                            <div>
+                                <div class="font-bold text-sm text-gray-900">Staff / Employee Discount</div>
+                                <div class="text-[11px] text-gray-500">10% Discount (Vatable)</div>
+                            </div>
+                        </div>
+                        <span class="text-xs font-bold text-[#155d49]">10%</span>
+                    </label>
+
+                    <!-- Custom Percentage -->
+                    <label class="flex items-center justify-between p-3 rounded-2xl border-2 border-gray-200 hover:border-gray-300 cursor-pointer transition line-disc-opt" id="opt-disc-custom_pct">
+                        <div class="flex items-center gap-3">
+                            <input type="radio" name="line_discount_choice" value="custom_pct" onchange="onLineDiscountChoiceChange('custom_pct')" class="text-[#155d49] focus:ring-[#155d49]">
+                            <div>
+                                <div class="font-bold text-sm text-gray-900">Custom Percentage (%)</div>
+                                <div class="text-[11px] text-gray-500">Promo / Manager special discount</div>
+                            </div>
+                        </div>
+                        <span class="text-xs font-bold text-purple-700">%</span>
+                    </label>
+
+                    <div id="line-disc-custom-pct-section" class="hidden p-3 space-y-1 bg-purple-50 rounded-xl border border-purple-200">
+                        <label class="block text-[11px] font-bold text-purple-950">Discount Percentage (%)</label>
+                        <input type="number" id="line-disc-pct-input" min="0" max="100" step="1" placeholder="e.g. 15" oninput="updateLineDiscountPreview()" class="w-full px-3 py-1.5 text-xs bg-white border border-purple-300 rounded-lg focus:ring-2 focus:ring-purple-500 outline-none font-bold text-gray-900" />
+                    </div>
+
+                    <!-- Custom Fixed Amount -->
+                    <label class="flex items-center justify-between p-3 rounded-2xl border-2 border-gray-200 hover:border-gray-300 cursor-pointer transition line-disc-opt" id="opt-disc-custom_fixed">
+                        <div class="flex items-center gap-3">
+                            <input type="radio" name="line_discount_choice" value="custom_fixed" onchange="onLineDiscountChoiceChange('custom_fixed')" class="text-[#155d49] focus:ring-[#155d49]">
+                            <div>
+                                <div class="font-bold text-sm text-gray-900">Custom Fixed Amount (₱)</div>
+                                <div class="text-[11px] text-gray-500">Deduct fixed peso amount</div>
+                            </div>
+                        </div>
+                        <span class="text-xs font-bold text-purple-700">₱</span>
+                    </label>
+
+                    <div id="line-disc-custom-fixed-section" class="hidden p-3 space-y-1 bg-purple-50 rounded-xl border border-purple-200">
+                        <label class="block text-[11px] font-bold text-purple-950">Discount Amount (₱)</label>
+                        <input type="number" id="line-disc-fixed-input" min="0" step="0.01" placeholder="e.g. 50.00" oninput="updateLineDiscountPreview()" class="w-full px-3 py-1.5 text-xs bg-white border border-purple-300 rounded-lg focus:ring-2 focus:ring-purple-500 outline-none font-bold text-gray-900" />
+                    </div>
+                </div>
+
+                <!-- Live Preview Card -->
+                <div class="bg-gray-50 p-3.5 rounded-2xl border border-gray-200 text-xs space-y-1.5">
+                    <div class="flex justify-between text-gray-500">
+                        <span>Item Subtotal:</span>
+                        <span id="line-prev-subtotal" class="font-bold text-gray-900">₱0.00</span>
+                    </div>
+                    <div class="flex justify-between text-rose-600">
+                        <span>Line Discount:</span>
+                        <span id="line-prev-discount" class="font-bold">-₱0.00</span>
+                    </div>
+                    <div class="flex justify-between text-gray-500">
+                        <span>Tax Status:</span>
+                        <span id="line-prev-tax-status" class="font-bold text-emerald-800">Vatable (12%)</span>
+                    </div>
+                    <div class="flex justify-between text-gray-900 font-black text-sm pt-1.5 border-t border-gray-200">
+                        <span>Line Total:</span>
+                        <span id="line-prev-total" class="text-base text-[#155d49]">₱0.00</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="p-4 bg-gray-50 border-t border-gray-100 flex items-center justify-between gap-2 shrink-0">
+                <button type="button" onclick="applyLineDiscountToAll()" class="px-3 py-2 rounded-xl border border-emerald-300 bg-white hover:bg-emerald-50 text-[11px] font-bold text-[#155d49] transition">
+                    Apply to All Items
+                </button>
+                <div class="flex gap-2">
+                    <button type="button" onclick="closeLineDiscountModal()" class="px-3 py-2 rounded-xl border border-gray-200 text-xs font-bold text-gray-600 hover:bg-gray-100 transition">
+                        Cancel
+                    </button>
+                    <button type="button" onclick="saveLineDiscount()" class="px-4 py-2 rounded-xl bg-[#155d49] hover:bg-[#114a3b] text-xs font-bold text-white shadow-sm transition">
+                        Apply Discount
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- Payment Modal -->
     <div id="payment-modal" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
         <div class="bg-white rounded-3xl max-w-lg w-full overflow-hidden shadow-2xl border border-emerald-100">
@@ -708,9 +875,16 @@
 
             <div class="p-6 space-y-5">
                 <!-- Total Amount Banner -->
-                <div class="bg-[#f0f8f5] border border-emerald-200 rounded-2xl p-5 text-center">
+                <div class="bg-[#f0f8f5] border border-emerald-200 rounded-2xl p-4 text-center space-y-2">
                     <span class="text-xs font-bold text-[#155d49] uppercase tracking-wider">Total Amount Due</span>
-                    <h2 id="pay-modal-total" class="text-4xl font-black text-[#155d49] mt-0.5">₱0.00</h2>
+                    <h2 id="pay-modal-total" class="text-4xl font-black text-[#155d49]">₱0.00</h2>
+                    <div class="flex flex-wrap justify-center items-center gap-x-4 gap-y-1 text-xs text-gray-600 pt-2 border-t border-emerald-200/60 font-medium">
+                        <span>Subtotal: <strong id="pay-modal-subtotal" class="text-gray-900">₱0.00</strong></span>
+                        <span id="pay-modal-discount-wrap">Line Discounts: <strong id="pay-modal-discount" class="text-rose-600">-₱0.00</strong></span>
+                        <span>Vatable Sales: <strong id="pay-modal-vatable" class="text-gray-900">₱0.00</strong></span>
+                        <span>VAT (12%): <strong id="pay-modal-tax" class="text-gray-900">₱0.00</strong></span>
+                        <span id="pay-modal-exempt-wrap" class="hidden">VAT-Exempt: <strong id="pay-modal-exempt" class="text-amber-800">₱0.00</strong></span>
+                    </div>
                 </div>
 
                 <!-- Payment Method Tabs -->
@@ -835,12 +1009,24 @@
                     <!-- Totals Breakdown -->
                     <div class="space-y-1 text-[11px]">
                         <div class="flex justify-between text-gray-700">
-                            <span>Subtotal:</span>
+                            <span>Subtotal (Gross):</span>
                             <span id="rec-subtotal" class="font-semibold text-black">₱0.00</span>
                         </div>
                         <div class="flex justify-between text-gray-700">
-                            <span>Discount:</span>
+                            <span>Total Discounts:</span>
                             <span id="rec-discount" class="font-semibold text-black">₱0.00</span>
+                        </div>
+                        <div class="flex justify-between text-gray-700">
+                            <span>Vatable Sales:</span>
+                            <span id="rec-taxable" class="font-semibold text-black">₱0.00</span>
+                        </div>
+                        <div class="flex justify-between text-gray-700">
+                            <span>VAT (12%):</span>
+                            <span id="rec-tax" class="font-semibold text-black">₱0.00</span>
+                        </div>
+                        <div id="rec-exempt-row" class="hidden flex justify-between text-gray-700">
+                            <span>VAT-Exempt Sales:</span>
+                            <span id="rec-vat-exempt" class="font-semibold text-black">₱0.00</span>
                         </div>
                         
                         <div class="border-t-2 border-dashed border-black my-1.5"></div>
@@ -1027,7 +1213,7 @@
             const addOnTotal = selectedAddOns.reduce((sum, a) => sum + a.price, 0);
             const itemTotal = (unitPrice + addOnTotal) * modalQuantity;
 
-            // Add to cart array
+            // Add to cart array with per-line discount fields
             cart.push({
                 product_id: currentModalProduct.id,
                 product_name: currentModalProduct.name,
@@ -1036,7 +1222,15 @@
                 unit_price: unitPrice,
                 add_ons: selectedAddOns,
                 quantity: modalQuantity,
-                subtotal: itemTotal
+                subtotal: itemTotal,
+                discount_type: 'none',
+                discount_rate: 0,
+                discount_value: 0,
+                discount: 0,
+                is_vat_exempt: false,
+                tax: 0,
+                total: itemTotal,
+                id_number: ''
             });
 
             renderCart();
@@ -1053,6 +1247,272 @@
                     cartEl.classList.remove('ring-2', 'ring-[#155d49]', 'ring-offset-2');
                 }, 1200);
             }
+        }
+
+        // Cart State & Per-Line Calculations (RA 9994 / RA 10754 Compliant)
+        const TAX_RATE = {{ (float) \App\Models\PosSetting::get('tax_rate', 12.00) }};
+        let activeDiscountItemIndex = null;
+
+        function calculateCartTotals() {
+            let subtotal = 0;
+            let totalDiscount = 0;
+            let vatableSales = 0;
+            let vatExemptSales = 0;
+            let totalTax = 0;
+
+            cart.forEach(item => {
+                const itemGross = item.subtotal;
+                subtotal += itemGross;
+
+                let itemDisc = 0;
+                let isExempt = false;
+
+                if (item.discount_type === 'pwd_senior') {
+                    // RA 9994 / RA 10754: 20% discount + VAT Exemption on senior/PWD item
+                    itemDisc = Math.round(itemGross * 0.20 * 100) / 100;
+                    isExempt = true;
+                } else if (item.discount_type === 'employee') {
+                    itemDisc = Math.round(itemGross * 0.10 * 100) / 100;
+                } else if (item.discount_type === 'custom_pct') {
+                    const pct = Math.min(100, Math.max(0, parseFloat(item.discount_value) || 0));
+                    itemDisc = Math.round(itemGross * (pct / 100) * 100) / 100;
+                } else if (item.discount_type === 'custom_fixed') {
+                    itemDisc = Math.min(itemGross, Math.max(0, parseFloat(item.discount_value) || 0));
+                }
+
+                itemDisc = Math.round(itemDisc * 100) / 100;
+                item.discount = itemDisc;
+                totalDiscount += itemDisc;
+
+                const net = Math.max(0, itemGross - itemDisc);
+
+                if (isExempt) {
+                    item.is_vat_exempt = true;
+                    item.tax = 0.00;
+                    item.total = net;
+                    vatExemptSales += net;
+                } else {
+                    item.is_vat_exempt = false;
+                    const tax = Math.round((net * (TAX_RATE / 100)) * 100) / 100;
+                    item.tax = tax;
+                    item.total = Math.round((net + tax) * 100) / 100;
+                    vatableSales += net;
+                    totalTax += tax;
+                }
+            });
+
+            const totalDue = Math.round((vatableSales + totalTax + vatExemptSales) * 100) / 100;
+
+            return {
+                subtotal: Math.round(subtotal * 100) / 100,
+                discount: Math.round(totalDiscount * 100) / 100,
+                vatableSales: Math.round(vatableSales * 100) / 100,
+                vatExemptSales: Math.round(vatExemptSales * 100) / 100,
+                tax: Math.round(totalTax * 100) / 100,
+                taxRate: TAX_RATE,
+                totalDue
+            };
+        }
+
+        // Line Item Discount Modal Handlers
+        function openLineDiscountModal(index) {
+            activeDiscountItemIndex = index;
+            const item = cart[index];
+            if (!item) return;
+
+            document.getElementById('line-disc-item-name').innerText = `${item.quantity}x ${item.product_name} (${item.size_name})`;
+
+            const type = item.discount_type || 'none';
+            setLineDiscountRadio(type);
+
+            const idInput = document.getElementById('line-disc-id-input');
+            if (idInput) idInput.value = item.id_number || '';
+
+            const pctInput = document.getElementById('line-disc-pct-input');
+            if (pctInput) pctInput.value = (type === 'custom_pct' ? (item.discount_value || '') : '');
+
+            const fixedInput = document.getElementById('line-disc-fixed-input');
+            if (fixedInput) fixedInput.value = (type === 'custom_fixed' ? (item.discount_value || '') : '');
+
+            onLineDiscountChoiceChange(type);
+            updateLineDiscountPreview();
+
+            document.getElementById('line-discount-modal').classList.remove('hidden');
+        }
+
+        function closeLineDiscountModal() {
+            document.getElementById('line-discount-modal').classList.add('hidden');
+            activeDiscountItemIndex = null;
+        }
+
+        function setLineDiscountRadio(type) {
+            const rad = document.querySelector(`input[name="line_discount_choice"][value="${type}"]`);
+            if (rad) rad.checked = true;
+        }
+
+        function onLineDiscountChoiceChange(type) {
+            document.querySelectorAll('.line-disc-opt').forEach(el => {
+                el.classList.remove('border-[#155d49]', 'bg-[#f0f8f5]');
+                el.classList.add('border-gray-200');
+            });
+            const opt = document.getElementById(`opt-disc-${type}`);
+            if (opt) {
+                opt.classList.remove('border-gray-200');
+                opt.classList.add('border-[#155d49]', 'bg-[#f0f8f5]');
+            }
+
+            const idSec = document.getElementById('line-disc-id-section');
+            const pctSec = document.getElementById('line-disc-custom-pct-section');
+            const fixSec = document.getElementById('line-disc-custom-fixed-section');
+
+            if (idSec) idSec.classList.toggle('hidden', type !== 'pwd_senior');
+            if (pctSec) pctSec.classList.toggle('hidden', type !== 'custom_pct');
+            if (fixSec) fixSec.classList.toggle('hidden', type !== 'custom_fixed');
+
+            updateLineDiscountPreview();
+        }
+
+        function updateLineDiscountPreview() {
+            if (activeDiscountItemIndex === null || !cart[activeDiscountItemIndex]) return;
+            const item = cart[activeDiscountItemIndex];
+            const itemGross = item.subtotal;
+
+            const rad = document.querySelector('input[name="line_discount_choice"]:checked');
+            const type = rad ? rad.value : 'none';
+
+            let disc = 0;
+            let isExempt = false;
+
+            if (type === 'pwd_senior') {
+                disc = Math.round(itemGross * 0.20 * 100) / 100;
+                isExempt = true;
+            } else if (type === 'employee') {
+                disc = Math.round(itemGross * 0.10 * 100) / 100;
+            } else if (type === 'custom_pct') {
+                const pct = Math.min(100, Math.max(0, parseFloat(document.getElementById('line-disc-pct-input')?.value) || 0));
+                disc = Math.round(itemGross * (pct / 100) * 100) / 100;
+            } else if (type === 'custom_fixed') {
+                const val = parseFloat(document.getElementById('line-disc-fixed-input')?.value) || 0;
+                disc = Math.min(itemGross, Math.max(0, val));
+            }
+
+            const net = Math.max(0, itemGross - disc);
+            const tax = isExempt ? 0 : Math.round((net * (TAX_RATE / 100)) * 100) / 100;
+            const total = Math.round((net + tax) * 100) / 100;
+
+            document.getElementById('line-prev-subtotal').innerText = `₱${itemGross.toFixed(2)}`;
+            document.getElementById('line-prev-discount').innerText = `-₱${disc.toFixed(2)}`;
+            const taxEl = document.getElementById('line-prev-tax-status');
+            if (taxEl) {
+                taxEl.innerText = isExempt ? 'VAT-Exempt (0%) • RA 9994/10754' : `Vatable (${TAX_RATE}%) = +₱${tax.toFixed(2)}`;
+                taxEl.className = isExempt ? 'font-bold text-amber-800' : 'font-bold text-emerald-800';
+            }
+            document.getElementById('line-prev-total').innerText = `₱${total.toFixed(2)}`;
+        }
+
+        function saveLineDiscount() {
+            if (activeDiscountItemIndex === null || !cart[activeDiscountItemIndex]) return;
+            const item = cart[activeDiscountItemIndex];
+
+            const rad = document.querySelector('input[name="line_discount_choice"]:checked');
+            const type = rad ? rad.value : 'none';
+
+            item.discount_type = type;
+
+            if (type === 'pwd_senior') {
+                item.discount_rate = 20.00;
+                item.discount_value = 20.00;
+                item.id_number = document.getElementById('line-disc-id-input')?.value.trim() || '';
+            } else if (type === 'employee') {
+                item.discount_rate = 10.00;
+                item.discount_value = 10.00;
+                item.id_number = '';
+            } else if (type === 'custom_pct') {
+                const pct = Math.min(100, Math.max(0, parseFloat(document.getElementById('line-disc-pct-input')?.value) || 0));
+                item.discount_rate = pct;
+                item.discount_value = pct;
+                item.id_number = '';
+            } else if (type === 'custom_fixed') {
+                const val = parseFloat(document.getElementById('line-disc-fixed-input')?.value) || 0;
+                item.discount_rate = item.subtotal > 0 ? (val / item.subtotal) * 100 : 0;
+                item.discount_value = val;
+                item.id_number = '';
+            } else {
+                item.discount_type = 'none';
+                item.discount_rate = 0;
+                item.discount_value = 0;
+                item.id_number = '';
+            }
+
+            closeLineDiscountModal();
+            renderCart();
+        }
+
+        function applyLineDiscountToAll() {
+            const rad = document.querySelector('input[name="line_discount_choice"]:checked');
+            const type = rad ? rad.value : 'none';
+            const idNo = document.getElementById('line-disc-id-input')?.value.trim() || '';
+            const pctVal = parseFloat(document.getElementById('line-disc-pct-input')?.value) || 0;
+            const fixVal = parseFloat(document.getElementById('line-disc-fixed-input')?.value) || 0;
+
+            cart.forEach(item => {
+                item.discount_type = type;
+                if (type === 'pwd_senior') {
+                    item.discount_rate = 20.00;
+                    item.discount_value = 20.00;
+                    item.id_number = idNo;
+                } else if (type === 'employee') {
+                    item.discount_rate = 10.00;
+                    item.discount_value = 10.00;
+                    item.id_number = '';
+                } else if (type === 'custom_pct') {
+                    item.discount_rate = pctVal;
+                    item.discount_value = pctVal;
+                    item.id_number = '';
+                } else if (type === 'custom_fixed') {
+                    item.discount_rate = 0;
+                    item.discount_value = fixVal;
+                    item.id_number = '';
+                } else {
+                    item.discount_type = 'none';
+                    item.discount_rate = 0;
+                    item.discount_value = 0;
+                    item.id_number = '';
+                }
+            });
+
+            closeLineDiscountModal();
+            renderCart();
+        }
+
+        function removeLineDiscount(index) {
+            if (cart[index]) {
+                cart[index].discount_type = 'none';
+                cart[index].discount_rate = 0;
+                cart[index].discount_value = 0;
+                cart[index].id_number = '';
+                renderCart();
+            }
+        }
+
+        function openBulkSeniorModal() {
+            if (cart.length === 0) {
+                alert('Add items to cart before applying discounts.');
+                return;
+            }
+            openLineDiscountModal(0);
+            setLineDiscountRadio('pwd_senior');
+            onLineDiscountChoiceChange('pwd_senior');
+        }
+
+        function clearAllCartDiscounts() {
+            cart.forEach(item => {
+                item.discount_type = 'none';
+                item.discount_rate = 0;
+                item.discount_value = 0;
+                item.id_number = '';
+            });
+            renderCart();
         }
 
         // Cart Rendering
@@ -1072,6 +1532,11 @@
                 `;
                 document.getElementById('cart-item-count').innerText = '0';
                 document.getElementById('cart-subtotal').innerText = '₱0.00';
+                document.getElementById('cart-discount').innerText = '-₱0.00';
+                document.getElementById('cart-taxable').innerText = '₱0.00';
+                document.getElementById('cart-tax').innerText = '₱0.00';
+                const vatExemptRow = document.getElementById('cart-vat-exempt-row');
+                if (vatExemptRow) vatExemptRow.classList.add('hidden');
                 document.getElementById('cart-total').innerText = '₱0.00';
                 document.getElementById('btn-total').innerText = '0.00';
                 document.getElementById('checkout-btn').disabled = true;
@@ -1085,21 +1550,61 @@
             }
 
             container.innerHTML = '';
-            let total = 0;
             let count = 0;
 
             cart.forEach((item, index) => {
-                total += item.subtotal;
                 count += item.quantity;
 
                 const itemRow = document.createElement('div');
-                itemRow.className = 'py-2.5 flex flex-col gap-1 text-sm';
+                itemRow.className = 'py-2.5 flex flex-col gap-1.5 text-sm border-b border-gray-100 last:border-b-0';
                 
                 let addOnsHtml = '';
-                if (item.add_ons.length > 0) {
+                if (item.add_ons && item.add_ons.length > 0) {
                     addOnsHtml = `<div class="text-[11px] text-[#155d49] pl-2 border-l-2 border-[#155d49]/30">
                         ${item.add_ons.map(a => `+ ${a.name} (₱${a.price.toFixed(2)})`).join('<br>')}
                     </div>`;
+                }
+
+                // Line discount badge / button
+                let discBadge = '';
+                const discType = item.discount_type || 'none';
+                const discAmt = item.discount || 0;
+
+                if (discType === 'pwd_senior') {
+                    discBadge = `
+                        <div class="flex items-center gap-1.5 flex-wrap">
+                            <button type="button" onclick="openLineDiscountModal(${index})" class="inline-flex items-center gap-1 px-2 py-0.5 rounded-lg bg-amber-50 border border-amber-300 text-amber-900 text-[10px] font-bold cursor-pointer hover:bg-amber-100 transition">
+                                <span>🏷️ Senior/PWD 20% (-₱${discAmt.toFixed(2)}) [VAT-Exempt]</span>
+                                ${item.id_number ? `<span class="font-mono text-amber-700 font-semibold">• ID: ${item.id_number}</span>` : ''}
+                            </button>
+                            <button type="button" onclick="removeLineDiscount(${index})" class="text-rose-500 hover:text-rose-700 text-xs font-black p-0.5" title="Remove discount">✕</button>
+                        </div>
+                    `;
+                } else if (discType === 'employee') {
+                    discBadge = `
+                        <div class="flex items-center gap-1.5 flex-wrap">
+                            <button type="button" onclick="openLineDiscountModal(${index})" class="inline-flex items-center gap-1 px-2 py-0.5 rounded-lg bg-blue-50 border border-blue-300 text-blue-900 text-[10px] font-bold cursor-pointer hover:bg-blue-100 transition">
+                                <span>🏷️ Staff 10% (-₱${discAmt.toFixed(2)})</span>
+                            </button>
+                            <button type="button" onclick="removeLineDiscount(${index})" class="text-rose-500 hover:text-rose-700 text-xs font-black p-0.5" title="Remove discount">✕</button>
+                        </div>
+                    `;
+                } else if (discType === 'custom_pct' || discType === 'custom_fixed') {
+                    const tag = discType === 'custom_pct' ? `${item.discount_value}%` : `₱${item.discount_value}`;
+                    discBadge = `
+                        <div class="flex items-center gap-1.5 flex-wrap">
+                            <button type="button" onclick="openLineDiscountModal(${index})" class="inline-flex items-center gap-1 px-2 py-0.5 rounded-lg bg-purple-50 border border-purple-300 text-purple-900 text-[10px] font-bold cursor-pointer hover:bg-purple-100 transition">
+                                <span>🏷️ Custom ${tag} (-₱${discAmt.toFixed(2)})</span>
+                            </button>
+                            <button type="button" onclick="removeLineDiscount(${index})" class="text-rose-500 hover:text-rose-700 text-xs font-black p-0.5" title="Remove discount">✕</button>
+                        </div>
+                    `;
+                } else {
+                    discBadge = `
+                        <button type="button" onclick="openLineDiscountModal(${index})" class="self-start inline-flex items-center gap-1 px-2 py-0.5 rounded-lg border border-dashed border-gray-300 hover:border-[#155d49] text-[10px] text-gray-500 hover:text-[#155d49] bg-white hover:bg-emerald-50 font-semibold transition cursor-pointer">
+                            <span>+ Line Discount</span>
+                        </button>
+                    `;
                 }
 
                 itemRow.innerHTML = `
@@ -1111,22 +1616,40 @@
                         <span class="font-bold text-gray-900 text-sm">₱${item.subtotal.toFixed(2)}</span>
                     </div>
                     ${addOnsHtml}
-                    <div class="flex justify-between items-center mt-1.5">
+                    ${discBadge}
+                    <div class="flex justify-between items-center mt-1">
                         <div class="flex items-center gap-1.5">
                             <button onclick="updateCartQty(${index}, -1)" class="w-6 h-6 rounded-lg bg-gray-100 hover:bg-gray-200 font-bold text-xs flex items-center justify-center">-</button>
                             <span class="w-6 text-center text-xs font-black text-gray-900">${item.quantity}</span>
                             <button onclick="updateCartQty(${index}, 1)" class="w-6 h-6 rounded-lg bg-gray-100 hover:bg-gray-200 font-bold text-xs flex items-center justify-center">+</button>
                         </div>
-                        <button onclick="removeFromCart(${index})" class="text-xs text-rose-500 hover:text-rose-700 font-semibold">Remove</button>
+                        <button onclick="removeFromCart(${index})" class="px-2.5 py-1 bg-rose-600 hover:bg-rose-700 text-white rounded-lg text-xs font-bold transition flex items-center gap-1 shadow-xs cursor-pointer" title="Remove item from order">
+                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+                            <span>Remove</span>
+                        </button>
                     </div>
                 `;
                 container.appendChild(itemRow);
             });
 
+            const totals = calculateCartTotals();
             document.getElementById('cart-item-count').innerText = count;
-            document.getElementById('cart-subtotal').innerText = `₱${total.toFixed(2)}`;
-            document.getElementById('cart-total').innerText = `₱${total.toFixed(2)}`;
-            document.getElementById('btn-total').innerText = total.toFixed(2);
+            document.getElementById('cart-subtotal').innerText = `₱${totals.subtotal.toFixed(2)}`;
+            document.getElementById('cart-discount').innerText = `-₱${totals.discount.toFixed(2)}`;
+            document.getElementById('cart-taxable').innerText = `₱${totals.vatableSales.toFixed(2)}`;
+            document.getElementById('cart-tax').innerText = `₱${totals.tax.toFixed(2)}`;
+
+            const vatExemptRow = document.getElementById('cart-vat-exempt-row');
+            const vatExemptEl = document.getElementById('cart-vat-exempt');
+            if (totals.vatExemptSales > 0) {
+                if (vatExemptRow) vatExemptRow.classList.remove('hidden');
+                if (vatExemptEl) vatExemptEl.innerText = `₱${totals.vatExemptSales.toFixed(2)}`;
+            } else {
+                if (vatExemptRow) vatExemptRow.classList.add('hidden');
+            }
+
+            document.getElementById('cart-total').innerText = `₱${totals.totalDue.toFixed(2)}`;
+            document.getElementById('btn-total').innerText = totals.totalDue.toFixed(2);
             document.getElementById('checkout-btn').disabled = false;
 
             if (mobileBadge) {
@@ -1157,6 +1680,9 @@
             if (cart.length === 0) return;
             if (confirm('Are you sure you want to clear the entire cart?')) {
                 cart = [];
+                currentDiscountType = 'none';
+                currentDiscountVal = 0;
+                setCartDiscount('none');
                 renderCart();
             }
         }
@@ -1177,10 +1703,24 @@
                 return;
             }
 
-            const total = cart.reduce((sum, item) => sum + item.subtotal, 0);
-            document.getElementById('pay-modal-total').innerText = `₱${total.toFixed(2)}`;
+            const totals = calculateCartTotals();
+            document.getElementById('pay-modal-total').innerText = `₱${totals.totalDue.toFixed(2)}`;
+            document.getElementById('pay-modal-subtotal').innerText = `₱${totals.subtotal.toFixed(2)}`;
+            document.getElementById('pay-modal-discount').innerText = `-₱${totals.discount.toFixed(2)}`;
+            document.getElementById('pay-modal-vatable').innerText = `₱${totals.vatableSales.toFixed(2)}`;
+            document.getElementById('pay-modal-tax').innerText = `₱${totals.tax.toFixed(2)}`;
+
+            const exemptWrap = document.getElementById('pay-modal-exempt-wrap');
+            const exemptEl = document.getElementById('pay-modal-exempt');
+            if (totals.vatExemptSales > 0) {
+                if (exemptWrap) exemptWrap.classList.remove('hidden');
+                if (exemptEl) exemptEl.innerText = `₱${totals.vatExemptSales.toFixed(2)}`;
+            } else {
+                if (exemptWrap) exemptWrap.classList.add('hidden');
+            }
+
             setPaymentMethod('cash');
-            document.getElementById('amount-tendered').value = total.toFixed(2);
+            document.getElementById('amount-tendered').value = totals.totalDue.toFixed(2);
             calculateChange();
             document.getElementById('payment-modal').classList.remove('hidden');
         }
@@ -1199,15 +1739,17 @@
                 activeBtn.className = 'pm-btn active py-3.5 px-4 border-2 border-[#155d49] bg-[#f0f8f5] text-[#155d49] rounded-xl font-bold text-sm flex items-center justify-center gap-2 transition shadow-sm';
             }
 
+            const totals = calculateCartTotals();
             if (method === 'cash') {
                 document.getElementById('cash-section').classList.remove('hidden');
                 document.getElementById('reference-section').classList.add('hidden');
+                document.getElementById('amount-tendered').value = totals.totalDue.toFixed(2);
+                calculateChange();
             } else {
                 // Online Payment (GCash / Maya / QRPh)
                 document.getElementById('cash-section').classList.add('hidden');
                 document.getElementById('reference-section').classList.remove('hidden');
-                const total = cart.reduce((sum, item) => sum + item.subtotal, 0);
-                document.getElementById('amount-tendered').value = total.toFixed(2);
+                document.getElementById('amount-tendered').value = totals.totalDue.toFixed(2);
                 calculateChange();
                 setTimeout(() => {
                     const refInput = document.getElementById('reference-number');
@@ -1217,9 +1759,9 @@
         }
 
         function setQuickCash(amount) {
-            const total = cart.reduce((sum, item) => sum + item.subtotal, 0);
+            const totals = calculateCartTotals();
             if (amount === 'exact') {
-                document.getElementById('amount-tendered').value = total.toFixed(2);
+                document.getElementById('amount-tendered').value = totals.totalDue.toFixed(2);
             } else {
                 document.getElementById('amount-tendered').value = amount;
             }
@@ -1227,9 +1769,9 @@
         }
 
         function calculateChange() {
-            const total = cart.reduce((sum, item) => sum + item.subtotal, 0);
+            const totals = calculateCartTotals();
             const tendered = parseFloat(document.getElementById('amount-tendered').value) || 0;
-            const change = Math.max(0, tendered - total);
+            const change = Math.max(0, tendered - totals.totalDue);
             document.getElementById('change-display').innerText = `₱${change.toFixed(2)}`;
         }
 
@@ -1253,25 +1795,30 @@
         // Submit Order via AJAX (with automatic CSRF token refresh)
         async function submitOrder() {
             const cashierName = document.getElementById('cashier-name').value.trim();
-            const total = cart.reduce((sum, item) => sum + item.subtotal, 0);
-            const amountTendered = paymentMethod === 'cash' ? (parseFloat(document.getElementById('amount-tendered').value) || 0) : total;
+            const totals = calculateCartTotals();
+            const amountTendered = paymentMethod === 'cash' ? (parseFloat(document.getElementById('amount-tendered').value) || 0) : totals.totalDue;
             const referenceNumber = document.getElementById('reference-number').value.trim();
 
-            if (paymentMethod === 'cash' && amountTendered < total) {
-                alert('Amount tendered is less than the total due.');
+            if (paymentMethod === 'cash' && amountTendered < totals.totalDue) {
+                alert('Amount tendered is less than the total due (₱' + totals.totalDue.toFixed(2) + ').');
                 return;
             }
 
             const payload = {
                 cashier_name: cashierName,
                 payment_method: paymentMethod,
+                discount: totals.discount,
                 amount_tendered: amountTendered,
                 reference_number: referenceNumber,
                 items: cart.map(item => ({
                     product_id: item.product_id,
                     size_id: item.size_id,
                     quantity: item.quantity,
-                    add_ons: item.add_ons.map(a => a.id)
+                    add_ons: item.add_ons.map(a => a.id),
+                    discount_type: item.discount_type || 'none',
+                    discount_rate: item.discount_rate || 0,
+                    discount: item.discount || 0,
+                    id_number: item.id_number || ''
                 }))
             };
 
@@ -1309,7 +1856,7 @@
                 if (data.success) {
                     closePaymentModal();
                     cart = [];
-                    renderCart();
+                    clearAllCartDiscounts();
                     showReceiptModal(data.order);
                 } else {
                     alert('Error: ' + data.message);
@@ -1373,9 +1920,28 @@
                 ? new Date().toLocaleString('en-US', { month: 'short', day: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit', hour12: true })
                 : orderDate.toLocaleString('en-US', { month: 'short', day: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit', hour12: true });
             document.getElementById('rec-cashier').innerText = order.cashier_name;
-            document.getElementById('rec-subtotal').innerText = `₱${parseFloat(order.subtotal).toFixed(2)}`;
+            const subtotal = parseFloat(order.subtotal || 0);
             const discount = parseFloat(order.discount || 0);
-            document.getElementById('rec-discount').innerText = `₱${discount.toFixed(2)}`;
+            const vatableSales = parseFloat(order.vatable_sales !== undefined ? order.vatable_sales : Math.max(0, subtotal - discount));
+            const vatExemptSales = parseFloat(order.vat_exempt_sales || 0);
+            const tax = parseFloat(order.tax || 0);
+
+            document.getElementById('rec-subtotal').innerText = `₱${subtotal.toFixed(2)}`;
+            document.getElementById('rec-discount').innerText = `-₱${discount.toFixed(2)}`;
+            const taxableEl = document.getElementById('rec-taxable');
+            if (taxableEl) taxableEl.innerText = `₱${vatableSales.toFixed(2)}`;
+            const taxEl = document.getElementById('rec-tax');
+            if (taxEl) taxEl.innerText = `₱${tax.toFixed(2)}`;
+
+            const exemptRow = document.getElementById('rec-exempt-row');
+            const exemptEl = document.getElementById('rec-vat-exempt');
+            if (vatExemptSales > 0) {
+                if (exemptRow) exemptRow.classList.remove('hidden');
+                if (exemptEl) exemptEl.innerText = `₱${vatExemptSales.toFixed(2)}`;
+            } else {
+                if (exemptRow) exemptRow.classList.add('hidden');
+            }
+
             document.getElementById('rec-total').innerText = `₱${parseFloat(order.total).toFixed(2)}`;
             
             const payment = order.payment || {};
@@ -1409,12 +1975,26 @@
                     `).join('');
                 }
 
+                let discHtml = '';
+                if (parseFloat(item.discount || 0) > 0) {
+                    const dTypeLabel = item.discount_type === 'pwd_senior' 
+                        ? 'Senior/PWD 20% (VAT-Exempt)' 
+                        : (item.discount_type === 'employee' ? 'Staff 10%' : 'Discount');
+                    discHtml = `
+                        <div class="flex justify-between pl-3 text-[10px] text-gray-700 italic">
+                            <span>> ${dTypeLabel}${item.id_number ? ` • ID: ${item.id_number}` : ''}</span>
+                            <span>-₱${parseFloat(item.discount).toFixed(2)}</span>
+                        </div>
+                    `;
+                }
+
                 itemDiv.innerHTML = `
                     <div class="flex justify-between font-bold text-black">
                         <span class="truncate pr-2">${item.quantity}x ${item.product_name} (${item.size_name})</span>
                         <span class="font-mono">₱${parseFloat(item.subtotal).toFixed(2)}</span>
                     </div>
                     ${addonsHtml}
+                    ${discHtml}
                 `;
                 itemsContainer.appendChild(itemDiv);
             });
@@ -1445,6 +2025,20 @@
                         </div>
                     `).join('');
                 }
+
+                let discRow = '';
+                if (parseFloat(item.discount || 0) > 0) {
+                    const dLabel = item.discount_type === 'pwd_senior' 
+                        ? 'SC/PWD 20% (VAT-Exempt)' 
+                        : (item.discount_type === 'employee' ? 'Staff 10%' : 'Disc');
+                    discRow = `
+                        <div style="display:flex; justify-content:space-between; padding-left:10px; font-size:0.85em; color:#333; font-style:italic;">
+                            <span>> ${dLabel}${item.id_number ? ' ID:' + item.id_number : ''}</span>
+                            <span>-₱${parseFloat(item.discount).toFixed(2)}</span>
+                        </div>
+                    `;
+                }
+
                 return `
                     <div style="margin-bottom: 3px;">
                         <div style="display:flex; justify-content:space-between; font-weight:bold;">
@@ -1452,6 +2046,7 @@
                             <span>₱${parseFloat(item.subtotal).toFixed(2)}</span>
                         </div>
                         ${addons}
+                        ${discRow}
                     </div>
                 `;
             }).join('');
@@ -1469,6 +2064,9 @@
             const dateFormatted = new Date(currentReceiptOrder.created_at).toLocaleString('en-US', {
                 month: 'short', day: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit', hour12: true
             });
+
+            const vatablePrint = parseFloat(currentReceiptOrder.vatable_sales !== undefined ? currentReceiptOrder.vatable_sales : Math.max(0, currentReceiptOrder.subtotal - currentReceiptOrder.discount));
+            const vatExemptPrint = parseFloat(currentReceiptOrder.vat_exempt_sales || 0);
 
             const receiptHtml = `
 <!DOCTYPE html>
@@ -1552,13 +2150,27 @@
     <div class="dashed"></div>
 
     <div class="row">
-        <span>Subtotal:</span>
+        <span>Subtotal (Gross):</span>
         <span>₱${parseFloat(currentReceiptOrder.subtotal).toFixed(2)}</span>
     </div>
     <div class="row">
-        <span>Discount:</span>
-        <span>₱${parseFloat(currentReceiptOrder.discount || 0).toFixed(2)}</span>
+        <span>Total Discounts:</span>
+        <span>-₱${parseFloat(currentReceiptOrder.discount || 0).toFixed(2)}</span>
     </div>
+    <div class="row">
+        <span>Vatable Sales:</span>
+        <span>₱${vatablePrint.toFixed(2)}</span>
+    </div>
+    <div class="row">
+        <span>VAT (${parseFloat(currentReceiptOrder.tax_rate || 12).toFixed(0)}%):</span>
+        <span>₱${parseFloat(currentReceiptOrder.tax || 0).toFixed(2)}</span>
+    </div>
+    ${vatExemptPrint > 0 ? `
+    <div class="row">
+        <span>VAT-Exempt Sales:</span>
+        <span>₱${vatExemptPrint.toFixed(2)}</span>
+    </div>
+    ` : ''}
 
     <div class="double-dashed"></div>
 

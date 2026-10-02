@@ -9,13 +9,16 @@
                     Periodic revenue tracking, cashier shift performance, and best selling beverages
                 </p>
             </div>
-            <div class="flex items-center gap-2">
+            <div class="flex items-center gap-2 no-print">
                 <a href="{{ route('reports.inventory') }}" class="px-3.5 py-2 bg-white hover:bg-gray-50 text-gray-700 font-bold text-xs rounded-xl border border-gray-300 shadow-sm transition">
                     Inventory Report &rarr;
                 </a>
-                <button onclick="window.print()" class="px-3.5 py-2 bg-gray-800 hover:bg-gray-900 text-white font-bold text-xs rounded-xl shadow-sm transition flex items-center gap-1.5">
+                <button onclick="exportReportCsv('sales-report-table', 'sales-report.csv')" class="px-3.5 py-2 bg-[#155d49] hover:bg-[#114a3b] text-white font-bold text-xs rounded-xl shadow-sm transition flex items-center gap-1.5">
+                    Export CSV
+                </button>
+                <button onclick="printReportTable('sales-report-table')" class="px-3.5 py-2 bg-gray-800 hover:bg-gray-900 text-white font-bold text-xs rounded-xl shadow-sm transition flex items-center gap-1.5">
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"/></svg>
-                    Print Report
+                    Print Data
                 </button>
             </div>
         </div>
@@ -136,7 +139,7 @@
                 </div>
 
                 <div class="overflow-x-auto">
-                    <table class="w-full text-left text-sm">
+                    <table id="sales-report-table" class="w-full text-left text-sm">
                         <thead class="bg-gray-50 text-gray-500 text-xs uppercase font-semibold border-b border-gray-100">
                             <tr>
                                 <th class="py-3 px-4"># Rank</th>
@@ -182,3 +185,56 @@
         </div>
     </div>
 </x-app-layout>
+
+@push('scripts')
+<script>
+    function exportReportCsv(tableId, fileName) {
+        const table = document.getElementById(tableId);
+        if (!table) return;
+
+        const rows = Array.from(table.querySelectorAll('tr')).map(row => Array.from(row.children).map(cell => '"' + (cell.textContent || '').replace(/"/g, '""').trim() + '"').join(','));
+        const csv = rows.join('\n');
+        const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = fileName;
+        link.click();
+        URL.revokeObjectURL(url);
+    }
+
+    function printReportTable(tableId) {
+        const table = document.getElementById(tableId);
+        if (!table) return;
+
+        const printWindow = window.open('', '_blank', 'width=900,height=700');
+        if (!printWindow) {
+            alert('Please allow pop-ups to print the report data.');
+            return;
+        }
+
+        const html = `
+            <html>
+                <head>
+                    <title>Report Data</title>
+                    <style>
+                        body { font-family: Arial, sans-serif; padding: 24px; color: #111827; }
+                        table { width: 100%; border-collapse: collapse; font-size: 12px; }
+                        th, td { border: 1px solid #d1d5db; padding: 8px; text-align: left; }
+                        th { background: #f3f4f6; }
+                        @media print { body { margin: 0; } }
+                    </style>
+                </head>
+                <body>
+                    <h2 style="margin-bottom: 16px;">Sales Report</h2>
+                    ${table.outerHTML}
+                </body>
+            </html>
+        `;
+
+        printWindow.document.write(html);
+        printWindow.document.close();
+        setTimeout(() => printWindow.print(), 500);
+    }
+</script>
+@endpush

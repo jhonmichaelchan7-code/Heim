@@ -141,6 +141,27 @@ class InventoryController extends Controller
         return view('inventory.stock-in', compact('ingredients'));
     }
 
+    public function stockOut(Request $request, InventoryService $inventoryService)
+    {
+        $request->validate([
+            'ingredient_id' => 'required|exists:ingredients,id',
+            'quantity' => 'required|numeric|min:0.01',
+            'reason' => 'required|string|max:255',
+            'notes' => 'nullable|string|max:1000',
+        ]);
+
+        $ingredient = Ingredient::findOrFail($request->ingredient_id);
+        $inventoryService->stockOut($ingredient, $request->quantity, $request->reason, $request->notes);
+
+        return redirect()->route('inventory.index')->with('success', "Stock out: {$request->quantity} {$ingredient->unit} of {$ingredient->name} deducted successfully.");
+    }
+
+    public function stockOutForm()
+    {
+        $ingredients = Ingredient::orderBy('name')->get();
+        return view('inventory.stock-out', compact('ingredients'));
+    }
+
     public function wasteForm()
     {
         $ingredients = Ingredient::orderBy('name')->get();

@@ -17,30 +17,22 @@ class DatabaseSeeder extends Seeder
     public function run(): void
     {
         // ── Users ──
-        User::create([
-            'name' => 'Owner Admin',
-            'email' => 'owner@coffee.com',
-            'password' => bcrypt('password'),
-            'role' => 'owner',
-        ]);
-        User::create([
-            'name' => 'Maria Santos',
-            'email' => 'manager@coffee.com',
-            'password' => bcrypt('password'),
-            'role' => 'manager',
-        ]);
-        User::create([
-            'name' => 'Carlos Reyes',
-            'email' => 'supervisor@coffee.com',
-            'password' => bcrypt('password'),
-            'role' => 'supervisor',
-        ]);
-        User::create([
-            'name' => 'anna',
-            'email' => 'cashier@coffee.com',
-            'password' => bcrypt('password'),
-            'role' => 'cashier',
-        ]);
+        User::firstOrCreate(
+            ['email' => 'owner@coffee.com'],
+            ['name' => 'Owner Admin', 'password' => bcrypt('password'), 'role' => 'owner']
+        );
+        User::firstOrCreate(
+            ['email' => 'manager@coffee.com'],
+            ['name' => 'Maria Santos', 'password' => bcrypt('password'), 'role' => 'manager']
+        );
+        User::firstOrCreate(
+            ['email' => 'supervisor@coffee.com'],
+            ['name' => 'Carlos Reyes', 'password' => bcrypt('password'), 'role' => 'supervisor']
+        );
+        User::firstOrCreate(
+            ['email' => 'cashier@coffee.com'],
+            ['name' => 'anna', 'password' => bcrypt('password'), 'role' => 'cashier']
+        );
 
         // ── Sizes ──
         $size12 = Size::create(['name' => '12oz', 'sort_order' => 1]);

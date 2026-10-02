@@ -45,6 +45,32 @@
                         @error('role') <span class="text-xs text-red-500">{{ $message }}</span> @enderror
                     </div>
 
+                    @if($user->id !== auth()->id())
+                    <div>
+                        <label class="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-2">Account Status</label>
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                            <label class="flex items-center gap-3 p-3.5 rounded-xl border-2 cursor-pointer transition {{ old('is_active', $user->is_active) ? 'border-[#155d49] bg-[#f0f8f5]' : 'border-gray-200 bg-white hover:border-gray-300' }}">
+                                <input type="radio" name="is_active" value="1" {{ old('is_active', $user->is_active) ? 'checked' : '' }} class="text-[#155d49] focus:ring-[#155d49]">
+                                <div>
+                                    <span class="text-sm font-bold text-gray-900 block">Active Account</span>
+                                    <span class="text-xs text-gray-500">Can log in and operate POS or back-office</span>
+                                </div>
+                            </label>
+                            <label class="flex items-center gap-3 p-3.5 rounded-xl border-2 cursor-pointer transition {{ !old('is_active', $user->is_active) ? 'border-rose-500 bg-rose-50' : 'border-gray-200 bg-white hover:border-gray-300' }}">
+                                <input type="radio" name="is_active" value="0" {{ !old('is_active', $user->is_active) ? 'checked' : '' }} class="text-rose-600 focus:ring-rose-500">
+                                <div>
+                                    <span class="text-sm font-bold text-gray-900 block">Deactivated / Inactive</span>
+                                    <span class="text-xs text-gray-500">Account login blocked without deleting</span>
+                                </div>
+                            </label>
+                        </div>
+                    </div>
+                    @else
+                    <div class="p-3 bg-emerald-50 rounded-xl border border-emerald-200 text-xs text-[#155d49] font-medium">
+                        <strong>Account Status:</strong> Active (You cannot deactivate your own current login session).
+                    </div>
+                    @endif
+
                     <div class="border-t border-gray-100 pt-4">
                         <p class="text-xs font-bold text-gray-700 uppercase tracking-wider mb-2">Change Password (Optional)</p>
                         <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">

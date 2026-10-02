@@ -15,6 +15,8 @@ return new class extends Migration
             $table->foreignId('user_id')->nullable()->constrained()->onDelete('set null');
             $table->decimal('subtotal', 12, 2)->default(0);
             $table->decimal('discount', 12, 2)->default(0);
+            $table->decimal('tax_rate', 5, 2)->default(12.00);
+            $table->decimal('tax', 12, 2)->default(0);
             $table->decimal('total', 12, 2)->default(0);
             $table->enum('status', ['pending', 'completed', 'refunded', 'cancelled'])->default('pending');
             $table->text('notes')->nullable();

@@ -11,12 +11,16 @@ class Order extends Model
 
     protected $fillable = [
         'order_number', 'cashier_name', 'user_id', 'shift_id',
-        'subtotal', 'discount', 'total', 'status', 'notes',
+        'subtotal', 'discount', 'tax_rate', 'tax', 'vatable_sales', 'vat_exempt_sales', 'total', 'status', 'notes',
     ];
 
     protected $casts = [
         'subtotal' => 'decimal:2',
         'discount' => 'decimal:2',
+        'tax_rate' => 'decimal:2',
+        'tax' => 'decimal:2',
+        'vatable_sales' => 'decimal:2',
+        'vat_exempt_sales' => 'decimal:2',
         'total' => 'decimal:2',
     ];
 

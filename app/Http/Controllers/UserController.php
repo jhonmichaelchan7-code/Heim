@@ -51,14 +51,21 @@ class UserController extends Controller
             'name' => 'required|string|max:255',
             'email' => 'required|email|unique:users,email,' . $user->id,
             'role' => 'required|in:cashier,supervisor,manager,owner',
+            'is_active' => 'nullable|boolean',
             'password' => 'nullable|string|min:6|confirmed',
         ]);
 
-        $user->update([
+        $updateData = [
             'name' => $request->name,
             'email' => $request->email,
             'role' => $request->role,
-        ]);
+        ];
+
+        if ($request->has('is_active') && $user->id !== auth()->id()) {
+            $updateData['is_active'] = (bool) $request->is_active;
+        }
+
+        $user->update($updateData);
 
         if ($request->filled('password')) {
             $user->update(['password' => bcrypt($request->password)]);

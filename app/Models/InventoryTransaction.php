@@ -34,6 +34,7 @@ class InventoryTransaction extends Model
     {
         return match ($this->type) {
             'stock_in' => 'Stock In',
+            'stock_out' => 'Stock Out',
             'sales_consumption' => 'Sales Consumption',
             'waste' => 'Waste/Spoilage',
             'adjustment' => 'Adjustment',
@@ -45,6 +46,7 @@ class InventoryTransaction extends Model
     {
         return match ($this->type) {
             'stock_in' => 'green',
+            'stock_out' => 'rose',
             'sales_consumption' => 'blue',
             'waste' => 'red',
             'adjustment' => 'yellow',

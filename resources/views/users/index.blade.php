@@ -55,16 +55,18 @@
                                     </td>
                                     <td class="py-4 px-4 text-center">
                                         @if($user->id !== auth()->id())
-                                            <form method="POST" action="{{ route('users.toggle-active', $user) }}">
+                                            <form method="POST" action="{{ route('users.toggle-active', $user) }}" class="inline-block">
                                                 @csrf
-                                                <button type="submit" class="px-3 py-1 rounded-full text-xs font-bold transition
+                                                <button type="submit" title="Click to toggle status (currently {{ $user->is_active ? 'Active' : 'Inactive' }})" class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold transition shadow-xs cursor-pointer
                                                     {{ $user->is_active ? 'bg-emerald-100 text-[#155d49] hover:bg-emerald-200' : 'bg-gray-100 text-gray-500 hover:bg-gray-200' }}
                                                 ">
+                                                    <span class="w-1.5 h-1.5 rounded-full {{ $user->is_active ? 'bg-[#155d49]' : 'bg-gray-400' }}"></span>
                                                     {{ $user->is_active ? 'Active' : 'Inactive' }}
                                                 </button>
                                             </form>
                                         @else
-                                            <span class="px-3 py-1 rounded-full text-xs font-bold bg-emerald-100 text-[#155d49]">
+                                            <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-emerald-100 text-[#155d49]">
+                                                <span class="w-1.5 h-1.5 rounded-full bg-[#155d49]"></span>
                                                 Active (You)
                                             </span>
                                         @endif
@@ -76,6 +78,16 @@
                                         <a href="{{ route('users.edit', $user) }}" class="inline-flex items-center px-3 py-1.5 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg text-xs font-bold transition">
                                             Edit
                                         </a>
+                                        @if($user->id !== auth()->id())
+                                            <form method="POST" action="{{ route('users.toggle-active', $user) }}" class="inline-block">
+                                                @csrf
+                                                <button type="submit" class="inline-flex items-center px-3 py-1.5 rounded-lg text-xs font-bold transition
+                                                    {{ $user->is_active ? 'bg-rose-600 hover:bg-rose-700 text-white' : 'bg-emerald-600 hover:bg-emerald-700 text-white' }}
+                                                ">
+                                                    {{ $user->is_active ? 'Deactivate' : 'Activate' }}
+                                                </button>
+                                            </form>
+                                        @endif
                                     </td>
                                 </tr>
                             @empty

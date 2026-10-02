@@ -14,15 +14,27 @@
                     </p>
                 </div>
             </div>
-            <div class="flex items-center gap-2">
+            <div class="flex flex-wrap items-center gap-2 no-print">
                 <a href="{{ route('inventory.stock-in') }}" class="inline-flex items-center px-3.5 py-2 bg-[#155d49] hover:bg-[#114a3b] text-white font-bold text-xs rounded-xl shadow-sm transition gap-1.5">
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
                     Stock In
                 </a>
-                <a href="{{ route('inventory.waste') }}" class="inline-flex items-center px-3.5 py-2 bg-rose-600 hover:bg-rose-700 text-white font-bold text-xs rounded-xl shadow-sm transition gap-1.5">
+                <a href="{{ route('inventory.stock-out') }}" class="inline-flex items-center px-3.5 py-2 bg-rose-600 hover:bg-rose-700 text-white font-bold text-xs rounded-xl shadow-sm transition gap-1.5">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 12H4"/></svg>
+                    Stock Out
+                </a>
+                <a href="{{ route('inventory.waste') }}" class="inline-flex items-center px-3.5 py-2 bg-amber-600 hover:bg-amber-700 text-white font-bold text-xs rounded-xl shadow-sm transition gap-1.5">
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
                     Record Waste
                 </a>
+                <button onclick="exportReportCsv('transactions-table', 'inventory-transactions-ledger.csv')" class="px-3.5 py-2 bg-[#155d49] hover:bg-[#114a3b] text-white font-bold text-xs rounded-xl shadow-sm transition flex items-center gap-1.5">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+                    Export Excel / CSV
+                </button>
+                <button onclick="printReportTable('transactions-table')" class="px-3.5 py-2 bg-gray-800 hover:bg-gray-900 text-white font-bold text-xs rounded-xl shadow-sm transition flex items-center gap-1.5">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"/></svg>
+                    Print Data Only
+                </button>
             </div>
         </div>
     </x-slot>
@@ -48,6 +60,7 @@
                         <select name="type" class="w-full px-3 py-2 text-sm border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#155d49] outline-none font-medium">
                             <option value="">All Types</option>
                             <option value="stock_in" {{ request('type') === 'stock_in' ? 'selected' : '' }}>Stock In</option>
+                            <option value="stock_out" {{ request('type') === 'stock_out' ? 'selected' : '' }}>Stock Out</option>
                             <option value="sales_consumption" {{ request('type') === 'sales_consumption' ? 'selected' : '' }}>Sales Consumption</option>
                             <option value="waste" {{ request('type') === 'waste' ? 'selected' : '' }}>Waste / Spoilage</option>
                             <option value="adjustment" {{ request('type') === 'adjustment' ? 'selected' : '' }}>Manual Adjustment</option>
@@ -78,7 +91,7 @@
             <!-- Ledger Table -->
             <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
                 <div class="overflow-x-auto">
-                    <table class="w-full text-left text-sm">
+                    <table id="transactions-table" class="w-full text-left text-sm">
                         <thead class="bg-gray-50 text-gray-500 text-xs uppercase font-semibold border-b border-gray-100">
                             <tr>
                                 <th class="py-3.5 px-4">Date & Time</th>
@@ -101,6 +114,7 @@
                                     <td class="py-3.5 px-4">
                                         <span class="px-2.5 py-0.5 text-xs rounded-full font-bold uppercase
                                             {{ $txn->type === 'stock_in' ? 'bg-emerald-100 text-[#155d49]' : '' }}
+                                            {{ $txn->type === 'stock_out' ? 'bg-rose-100 text-rose-800' : '' }}
                                             {{ $txn->type === 'sales_consumption' ? 'bg-blue-100 text-blue-800' : '' }}
                                             {{ $txn->type === 'waste' ? 'bg-rose-100 text-rose-800' : '' }}
                                             {{ $txn->type === 'adjustment' ? 'bg-purple-100 text-purple-800' : '' }}
@@ -109,9 +123,9 @@
                                         </span>
                                     </td>
                                     <td class="py-3.5 px-4 text-right font-mono font-bold
-                                        {{ $txn->quantity > 0 ? 'text-[#155d49]' : 'text-rose-600' }}
+                                        {{ in_array($txn->type, ['stock_out', 'waste']) ? 'text-rose-600' : ($txn->quantity > 0 ? 'text-[#155d49]' : 'text-rose-600') }}
                                     ">
-                                        {{ $txn->quantity > 0 ? '+' : '' }}{{ number_format($txn->quantity, 2) }} {{ $txn->ingredient?->unit }}
+                                        {{ in_array($txn->type, ['stock_out', 'waste']) ? '-' : ($txn->quantity > 0 ? '+' : '') }}{{ number_format($txn->quantity, 2) }} {{ $txn->ingredient?->unit }}
                                     </td>
                                     <td class="py-3.5 px-4 text-xs font-semibold text-gray-800">
                                         {{ $txn->performer?->name ?? 'System' }}
@@ -145,7 +159,7 @@
                 </div>
 
                 @if($transactions->hasPages())
-                    <div class="p-4 border-t border-gray-100">
+                    <div class="p-4 border-t border-gray-100 no-print">
                         {{ $transactions->withQueryString()->links() }}
                     </div>
                 @endif
@@ -154,3 +168,61 @@
         </div>
     </div>
 </x-app-layout>
+
+@push('scripts')
+<script>
+    function exportReportCsv(tableId, fileName) {
+        const table = document.getElementById(tableId);
+        if (!table) return;
+
+        const rows = Array.from(table.querySelectorAll('tr')).map(row => 
+            Array.from(row.children).map(cell => '"' + (cell.textContent || '').replace(/"/g, '""').replace(/\s+/g, ' ').trim() + '"').join(',')
+        );
+        const csv = rows.join('\n');
+        const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = fileName;
+        link.click();
+        URL.revokeObjectURL(url);
+    }
+
+    function printReportTable(tableId) {
+        const table = document.getElementById(tableId);
+        if (!table) return;
+
+        const printWindow = window.open('', '_blank', 'width=950,height=700');
+        if (!printWindow) {
+            alert('Please allow pop-ups to print the report data.');
+            return;
+        }
+
+        const html = `
+            <html>
+                <head>
+                    <title>Inventory Transactions Ledger</title>
+                    <style>
+                        body { font-family: Arial, sans-serif; padding: 24px; color: #111827; }
+                        h2 { margin: 0 0 4px 0; font-size: 18px; color: #155d49; }
+                        p { margin: 0 0 16px 0; font-size: 12px; color: #6b7280; }
+                        table { width: 100%; border-collapse: collapse; font-size: 11px; }
+                        th, td { border: 1px solid #d1d5db; padding: 6px 8px; text-align: left; }
+                        th { background: #f3f4f6; font-weight: bold; text-transform: uppercase; font-size: 10px; }
+                        @media print { body { margin: 0; padding: 12px; } }
+                    </style>
+                </head>
+                <body>
+                    <h2>HEIM COFFEE - INVENTORY TRANSACTIONS LEDGER</h2>
+                    <p>Printed on: ${new Date().toLocaleString()}</p>
+                    ${table.outerHTML}
+                </body>
+            </html>
+        `;
+
+        printWindow.document.write(html);
+        printWindow.document.close();
+        setTimeout(() => printWindow.print(), 500);
+    }
+</script>
+@endpush

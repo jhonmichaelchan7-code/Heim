@@ -91,6 +91,8 @@ Route::middleware(['auth'])->group(function () {
         Route::put('/inventory/{ingredient}', [InventoryController::class, 'update'])->name('inventory.update');
         Route::get('/inventory/stock-in', [InventoryController::class, 'stockInForm'])->name('inventory.stock-in');
         Route::post('/inventory/stock-in', [InventoryController::class, 'stockIn'])->name('inventory.stock-in.store');
+        Route::get('/inventory/stock-out', [InventoryController::class, 'stockOutForm'])->name('inventory.stock-out');
+        Route::post('/inventory/stock-out', [InventoryController::class, 'stockOut'])->name('inventory.stock-out.store');
         Route::get('/inventory/waste', [InventoryController::class, 'wasteForm'])->name('inventory.waste');
         Route::post('/inventory/waste', [InventoryController::class, 'waste'])->name('inventory.waste.store');
         Route::post('/inventory/adjust', [InventoryController::class, 'adjust'])->name('inventory.adjust');

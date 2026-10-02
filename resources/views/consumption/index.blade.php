@@ -59,15 +59,22 @@
 
             <!-- Detailed Consumption Table -->
             <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
-                <div class="p-5 border-b border-gray-100 bg-[#f0f8f5]/60 flex justify-between items-center">
+                <div class="p-5 border-b border-gray-100 bg-[#f0f8f5]/60 flex justify-between items-center no-print">
                     <h3 class="font-bold text-gray-900 text-base">Ingredient Usage Matrix</h3>
-                    <button onclick="window.print()" class="px-3.5 py-1.5 bg-gray-800 hover:bg-gray-900 text-white rounded-xl text-xs font-bold transition">
-                        Print Daily Report
-                    </button>
+                    <div class="flex items-center gap-2">
+                        <button onclick="exportReportCsv('consumption-table', 'daily-ingredient-consumption.csv')" class="px-3.5 py-1.5 bg-[#155d49] hover:bg-[#114a3b] text-white rounded-xl text-xs font-bold transition flex items-center gap-1.5">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+                            Export Excel / CSV
+                        </button>
+                        <button onclick="printReportTable('consumption-table')" class="px-3.5 py-1.5 bg-gray-800 hover:bg-gray-900 text-white rounded-xl text-xs font-bold transition flex items-center gap-1.5">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"/></svg>
+                            Print Data Only
+                        </button>
+                    </div>
                 </div>
 
                 <div class="overflow-x-auto">
-                    <table class="w-full text-left text-sm">
+                    <table id="consumption-table" class="w-full text-left text-sm">
                         <thead class="bg-gray-50 text-gray-500 text-xs uppercase font-semibold border-b border-gray-100">
                             <tr>
                                 <th class="py-3.5 px-4">Ingredient</th>
@@ -135,3 +142,61 @@
         </div>
     </div>
 </x-app-layout>
+
+@push('scripts')
+<script>
+    function exportReportCsv(tableId, fileName) {
+        const table = document.getElementById(tableId);
+        if (!table) return;
+
+        const rows = Array.from(table.querySelectorAll('tr')).map(row => 
+            Array.from(row.children).map(cell => '"' + (cell.textContent || '').replace(/"/g, '""').replace(/\s+/g, ' ').trim() + '"').join(',')
+        );
+        const csv = rows.join('\n');
+        const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = fileName;
+        link.click();
+        URL.revokeObjectURL(url);
+    }
+
+    function printReportTable(tableId) {
+        const table = document.getElementById(tableId);
+        if (!table) return;
+
+        const printWindow = window.open('', '_blank', 'width=950,height=700');
+        if (!printWindow) {
+            alert('Please allow pop-ups to print the report data.');
+            return;
+        }
+
+        const html = `
+            <html>
+                <head>
+                    <title>Daily Ingredient Consumption</title>
+                    <style>
+                        body { font-family: Arial, sans-serif; padding: 24px; color: #111827; }
+                        h2 { margin: 0 0 4px 0; font-size: 18px; color: #155d49; }
+                        p { margin: 0 0 16px 0; font-size: 12px; color: #6b7280; }
+                        table { width: 100%; border-collapse: collapse; font-size: 11px; }
+                        th, td { border: 1px solid #d1d5db; padding: 6px 8px; text-align: left; }
+                        th { background: #f3f4f6; font-weight: bold; text-transform: uppercase; font-size: 10px; }
+                        @media print { body { margin: 0; padding: 12px; } }
+                    </style>
+                </head>
+                <body>
+                    <h2>HEIM COFFEE - DAILY INGREDIENT CONSUMPTION MATRIX</h2>
+                    <p>Report Date: {{ \Carbon\Carbon::parse($date)->format('M d, Y') }} | Printed: ${new Date().toLocaleString()}</p>
+                    ${table.outerHTML}
+                </body>
+            </html>
+        `;
+
+        printWindow.document.write(html);
+        printWindow.document.close();
+        setTimeout(() => printWindow.print(), 500);
+    }
+</script>
+@endpush

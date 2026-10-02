@@ -46,13 +46,25 @@
                         <textarea name="description" rows="2" class="w-full px-4 py-2 text-sm border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#155d49] outline-none">{{ old('description', $product->description) }}</textarea>
                     </div>
 
-                    <!-- Active Status -->
+                    <!-- POS Active / Inactive Status -->
                     <div>
-                        <label class="flex items-center gap-2.5 cursor-pointer p-3 bg-[#f0f8f5] rounded-xl border border-emerald-100">
-                            <input type="hidden" name="is_active" value="0">
-                            <input type="checkbox" name="is_active" value="1" {{ old('is_active', $product->is_active) ? 'checked' : '' }} class="rounded text-[#155d49] focus:ring-[#155d49]">
-                            <span class="text-sm font-bold text-gray-900">Active (Visible in POS Menu Catalog)</span>
-                        </label>
+                        <label class="block text-xs font-bold uppercase tracking-wider text-gray-700 mb-2">POS Availability & Status</label>
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                            <label class="flex items-center gap-3 p-3.5 rounded-xl border-2 cursor-pointer transition {{ old('is_active', $product->is_active) ? 'border-[#155d49] bg-[#f0f8f5]' : 'border-gray-200 bg-white hover:border-gray-300' }}">
+                                <input type="radio" name="is_active" value="1" {{ old('is_active', $product->is_active) ? 'checked' : '' }} class="text-[#155d49] focus:ring-[#155d49]">
+                                <div>
+                                    <span class="text-sm font-bold text-gray-900 block">Active (Visible in POS)</span>
+                                    <span class="text-xs text-gray-500">Available on the cashier POS menu for ordering</span>
+                                </div>
+                            </label>
+                            <label class="flex items-center gap-3 p-3.5 rounded-xl border-2 cursor-pointer transition {{ !old('is_active', $product->is_active) ? 'border-rose-500 bg-rose-50' : 'border-gray-200 bg-white hover:border-gray-300' }}">
+                                <input type="radio" name="is_active" value="0" {{ !old('is_active', $product->is_active) ? 'checked' : '' }} class="text-rose-600 focus:ring-rose-500">
+                                <div>
+                                    <span class="text-sm font-bold text-gray-900 block">Inactive (Hidden from POS)</span>
+                                    <span class="text-xs text-gray-500">Temporarily hidden from POS without deleting</span>
+                                </div>
+                            </label>
+                        </div>
                     </div>
 
                     <!-- Sizes & Pricing Matrix -->
@@ -82,8 +94,9 @@
                                         <label class="block text-[10px] font-bold text-gray-500 uppercase mb-0.5">Selling Price (₱)</label>
                                         <input type="number" step="0.01" min="0" name="sizes[{{ $idx }}][price]" value="{{ old('sizes.'.$idx.'.price', $ps->price) }}" required class="w-full px-3 py-1.5 text-sm bg-white border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#155d49] outline-none font-bold text-gray-900" />
                                     </div>
-                                    <button type="button" onclick="removeSizeRow(this)" class="mt-4 p-2 text-rose-500 hover:text-rose-700 rounded-xl hover:bg-rose-50">
+                                    <button type="button" onclick="removeSizeRow(this)" class="mt-4 px-3 py-2 bg-rose-600 hover:bg-rose-700 text-white rounded-xl text-xs font-bold transition flex items-center gap-1 shadow-xs" title="Remove Size">
                                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+                                        <span>Remove</span>
                                     </button>
                                 </div>
                             @endforeach
@@ -126,8 +139,9 @@
                     <label class="block text-[10px] font-bold text-gray-500 uppercase mb-0.5">Selling Price (₱)</label>
                     <input type="number" step="0.01" min="0" name="sizes[${rowCount}][price]" required placeholder="0.00" class="w-full px-3 py-1.5 text-sm bg-white border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#155d49] outline-none font-bold text-gray-900" />
                 </div>
-                <button type="button" onclick="removeSizeRow(this)" class="mt-4 p-2 text-rose-500 hover:text-rose-700 rounded-xl hover:bg-rose-50">
+                <button type="button" onclick="removeSizeRow(this)" class="mt-4 px-3 py-2 bg-rose-600 hover:bg-rose-700 text-white rounded-xl text-xs font-bold transition flex items-center gap-1 shadow-xs" title="Remove Size">
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+                    <span>Remove</span>
                 </button>
             `;
             container.appendChild(newRow);

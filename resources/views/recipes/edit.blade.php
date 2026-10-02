@@ -70,8 +70,9 @@
                                             <span class="unit-label absolute right-2.5 top-1.5 text-xs text-[#155d49] font-bold">{{ $ri->ingredient?->unit }}</span>
                                         </div>
                                     </div>
-                                    <button type="button" onclick="removeIngredientRow(this)" class="mt-4 p-2 text-rose-500 hover:text-rose-700 rounded-xl hover:bg-rose-50">
+                                    <button type="button" onclick="removeIngredientRow(this)" class="mt-4 px-3 py-2 bg-rose-600 hover:bg-rose-700 text-white rounded-xl text-xs font-bold transition flex items-center gap-1 shadow-xs" title="Remove Ingredient">
                                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+                                        <span>Remove</span>
                                     </button>
                                 </div>
                             @endforeach
@@ -124,8 +125,9 @@
                         <span class="unit-label absolute right-2.5 top-1.5 text-xs text-[#155d49] font-bold">-</span>
                     </div>
                 </div>
-                <button type="button" onclick="removeIngredientRow(this)" class="mt-4 p-2 text-rose-500 hover:text-rose-700 rounded-xl hover:bg-rose-50">
+                <button type="button" onclick="removeIngredientRow(this)" class="mt-4 px-3 py-2 bg-rose-600 hover:bg-rose-700 text-white rounded-xl text-xs font-bold transition flex items-center gap-1 shadow-xs" title="Remove Ingredient">
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+                    <span>Remove</span>
                 </button>
             `;
             container.appendChild(newRow);

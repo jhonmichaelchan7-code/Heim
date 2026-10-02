@@ -12,11 +12,17 @@ class OrderItem extends Model
     protected $fillable = [
         'order_id', 'product_id', 'size_id',
         'product_name', 'size_name', 'unit_price', 'quantity', 'subtotal',
+        'discount_type', 'discount_rate', 'discount', 'is_vat_exempt', 'tax', 'total', 'id_number',
     ];
 
     protected $casts = [
         'unit_price' => 'decimal:2',
         'subtotal' => 'decimal:2',
+        'discount_rate' => 'decimal:2',
+        'discount' => 'decimal:2',
+        'is_vat_exempt' => 'boolean',
+        'tax' => 'decimal:2',
+        'total' => 'decimal:2',
     ];
 
     public function order()
