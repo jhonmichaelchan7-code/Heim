@@ -108,6 +108,9 @@ Route::middleware(['auth'])->group(function () {
         // Reports
         Route::get('/reports/sales', [ReportController::class, 'sales'])->name('reports.sales');
         Route::get('/reports/inventory', [ReportController::class, 'inventory'])->name('reports.inventory');
+        Route::get('/reports/google-sheets/settings', [ReportController::class, 'getGoogleSheetsSettings'])->name('reports.google-sheets.get-settings');
+        Route::post('/reports/google-sheets/settings', [ReportController::class, 'saveGoogleSheetsSettings'])->name('reports.google-sheets.save-settings');
+        Route::post('/reports/google-sheets/sync', [ReportController::class, 'syncGoogleSheet'])->name('reports.google-sheets.sync');
 
         // Notifications
         Route::get('/notifications', [NotificationController::class, 'index'])->name('notifications.index');

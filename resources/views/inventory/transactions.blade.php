@@ -27,13 +27,13 @@
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
                     Record Waste
                 </a>
-                <button onclick="exportReportCsv('transactions-table', 'inventory-transactions-ledger.csv')" class="px-3.5 py-2 bg-[#155d49] hover:bg-[#114a3b] text-white font-bold text-xs rounded-xl shadow-sm transition flex items-center gap-1.5">
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
-                    Export Excel / CSV
+                <button onclick="exportReportCsv('transactions-table', 'inventory-transactions-ledger.csv')" class="inline-flex items-center justify-center gap-1.5 h-10 px-3.5 py-2 bg-[#107c41] hover:bg-[#0c6133] text-white font-bold text-xs sm:text-sm rounded-xl shadow-xs transition active:scale-[0.98]">
+                    <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+                    <span>Export Excel / CSV</span>
                 </button>
-                <button onclick="printReportTable('transactions-table')" class="px-3.5 py-2 bg-gray-800 hover:bg-gray-900 text-white font-bold text-xs rounded-xl shadow-sm transition flex items-center gap-1.5">
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"/></svg>
-                    Print Data Only
+                <button onclick="printReportTable('transactions-table')" class="inline-flex items-center justify-center gap-1.5 h-10 px-3.5 py-2 bg-gray-800 hover:bg-gray-900 text-white font-bold text-xs sm:text-sm rounded-xl shadow-xs transition active:scale-[0.98]">
+                    <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"/></svg>
+                    <span>Print Data Only</span>
                 </button>
             </div>
         </div>
@@ -165,64 +165,64 @@
                 @endif
             </div>
 
+            <script>
+                function exportReportCsv(tableId, fileName) {
+                    const table = document.getElementById(tableId);
+                    if (!table) return;
+
+                    const rows = Array.from(table.querySelectorAll('tr')).map(row => 
+                        Array.from(row.children).map(cell => '"' + (cell.textContent || '').replace(/"/g, '""').replace(/\s+/g, ' ').trim() + '"').join(',')
+                    );
+                    const csv = rows.join('\n');
+                    // Add UTF-8 BOM
+                    const blob = new Blob(["\uFEFF" + csv], { type: 'text/csv;charset=utf-8;' });
+                    const url = URL.createObjectURL(blob);
+                    const link = document.createElement('a');
+                    link.href = url;
+                    link.setAttribute('download', fileName);
+                    document.body.appendChild(link);
+                    link.click();
+                    document.body.removeChild(link);
+                    setTimeout(() => URL.revokeObjectURL(url), 1000);
+                }
+
+                function printReportTable(tableId) {
+                    const table = document.getElementById(tableId);
+                    if (!table) return;
+
+                    const printWindow = window.open('', '_blank', 'width=950,height=700');
+                    if (!printWindow) {
+                        alert('Please allow pop-ups to print the report data.');
+                        return;
+                    }
+
+                    const html = `
+                        <html>
+                            <head>
+                                <title>Inventory Transactions Ledger</title>
+                                <style>
+                                    body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif; padding: 20px; color: #111827; }
+                                    h2 { margin: 0 0 4px 0; font-size: 18px; color: #155d49; }
+                                    p { margin: 0 0 16px 0; font-size: 11px; color: #6b7280; }
+                                    table { width: 100%; border-collapse: collapse; font-size: 10.5px; }
+                                    th, td { border: 1px solid #d1d5db; padding: 6px 8px; text-align: left; }
+                                    th { background: #f3f4f6; font-weight: bold; text-transform: uppercase; font-size: 9.5px; }
+                                    @media print { body { margin: 0; padding: 10px; } }
+                                </style>
+                            </head>
+                            <body>
+                                <h2>HEIM COFFEE - INVENTORY TRANSACTIONS LEDGER</h2>
+                                <p>Printed on: ${new Date().toLocaleString()}</p>
+                                ${table.outerHTML}
+                            </body>
+                        </html>
+                    `;
+
+                    printWindow.document.write(html);
+                    printWindow.document.close();
+                    setTimeout(() => printWindow.print(), 350);
+                }
+            </script>
         </div>
     </div>
 </x-app-layout>
-
-@push('scripts')
-<script>
-    function exportReportCsv(tableId, fileName) {
-        const table = document.getElementById(tableId);
-        if (!table) return;
-
-        const rows = Array.from(table.querySelectorAll('tr')).map(row => 
-            Array.from(row.children).map(cell => '"' + (cell.textContent || '').replace(/"/g, '""').replace(/\s+/g, ' ').trim() + '"').join(',')
-        );
-        const csv = rows.join('\n');
-        const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
-        const url = URL.createObjectURL(blob);
-        const link = document.createElement('a');
-        link.href = url;
-        link.download = fileName;
-        link.click();
-        URL.revokeObjectURL(url);
-    }
-
-    function printReportTable(tableId) {
-        const table = document.getElementById(tableId);
-        if (!table) return;
-
-        const printWindow = window.open('', '_blank', 'width=950,height=700');
-        if (!printWindow) {
-            alert('Please allow pop-ups to print the report data.');
-            return;
-        }
-
-        const html = `
-            <html>
-                <head>
-                    <title>Inventory Transactions Ledger</title>
-                    <style>
-                        body { font-family: Arial, sans-serif; padding: 24px; color: #111827; }
-                        h2 { margin: 0 0 4px 0; font-size: 18px; color: #155d49; }
-                        p { margin: 0 0 16px 0; font-size: 12px; color: #6b7280; }
-                        table { width: 100%; border-collapse: collapse; font-size: 11px; }
-                        th, td { border: 1px solid #d1d5db; padding: 6px 8px; text-align: left; }
-                        th { background: #f3f4f6; font-weight: bold; text-transform: uppercase; font-size: 10px; }
-                        @media print { body { margin: 0; padding: 12px; } }
-                    </style>
-                </head>
-                <body>
-                    <h2>HEIM COFFEE - INVENTORY TRANSACTIONS LEDGER</h2>
-                    <p>Printed on: ${new Date().toLocaleString()}</p>
-                    ${table.outerHTML}
-                </body>
-            </html>
-        `;
-
-        printWindow.document.write(html);
-        printWindow.document.close();
-        setTimeout(() => printWindow.print(), 500);
-    }
-</script>
-@endpush
