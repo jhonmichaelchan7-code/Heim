@@ -32,6 +32,23 @@
 .custom-modal-scrollbar::-webkit-scrollbar-thumb:hover {
     background: #94a3b8;
 }
+
+/* Touchscreen Tablet Ergonomics & Fast Tap */
+html, body {
+    touch-action: manipulation;
+    -webkit-tap-highlight-color: transparent;
+}
+.touch-card, .product-card, button, input {
+    touch-action: manipulation;
+    -webkit-tap-highlight-color: transparent;
+}
+.product-card {
+    user-select: none;
+    -webkit-user-select: none;
+}
+.product-card:active {
+    transform: scale(0.97);
+}
 </style>
 @endpush
     <div class="py-3 min-h-[calc(100vh-4rem)] lg:h-screen lg:min-h-0 flex flex-col">
@@ -127,6 +144,12 @@
                         </div>
                         <div class="flex items-center gap-2">
                             <button type="button" onclick="clearCart()" class="text-xs text-rose-600 hover:text-rose-800 font-bold transition">Clear All</button>
+
+                            <!-- Kiosk Fullscreen Mode for Tablets -->
+                            <button type="button" onclick="toggleKioskFullscreen()" id="kiosk-fullscreen-btn" title="Toggle Tablet Kiosk Fullscreen" class="h-8 px-2.5 rounded-xl bg-white hover:bg-emerald-50 text-gray-700 hover:text-[#155d49] border border-gray-200 flex items-center gap-1.5 font-bold text-xs transition shadow-2xs active:scale-95 touch-manipulation select-none">
+                                <svg class="w-4 h-4 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 8V4m0 0h4M4 4l5 5m11-5h-4m4 0v4m0 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4"/></svg>
+                                <span class="hidden sm:inline" id="fullscreen-btn-text">Kiosk</span>
+                            </button>
 
                             <!-- Inventify 3-dot Menu ⋮ -->
                             <div class="relative" id="pos-menu-container">
@@ -855,29 +878,29 @@
         </div>
     </div>
 
-    <!-- Payment Modal -->
-    <div id="payment-modal" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
-        <div class="bg-white rounded-3xl max-w-lg w-full overflow-hidden shadow-2xl border border-emerald-100">
-            <div class="p-5 border-b border-gray-100 flex justify-between items-center bg-[#f0f8f5]">
+    <!-- Payment Modal (Optimized for Touchscreen Tablets & Baristas) -->
+    <div id="payment-modal" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-3 sm:p-4">
+        <div class="bg-white rounded-3xl max-w-lg w-full overflow-hidden shadow-2xl border border-emerald-100 flex flex-col max-h-[94vh]">
+            <div class="p-4 sm:p-5 border-b border-gray-100 flex justify-between items-center bg-[#f0f8f5] shrink-0">
                 <div class="flex items-center gap-3">
                     <div class="w-8 h-8 rounded-full overflow-hidden bg-[#155d49] border border-white shrink-0">
                         <img src="{{ asset('images/logo.png') }}" alt="Heim Logo" class="w-full h-full object-cover rounded-full" />
                     </div>
                     <div>
-                        <h3 class="font-bold text-gray-900 text-lg">Checkout & Payment</h3>
-                        <p class="text-xs text-gray-500">Select customer payment method</p>
+                        <h3 class="font-bold text-gray-900 text-base sm:text-lg">Checkout & Payment</h3>
+                        <p class="text-xs text-gray-500">Touch presets or enter tendered amount</p>
                     </div>
                 </div>
-                <button onclick="closePaymentModal()" class="text-gray-400 hover:text-gray-600 p-1">
+                <button onclick="closePaymentModal()" class="text-gray-400 hover:text-gray-600 p-1.5 rounded-xl hover:bg-gray-100 transition">
                     <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
                 </button>
             </div>
 
-            <div class="p-6 space-y-5">
+            <div class="p-4 sm:p-5 space-y-3.5 overflow-y-auto custom-modal-scrollbar flex-1">
                 <!-- Total Amount Banner -->
-                <div class="bg-[#f0f8f5] border border-emerald-200 rounded-2xl p-4 text-center space-y-2">
-                    <span class="text-xs font-bold text-[#155d49] uppercase tracking-wider">Total Amount Due</span>
-                    <h2 id="pay-modal-total" class="text-4xl font-black text-[#155d49]">₱0.00</h2>
+                <div class="bg-[#f0f8f5] border border-emerald-200 rounded-2xl p-3.5 text-center space-y-1.5">
+                    <span class="text-[11px] font-bold text-[#155d49] uppercase tracking-wider">Total Amount Due</span>
+                    <h2 id="pay-modal-total" class="text-3xl sm:text-4xl font-black text-[#155d49]">₱0.00</h2>
                     <div class="flex flex-wrap justify-center items-center gap-x-4 gap-y-1 text-xs text-gray-600 pt-2 border-t border-emerald-200/60 font-medium">
                         <span>Subtotal: <strong id="pay-modal-subtotal" class="text-gray-900">₱0.00</strong></span>
                         <span id="pay-modal-discount-wrap">Line Discounts: <strong id="pay-modal-discount" class="text-rose-600">-₱0.00</strong></span>
@@ -889,39 +912,70 @@
 
                 <!-- Payment Method Tabs -->
                 <div>
-                    <label class="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-2">Payment Method</label>
-                    <div class="grid grid-cols-2 gap-3">
-                        <button type="button" onclick="setPaymentMethod('cash')" id="pm-cash" class="pm-btn active py-3.5 px-4 border-2 border-[#155d49] bg-[#f0f8f5] text-[#155d49] rounded-xl font-bold text-sm flex items-center justify-center gap-2 transition shadow-sm">
+                    <label class="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-1.5">Payment Method</label>
+                    <div class="grid grid-cols-2 gap-2.5">
+                        <button type="button" onclick="setPaymentMethod('cash')" id="pm-cash" class="pm-btn active py-3 px-4 border-2 border-[#155d49] bg-[#f0f8f5] text-[#155d49] rounded-xl font-bold text-sm flex items-center justify-center gap-2 transition shadow-xs touch-manipulation select-none active:scale-98">
                             <span class="text-xl">💵</span>
                             <span>Cash</span>
                         </button>
-                        <button type="button" onclick="setPaymentMethod('online')" id="pm-online" class="pm-btn py-3.5 px-4 border-2 border-gray-200 bg-white text-gray-700 hover:border-gray-300 rounded-xl font-bold text-sm flex items-center justify-center gap-2 transition">
+                        <button type="button" onclick="setPaymentMethod('online')" id="pm-online" class="pm-btn py-3 px-4 border-2 border-gray-200 bg-white text-gray-700 hover:border-gray-300 rounded-xl font-bold text-sm flex items-center justify-center gap-2 transition touch-manipulation select-none active:scale-98">
                             <span class="text-xl">📲</span>
                             <span>Online Payment</span>
                         </button>
                     </div>
                 </div>
 
-                <!-- Cash Section -->
+                <!-- Cash Section with On-Screen Touch Numpad -->
                 <div id="cash-section" class="space-y-3">
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                        <div>
+                            <label class="block text-xs font-bold text-gray-700 mb-1">Amount Tendered</label>
+                            <div class="relative">
+                                <span class="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 font-black text-lg pointer-events-none">₱</span>
+                                <input type="number" step="0.01" id="amount-tendered" oninput="calculateChange()" class="w-full pl-8 pr-3 py-2 text-2xl font-black text-gray-900 border-2 border-emerald-300 rounded-xl focus:ring-2 focus:ring-[#155d49] outline-none text-right font-mono" placeholder="0.00" />
+                            </div>
+                        </div>
+
+                        <!-- Change Display -->
+                        <div class="flex flex-col justify-between p-2.5 bg-[#f0f8f5] rounded-xl border border-emerald-200">
+                            <span class="text-xs font-bold text-[#155d49] uppercase tracking-wider">Change to Return</span>
+                            <span id="change-display" class="text-2xl font-black text-[#155d49] text-right font-mono">₱0.00</span>
+                        </div>
+                    </div>
+
+                    <!-- Quick Cash Presets -->
                     <div>
-                        <label class="block text-xs font-bold text-gray-700 mb-1">Amount Tendered</label>
-                        <input type="number" id="amount-tendered" step="0.01" oninput="calculateChange()" class="w-full px-4 py-2.5 text-xl font-black text-gray-900 border border-gray-300 rounded-xl focus:ring-2 focus:ring-[#155d49] outline-none" placeholder="0.00" />
+                        <span class="text-[10px] font-bold text-gray-500 uppercase tracking-wider block mb-1">Quick Cash Presets</span>
+                        <div class="grid grid-cols-5 gap-1.5 sm:gap-2">
+                            <button type="button" onclick="setQuickCash('exact')" class="py-2.5 px-1 bg-white hover:bg-emerald-50 active:bg-[#155d49] active:text-white text-gray-800 border border-gray-200 hover:border-[#155d49] rounded-xl text-xs sm:text-sm font-extrabold transition shadow-2xs active:scale-95 text-center touch-manipulation select-none">Exact</button>
+                            <button type="button" onclick="setQuickCash(100)" class="py-2.5 px-1 bg-white hover:bg-emerald-50 active:bg-[#155d49] active:text-white text-gray-800 border border-gray-200 hover:border-[#155d49] rounded-xl text-xs sm:text-sm font-extrabold transition shadow-2xs active:scale-95 text-center touch-manipulation select-none">₱100</button>
+                            <button type="button" onclick="setQuickCash(200)" class="py-2.5 px-1 bg-white hover:bg-emerald-50 active:bg-[#155d49] active:text-white text-gray-800 border border-gray-200 hover:border-[#155d49] rounded-xl text-xs sm:text-sm font-extrabold transition shadow-2xs active:scale-95 text-center touch-manipulation select-none">₱200</button>
+                            <button type="button" onclick="setQuickCash(500)" class="py-2.5 px-1 bg-white hover:bg-emerald-50 active:bg-[#155d49] active:text-white text-gray-800 border border-gray-200 hover:border-[#155d49] rounded-xl text-xs sm:text-sm font-extrabold transition shadow-2xs active:scale-95 text-center touch-manipulation select-none">₱500</button>
+                            <button type="button" onclick="setQuickCash(1000)" class="py-2.5 px-1 bg-white hover:bg-emerald-50 active:bg-[#155d49] active:text-white text-gray-800 border border-gray-200 hover:border-[#155d49] rounded-xl text-xs sm:text-sm font-extrabold transition shadow-2xs active:scale-95 text-center touch-manipulation select-none">₱1,000</button>
+                        </div>
                     </div>
 
-                    <!-- Quick Cash Buttons -->
-                    <div class="flex flex-wrap gap-2">
-                        <button type="button" onclick="setQuickCash('exact')" class="px-3.5 py-2 bg-gray-100 hover:bg-emerald-50 hover:text-[#155d49] rounded-xl text-xs font-bold text-gray-700 transition">Exact</button>
-                        <button type="button" onclick="setQuickCash(100)" class="px-3.5 py-2 bg-gray-100 hover:bg-emerald-50 hover:text-[#155d49] rounded-xl text-xs font-bold text-gray-700 transition">₱100</button>
-                        <button type="button" onclick="setQuickCash(200)" class="px-3.5 py-2 bg-gray-100 hover:bg-emerald-50 hover:text-[#155d49] rounded-xl text-xs font-bold text-gray-700 transition">₱200</button>
-                        <button type="button" onclick="setQuickCash(500)" class="px-3.5 py-2 bg-gray-100 hover:bg-emerald-50 hover:text-[#155d49] rounded-xl text-xs font-bold text-gray-700 transition">₱500</button>
-                        <button type="button" onclick="setQuickCash(1000)" class="px-3.5 py-2 bg-gray-100 hover:bg-emerald-50 hover:text-[#155d49] rounded-xl text-xs font-bold text-gray-700 transition">₱1,000</button>
-                    </div>
+                    <!-- On-Screen Touch Numpad (Toast / Square / Loyverse Standard for Tablets) -->
+                    <div class="bg-gray-50/90 p-2 sm:p-2.5 rounded-2xl border border-gray-200">
+                        <div class="grid grid-cols-3 gap-1.5 sm:gap-2">
+                            <button type="button" onclick="posNumpadInput('1')" class="h-10 sm:h-11 bg-white hover:bg-emerald-50 active:bg-[#155d49] active:text-white text-gray-800 rounded-xl text-lg font-black border border-gray-200 shadow-2xs transition active:scale-95 touch-manipulation select-none">1</button>
+                            <button type="button" onclick="posNumpadInput('2')" class="h-10 sm:h-11 bg-white hover:bg-emerald-50 active:bg-[#155d49] active:text-white text-gray-800 rounded-xl text-lg font-black border border-gray-200 shadow-2xs transition active:scale-95 touch-manipulation select-none">2</button>
+                            <button type="button" onclick="posNumpadInput('3')" class="h-10 sm:h-11 bg-white hover:bg-emerald-50 active:bg-[#155d49] active:text-white text-gray-800 rounded-xl text-lg font-black border border-gray-200 shadow-2xs transition active:scale-95 touch-manipulation select-none">3</button>
 
-                    <!-- Change Display -->
-                    <div class="flex justify-between items-center p-3.5 bg-[#f0f8f5] rounded-xl border border-emerald-200">
-                        <span class="text-sm font-bold text-[#155d49]">Change to Return</span>
-                        <span id="change-display" class="text-2xl font-black text-[#155d49]">₱0.00</span>
+                            <button type="button" onclick="posNumpadInput('4')" class="h-10 sm:h-11 bg-white hover:bg-emerald-50 active:bg-[#155d49] active:text-white text-gray-800 rounded-xl text-lg font-black border border-gray-200 shadow-2xs transition active:scale-95 touch-manipulation select-none">4</button>
+                            <button type="button" onclick="posNumpadInput('5')" class="h-10 sm:h-11 bg-white hover:bg-emerald-50 active:bg-[#155d49] active:text-white text-gray-800 rounded-xl text-lg font-black border border-gray-200 shadow-2xs transition active:scale-95 touch-manipulation select-none">5</button>
+                            <button type="button" onclick="posNumpadInput('6')" class="h-10 sm:h-11 bg-white hover:bg-emerald-50 active:bg-[#155d49] active:text-white text-gray-800 rounded-xl text-lg font-black border border-gray-200 shadow-2xs transition active:scale-95 touch-manipulation select-none">6</button>
+
+                            <button type="button" onclick="posNumpadInput('7')" class="h-10 sm:h-11 bg-white hover:bg-emerald-50 active:bg-[#155d49] active:text-white text-gray-800 rounded-xl text-lg font-black border border-gray-200 shadow-2xs transition active:scale-95 touch-manipulation select-none">7</button>
+                            <button type="button" onclick="posNumpadInput('8')" class="h-10 sm:h-11 bg-white hover:bg-emerald-50 active:bg-[#155d49] active:text-white text-gray-800 rounded-xl text-lg font-black border border-gray-200 shadow-2xs transition active:scale-95 touch-manipulation select-none">8</button>
+                            <button type="button" onclick="posNumpadInput('9')" class="h-10 sm:h-11 bg-white hover:bg-emerald-50 active:bg-[#155d49] active:text-white text-gray-800 rounded-xl text-lg font-black border border-gray-200 shadow-2xs transition active:scale-95 touch-manipulation select-none">9</button>
+
+                            <button type="button" onclick="posNumpadInput('C')" class="h-10 sm:h-11 bg-rose-50 hover:bg-rose-100 active:bg-rose-600 active:text-white text-rose-700 rounded-xl text-xs sm:text-sm font-black border border-rose-200 shadow-2xs transition active:scale-95 touch-manipulation select-none">CLEAR</button>
+                            <button type="button" onclick="posNumpadInput('0')" class="h-10 sm:h-11 bg-white hover:bg-emerald-50 active:bg-[#155d49] active:text-white text-gray-800 rounded-xl text-lg font-black border border-gray-200 shadow-2xs transition active:scale-95 touch-manipulation select-none">0</button>
+                            <button type="button" onclick="posNumpadInput('backspace')" class="h-10 sm:h-11 bg-amber-50 hover:bg-amber-100 active:bg-amber-600 active:text-white text-amber-800 rounded-xl text-lg font-black border border-amber-200 shadow-2xs transition active:scale-95 touch-manipulation select-none flex items-center justify-center" title="Backspace">
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2M3 12l6.414-6.414a2 2 0 011.414-.586H19a2 2 0 012 2v10a2 2 0 01-2 2H10.828a2 2 0 01-1.414-.586L3 12z"/></svg>
+                            </button>
+                        </div>
                     </div>
                 </div>
 
@@ -932,9 +986,9 @@
                 </div>
             </div>
 
-            <div class="p-5 bg-[#f0f8f5] border-t border-gray-100 flex gap-3">
-                <button type="button" onclick="closePaymentModal()" class="flex-1 py-3 bg-gray-200 hover:bg-gray-300 text-gray-700 font-bold rounded-xl transition">Cancel</button>
-                <button type="button" id="submit-order-btn" onclick="submitOrder()" class="flex-1 py-3 bg-[#155d49] hover:bg-[#114a3b] text-white font-bold rounded-xl shadow transition flex items-center justify-center gap-2">
+            <div class="p-4 sm:p-5 bg-[#f0f8f5] border-t border-gray-100 flex gap-3 shrink-0">
+                <button type="button" onclick="closePaymentModal()" class="flex-1 py-3 bg-gray-200 hover:bg-gray-300 text-gray-700 font-bold rounded-xl transition touch-manipulation active:scale-98">Cancel</button>
+                <button type="button" id="submit-order-btn" onclick="submitOrder()" class="flex-1 py-3 bg-[#155d49] hover:bg-[#114a3b] text-white font-bold rounded-xl shadow transition flex items-center justify-center gap-2 touch-manipulation active:scale-98">
                     <span id="submit-spinner" class="hidden animate-spin h-5 w-5 border-2 border-white border-t-transparent rounded-full"></span>
                     <span id="submit-text">Complete Sale</span>
                 </button>
@@ -1617,13 +1671,13 @@
                     </div>
                     ${addOnsHtml}
                     ${discBadge}
-                    <div class="flex justify-between items-center mt-1">
+                    <div class="flex justify-between items-center mt-2 pt-1 border-t border-gray-100/80">
                         <div class="flex items-center gap-1.5">
-                            <button onclick="updateCartQty(${index}, -1)" class="w-6 h-6 rounded-lg bg-gray-100 hover:bg-gray-200 font-bold text-xs flex items-center justify-center">-</button>
-                            <span class="w-6 text-center text-xs font-black text-gray-900">${item.quantity}</span>
-                            <button onclick="updateCartQty(${index}, 1)" class="w-6 h-6 rounded-lg bg-gray-100 hover:bg-gray-200 font-bold text-xs flex items-center justify-center">+</button>
+                            <button type="button" onclick="updateCartQty(${index}, -1)" class="w-9 h-9 rounded-xl bg-gray-100 hover:bg-emerald-100 text-gray-800 hover:text-[#155d49] border border-gray-200 font-black text-base flex items-center justify-center transition active:scale-90 shadow-2xs touch-manipulation select-none" title="Decrease Quantity">-</button>
+                            <span class="w-8 text-center text-sm font-black text-gray-900 select-none">${item.quantity}</span>
+                            <button type="button" onclick="updateCartQty(${index}, 1)" class="w-9 h-9 rounded-xl bg-gray-100 hover:bg-emerald-100 text-gray-800 hover:text-[#155d49] border border-gray-200 font-black text-base flex items-center justify-center transition active:scale-90 shadow-2xs touch-manipulation select-none" title="Increase Quantity">+</button>
                         </div>
-                        <button onclick="removeFromCart(${index})" class="px-2.5 py-1 bg-rose-600 hover:bg-rose-700 text-white rounded-lg text-xs font-bold transition flex items-center gap-1 shadow-xs cursor-pointer" title="Remove item from order">
+                        <button type="button" onclick="removeFromCart(${index})" class="h-9 px-3 bg-rose-50 hover:bg-rose-600 text-rose-700 hover:text-white border border-rose-200 hover:border-rose-600 rounded-xl text-xs font-bold transition flex items-center gap-1.5 shadow-2xs cursor-pointer active:scale-95 touch-manipulation select-none" title="Remove item from order">
                             <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
                             <span>Remove</span>
                         </button>
@@ -1719,6 +1773,7 @@
                 if (exemptWrap) exemptWrap.classList.add('hidden');
             }
 
+            numpadFresh = true;
             setPaymentMethod('cash');
             document.getElementById('amount-tendered').value = totals.totalDue.toFixed(2);
             calculateChange();
@@ -1729,20 +1784,58 @@
             document.getElementById('payment-modal').classList.add('hidden');
         }
 
+        let numpadFresh = true;
+
+        function posNumpadInput(key) {
+            const input = document.getElementById('amount-tendered');
+            if (!input) return;
+
+            let currentVal = (input.value || '').trim();
+            if (numpadFresh) {
+                currentVal = '';
+                numpadFresh = false;
+            }
+
+            if (key === 'C') {
+                input.value = '';
+            } else if (key === 'backspace') {
+                input.value = currentVal.slice(0, -1);
+            } else if (key === '.') {
+                if (!currentVal.includes('.')) {
+                    input.value = currentVal === '' ? '0.' : currentVal + '.';
+                }
+            } else {
+                // Digits 0-9
+                if (currentVal.includes('.')) {
+                    const parts = currentVal.split('.');
+                    if (parts[1] && parts[1].length >= 2) {
+                        return; // Disallow more than 2 decimal places
+                    }
+                }
+                if (currentVal === '0' && key !== '.') {
+                    input.value = key;
+                } else {
+                    input.value = currentVal + key;
+                }
+            }
+            calculateChange();
+        }
+
         function setPaymentMethod(method) {
             paymentMethod = method;
             document.querySelectorAll('.pm-btn').forEach(btn => {
-                btn.className = 'pm-btn py-3.5 px-4 border-2 border-gray-200 bg-white text-gray-700 hover:border-gray-300 rounded-xl font-bold text-sm flex items-center justify-center gap-2 transition';
+                btn.className = 'pm-btn py-3 px-4 border-2 border-gray-200 bg-white text-gray-700 hover:border-gray-300 rounded-xl font-bold text-sm flex items-center justify-center gap-2 transition touch-manipulation select-none active:scale-98';
             });
             const activeBtn = document.getElementById(`pm-${method}`);
             if (activeBtn) {
-                activeBtn.className = 'pm-btn active py-3.5 px-4 border-2 border-[#155d49] bg-[#f0f8f5] text-[#155d49] rounded-xl font-bold text-sm flex items-center justify-center gap-2 transition shadow-sm';
+                activeBtn.className = 'pm-btn active py-3 px-4 border-2 border-[#155d49] bg-[#f0f8f5] text-[#155d49] rounded-xl font-bold text-sm flex items-center justify-center gap-2 transition shadow-xs touch-manipulation select-none active:scale-98';
             }
 
             const totals = calculateCartTotals();
             if (method === 'cash') {
                 document.getElementById('cash-section').classList.remove('hidden');
                 document.getElementById('reference-section').classList.add('hidden');
+                numpadFresh = true;
                 document.getElementById('amount-tendered').value = totals.totalDue.toFixed(2);
                 calculateChange();
             } else {
@@ -1759,11 +1852,12 @@
         }
 
         function setQuickCash(amount) {
+            numpadFresh = false;
             const totals = calculateCartTotals();
             if (amount === 'exact') {
                 document.getElementById('amount-tendered').value = totals.totalDue.toFixed(2);
             } else {
-                document.getElementById('amount-tendered').value = amount;
+                document.getElementById('amount-tendered').value = parseFloat(amount).toFixed(2);
             }
             calculateChange();
         }
@@ -1774,6 +1868,29 @@
             const change = Math.max(0, tendered - totals.totalDue);
             document.getElementById('change-display').innerText = `₱${change.toFixed(2)}`;
         }
+
+        function toggleKioskFullscreen() {
+            if (!document.fullscreenElement) {
+                const docEl = document.documentElement;
+                if (docEl.requestFullscreen) {
+                    docEl.requestFullscreen().catch(e => console.log('Fullscreen rejected:', e));
+                } else if (docEl.webkitRequestFullscreen) {
+                    docEl.webkitRequestFullscreen();
+                }
+            } else {
+                if (document.exitFullscreen) {
+                    document.exitFullscreen().catch(e => console.log('Exit fullscreen rejected:', e));
+                } else if (document.webkitExitFullscreen) {
+                    document.webkitExitFullscreen();
+                }
+            }
+        }
+        document.addEventListener('fullscreenchange', () => {
+            const btnText = document.getElementById('fullscreen-btn-text');
+            if (btnText) {
+                btnText.innerText = document.fullscreenElement ? 'Exit' : 'Kiosk';
+            }
+        });
 
         // Refresh CSRF token from server (prevents stale token after long sessions)
         async function refreshCsrfToken() {
@@ -2076,36 +2193,51 @@
     <title>Receipt ${currentReceiptOrder.order_number}</title>
     <style>
         @page {
-            size: ${paperCssWidth} auto;
-            margin: ${pageMargin};
+            size: portrait;
+            margin: 0mm;
         }
         @media print {
             html, body {
-                width: ${bodyWidth};
+                width: ${bodyWidth} !important;
+                max-width: ${bodyWidth} !important;
                 margin: 0 auto !important;
-                padding: 3mm 2mm 8mm 2mm !important;
+                padding: 2mm 1mm 4mm 1mm !important;
                 background: #fff !important;
                 color: #000 !important;
                 font-family: 'Courier New', Courier, 'Lucida Console', Monaco, monospace !important;
                 font-size: ${baseFontSize} !important;
-                line-height: 1.35 !important;
+                line-height: 1.3 !important;
                 -webkit-print-color-adjust: exact;
                 print-color-adjust: exact;
+                page-break-inside: avoid !important;
+                break-inside: avoid !important;
+            }
+            .receipt-wrapper {
+                page-break-inside: avoid !important;
+                break-inside: avoid !important;
             }
         }
         body {
             width: ${bodyWidth};
+            max-width: ${bodyWidth};
             margin: 0 auto;
-            padding: 3mm 2mm 8mm 2mm;
+            padding: 2mm 1mm 4mm 1mm;
             background: #fff;
             color: #000;
             font-family: 'Courier New', Courier, 'Lucida Console', Monaco, monospace;
             font-size: ${baseFontSize};
-            line-height: 1.35;
+            line-height: 1.3;
+            page-break-inside: avoid;
+            break-inside: avoid;
+        }
+        .receipt-wrapper {
+            width: 100%;
+            page-break-inside: avoid;
+            break-inside: avoid;
         }
         .center { text-align: center; }
-        .dashed { border-top: 1px dashed #000; margin: 5px 0; }
-        .double-dashed { border-top: 2px dashed #000; margin: 6px 0; }
+        .dashed { border-top: 1px dashed #000; margin: 4px 0; }
+        .double-dashed { border-top: 2px dashed #000; margin: 5px 0; }
         .row { display: flex; justify-content: space-between; }
         .bold { font-weight: bold; }
         .store-name { font-size: ${is58 ? '14px' : '16px'}; font-weight: 900; letter-spacing: 1px; }
@@ -2113,6 +2245,7 @@
     </style>
 </head>
 <body>
+<div class="receipt-wrapper">
     <div class="center">
         <div class="store-name">HEIM COFFEE</div>
         <div style="font-size: 0.9em; font-weight: bold;">FRESH BREWS & PASTRIES</div>
@@ -2203,6 +2336,7 @@
         <div style="font-size: 0.9em; margin-top: 2px;">Wi-Fi: HeimGuest</div>
         <div style="font-size: 0.8em; margin-top: 4px;">*** Heim POS Thermal Slip ***</div>
     </div>
+</div>
 </body>
 </html>
             `;

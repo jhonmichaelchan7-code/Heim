@@ -401,36 +401,51 @@
     <title>Receipt ${orderData.order_number}</title>
     <style>
         @page {
-            size: ${paperCssWidth} auto;
+            size: portrait;
             margin: 0mm;
         }
         @media print {
             html, body {
-                width: ${bodyWidth};
+                width: ${bodyWidth} !important;
+                max-width: ${bodyWidth} !important;
                 margin: 0 auto !important;
-                padding: 3mm 2mm 8mm 2mm !important;
+                padding: 2mm 1mm 4mm 1mm !important;
                 background: #fff !important;
                 color: #000 !important;
                 font-family: 'Courier New', Courier, 'Lucida Console', Monaco, monospace !important;
                 font-size: ${baseFontSize} !important;
-                line-height: 1.35 !important;
+                line-height: 1.3 !important;
                 -webkit-print-color-adjust: exact;
                 print-color-adjust: exact;
+                page-break-inside: avoid !important;
+                break-inside: avoid !important;
+            }
+            .receipt-wrapper {
+                page-break-inside: avoid !important;
+                break-inside: avoid !important;
             }
         }
         body {
             width: ${bodyWidth};
+            max-width: ${bodyWidth};
             margin: 0 auto;
-            padding: 3mm 2mm 8mm 2mm;
+            padding: 2mm 1mm 4mm 1mm;
             background: #fff;
             color: #000;
             font-family: 'Courier New', Courier, 'Lucida Console', Monaco, monospace;
             font-size: ${baseFontSize};
-            line-height: 1.35;
+            line-height: 1.3;
+            page-break-inside: avoid;
+            break-inside: avoid;
+        }
+        .receipt-wrapper {
+            width: 100%;
+            page-break-inside: avoid;
+            break-inside: avoid;
         }
         .center { text-align: center; }
-        .dashed { border-top: 1px dashed #000; margin: 5px 0; }
-        .double-dashed { border-top: 2px dashed #000; margin: 6px 0; }
+        .dashed { border-top: 1px dashed #000; margin: 4px 0; }
+        .double-dashed { border-top: 2px dashed #000; margin: 5px 0; }
         .row { display: flex; justify-content: space-between; }
         .bold { font-weight: bold; }
         .store-name { font-size: ${is58 ? '14px' : '16px'}; font-weight: 900; letter-spacing: 1px; }
@@ -438,6 +453,7 @@
     </style>
 </head>
 <body>
+<div class="receipt-wrapper">
     <div class="center">
         <div class="store-name">HEIM COFFEE</div>
         <div style="font-size: 0.9em; font-weight: bold;">FRESH BREWS & PASTRIES</div>
@@ -528,6 +544,7 @@
         <div style="font-size: 0.9em; margin-top: 2px;">Wi-Fi: HeimGuest</div>
         <div style="font-size: 0.8em; margin-top: 4px;">*** Heim POS Thermal Slip ***</div>
     </div>
+</div>
 </body>
 </html>
             `;
