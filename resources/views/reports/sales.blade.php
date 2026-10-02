@@ -195,85 +195,86 @@
                 </div>
             </div>
 
+            <script>
+                window.exportCompleteSalesReportExcel = function() {
+                    const reportData = {
+                        title: "HEIM COFFEE - SALES & REVENUE ANALYTICS REPORT",
+                        period: "{{ ucfirst($period) }} ({{ \Carbon\Carbon::parse($dateFrom)->format('M d, Y') }} to {{ \Carbon\Carbon::parse($dateTo)->format('M d, Y') }})",
+                        generatedAt: new Date().toLocaleString('en-US', { month: 'short', day: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit', hour12: true }),
+                        summary: [
+                            ["Total Net Sales (PHP)", "{{ number_format($totalSales, 2, '.', '') }}"],
+                            ["Completed Orders Count", "{{ $totalOrders }}"],
+                            ["Total Items Sold", "{{ $totalItems }}"],
+                            ["Average Order Value (PHP)", "{{ $totalOrders > 0 ? number_format($totalSales / $totalOrders, 2, '.', '') : '0.00' }}"],
+                            ["Total Refunds (PHP)", "{{ number_format($totalRefunds, 2, '.', '') }}"]
+                        ],
+                        payments: [
+                            @foreach($paymentBreakdown as $method => $data)
+                            ["{{ in_array($method, ['online', 'gcash']) ? 'Online Payment (GCash/Maya)' : ucfirst($method) }}", "{{ $data['count'] }}", "{{ number_format($data['total'], 2, '.', '') }}"],
+                            @endforeach
+                        ],
+                        cashiers: [
+                            @foreach($salesByCashier as $cashier => $data)
+                            ["{{ addslashes($cashier) }}", "{{ $data['orders'] }}", "{{ number_format($data['total'], 2, '.', '') }}"],
+                            @endforeach
+                        ],
+                        products: [
+                            @foreach($bestSellers as $idx => $seller)
+                            ["{{ $idx + 1 }}", "{{ addslashes($seller->product_name) }}", "{{ $seller->size_name }}", "{{ $seller->total_qty }}", "{{ number_format($seller->total_revenue, 2, '.', '') }}"],
+                            @endforeach
+                        ]
+                    };
+
+                    const escapeCsv = (str) => '"' + String(str ?? '').replace(/"/g, '""') + '"';
+
+                    let csv = "";
+                    csv += escapeCsv(reportData.title) + "\n";
+                    csv += escapeCsv("Reporting Period:") + "," + escapeCsv(reportData.period) + "\n";
+                    csv += escapeCsv("Generated At:") + "," + escapeCsv(reportData.generatedAt) + "\n\n";
+
+                    // Section 1: Executive KPI Summary
+                    csv += escapeCsv("--- EXECUTIVE KPI SUMMARY ---") + "\n";
+                    csv += escapeCsv("Metric") + "," + escapeCsv("Value") + "\n";
+                    reportData.summary.forEach(row => {
+                        csv += escapeCsv(row[0]) + "," + escapeCsv(row[1]) + "\n";
+                    });
+                    csv += "\n";
+
+                    // Section 2: Payment Breakdown
+                    csv += escapeCsv("--- PAYMENT METHOD BREAKDOWN ---") + "\n";
+                    csv += escapeCsv("Payment Method") + "," + escapeCsv("Transactions Count") + "," + escapeCsv("Total Revenue (PHP)") + "\n";
+                    reportData.payments.forEach(row => {
+                        csv += escapeCsv(row[0]) + "," + escapeCsv(row[1]) + "," + escapeCsv(row[2]) + "\n";
+                    });
+                    csv += "\n";
+
+                    // Section 3: Cashier Performance
+                    csv += escapeCsv("--- CASHIER PERFORMANCE (SHIFT ATTRIBUTION) ---") + "\n";
+                    csv += escapeCsv("Cashier Name") + "," + escapeCsv("Orders Processed") + "," + escapeCsv("Total Revenue (PHP)") + "\n";
+                    reportData.cashiers.forEach(row => {
+                        csv += escapeCsv(row[0]) + "," + escapeCsv(row[1]) + "," + escapeCsv(row[2]) + "\n";
+                    });
+                    csv += "\n";
+
+                    // Section 4: Top Selling Items
+                    csv += escapeCsv("--- TOP SELLING BEVERAGES & PRODUCTS ---") + "\n";
+                    csv += escapeCsv("Rank") + "," + escapeCsv("Product Name") + "," + escapeCsv("Size") + "," + escapeCsv("Quantity Sold") + "," + escapeCsv("Total Revenue (PHP)") + "\n";
+                    reportData.products.forEach(row => {
+                        csv += escapeCsv(row[0]) + "," + escapeCsv(row[1]) + "," + escapeCsv(row[2]) + "," + escapeCsv(row[3]) + "," + escapeCsv(row[4]) + "\n";
+                    });
+
+                    // Add UTF-8 BOM (\uFEFF) so Excel opens with proper character encoding and formatting
+                    const blob = new Blob(["\uFEFF" + csv], { type: 'text/csv;charset=utf-8;' });
+                    const url = URL.createObjectURL(blob);
+                    const link = document.createElement('a');
+                    link.href = url;
+                    link.setAttribute('download', `Heim_Sales_Report_{{ $dateFrom }}_to_{{ $dateTo }}.csv`);
+                    document.body.appendChild(link);
+                    link.click();
+                    document.body.removeChild(link);
+                    setTimeout(() => URL.revokeObjectURL(url), 1000);
+                };
+            </script>
         </div>
     </div>
 </x-app-layout>
-
-@push('scripts')
-<script>
-    function exportCompleteSalesReportExcel() {
-        const reportData = {
-            title: "HEIM COFFEE - SALES & REVENUE ANALYTICS REPORT",
-            period: "{{ ucfirst($period) }} ({{ \Carbon\Carbon::parse($dateFrom)->format('M d, Y') }} to {{ \Carbon\Carbon::parse($dateTo)->format('M d, Y') }})",
-            generatedAt: new Date().toLocaleString('en-US', { month: 'short', day: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit', hour12: true }),
-            summary: [
-                ["Total Net Sales (PHP)", "{{ number_format($totalSales, 2, '.', '') }}"],
-                ["Completed Orders Count", "{{ $totalOrders }}"],
-                ["Total Items Sold", "{{ $totalItems }}"],
-                ["Average Order Value (PHP)", "{{ $totalOrders > 0 ? number_format($totalSales / $totalOrders, 2, '.', '') : '0.00' }}"],
-                ["Total Refunds (PHP)", "{{ number_format($totalRefunds, 2, '.', '') }}"]
-            ],
-            payments: [
-                @foreach($paymentBreakdown as $method => $data)
-                ["{{ in_array($method, ['online', 'gcash']) ? 'Online Payment (GCash/Maya)' : ucfirst($method) }}", "{{ $data['count'] }}", "{{ number_format($data['total'], 2, '.', '') }}"],
-                @endforeach
-            ],
-            cashiers: [
-                @foreach($salesByCashier as $cashier => $data)
-                ["{{ addslashes($cashier) }}", "{{ $data['orders'] }}", "{{ number_format($data['total'], 2, '.', '') }}"],
-                @endforeach
-            ],
-            products: [
-                @foreach($bestSellers as $idx => $seller)
-                ["{{ $idx + 1 }}", "{{ addslashes($seller->product_name) }}", "{{ $seller->size_name }}", "{{ $seller->total_qty }}", "{{ number_format($seller->total_revenue, 2, '.', '') }}"],
-                @endforeach
-            ]
-        };
-
-        let csv = "";
-        csv += `"${reportData.title}"\n`;
-        csv += `"Reporting Period:","${reportData.period}"\n`;
-        csv += `"Generated At:","${reportData.generatedAt}"\n\n`;
-
-        // Section 1: Executive KPI Summary
-        csv += `"--- EXECUTIVE KPI SUMMARY ---"\n`;
-        csv += `"Metric","Value"\n`;
-        reportData.summary.forEach(row => {
-            csv += `"${row[0]}","${row[1]}"\n`;
-        });
-        csv += `\n`;
-
-        // Section 2: Payment Breakdown
-        csv += `"--- PAYMENT METHOD BREAKDOWN ---"\n`;
-        csv += `"Payment Method","Transactions Count","Total Revenue (PHP)"\n`;
-        reportData.payments.forEach(row => {
-            csv += `"${row[0]}","${row[1]}","${row[2]}"\n`;
-        });
-        csv += `\n`;
-
-        // Section 3: Cashier Performance
-        csv += `"--- CASHIER PERFORMANCE (SHIFT ATTRIBUTION) ---"\n`;
-        csv += `"Cashier Name","Orders Processed","Total Revenue (PHP)"\n`;
-        reportData.cashiers.forEach(row => {
-            csv += `"${row[0]}","${row[1]}","${row[2]}"\n`;
-        });
-        csv += `\n`;
-
-        // Section 4: Top Selling Items
-        csv += `"--- TOP SELLING BEVERAGES & PRODUCTS ---"\n`;
-        csv += `"Rank","Product Name","Size","Quantity Sold","Total Revenue (PHP)"\n`;
-        reportData.products.forEach(row => {
-            csv += `"${row[0]}","${row[1]}","${row[2]}","${row[3]}","${row[4]}"\n`;
-        });
-
-        // Add UTF-8 BOM (\uFEFF) so Excel opens with proper character encoding and formatting
-        const blob = new Blob(["\uFEFF" + csv], { type: 'text/csv;charset=utf-8;' });
-        const url = URL.createObjectURL(blob);
-        const link = document.createElement('a');
-        link.href = url;
-        link.download = `Heim_Sales_Report_{{ $dateFrom }}_to_{{ $dateTo }}.csv`;
-        link.click();
-        URL.revokeObjectURL(url);
-    }
-</script>
-@endpush

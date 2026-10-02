@@ -143,49 +143,50 @@
                 @endif
             </div>
 
+            <script>
+                window.exportCompleteAuditLogsExcel = function() {
+                    const reportData = {
+                        title: "HEIM COFFEE - AUDIT TRAILS & ACTIVITY LOGS",
+                        generatedAt: new Date().toLocaleString('en-US', { month: 'short', day: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit', hour12: true }),
+                        items: [
+                            @foreach($logs as $log)
+                            [
+                                "{{ $log->created_at->format('Y-m-d H:i:s') }}",
+                                "{{ addslashes($log->actor_name) }}",
+                                "{{ $log->actor_role ?? 'System' }}",
+                                "{{ $log->module }}",
+                                "{{ $log->action }}",
+                                "{{ addslashes(str_replace(["\r", "\n"], ' ', $log->description)) }}",
+                                "{{ $log->ip_address ?? '127.0.0.1' }}"
+                            ],
+                            @endforeach
+                        ]
+                    };
+
+                    const escapeCsv = (str) => '"' + String(str ?? '').replace(/"/g, '""') + '"';
+
+                    let csv = "";
+                    csv += escapeCsv(reportData.title) + "\n";
+                    csv += escapeCsv("Generated At:") + "," + escapeCsv(reportData.generatedAt) + "\n\n";
+
+                    csv += escapeCsv("Timestamp") + "," + escapeCsv("Actor Name") + "," + escapeCsv("Actor Role") + "," + escapeCsv("Module") + "," + escapeCsv("Action") + "," + escapeCsv("Description") + "," + escapeCsv("IP Address") + "\n";
+
+                    reportData.items.forEach(row => {
+                        csv += escapeCsv(row[0]) + "," + escapeCsv(row[1]) + "," + escapeCsv(row[2]) + "," + escapeCsv(row[3]) + "," + escapeCsv(row[4]) + "," + escapeCsv(row[5]) + "," + escapeCsv(row[6]) + "\n";
+                    });
+
+                    // Add UTF-8 BOM so Excel opens with proper encoding
+                    const blob = new Blob(["\uFEFF" + csv], { type: 'text/csv;charset=utf-8;' });
+                    const url = URL.createObjectURL(blob);
+                    const link = document.createElement('a');
+                    link.href = url;
+                    link.setAttribute('download', `Heim_Audit_Logs_${new Date().toISOString().slice(0, 10)}.csv`);
+                    document.body.appendChild(link);
+                    link.click();
+                    document.body.removeChild(link);
+                    setTimeout(() => URL.revokeObjectURL(url), 1000);
+                };
+            </script>
         </div>
     </div>
 </x-app-layout>
-
-@push('scripts')
-<script>
-    function exportCompleteAuditLogsExcel() {
-        const reportData = {
-            title: "HEIM COFFEE - AUDIT TRAILS & ACTIVITY LOGS",
-            generatedAt: new Date().toLocaleString('en-US', { month: 'short', day: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit', hour12: true }),
-            items: [
-                @foreach($logs as $log)
-                [
-                    "{{ $log->created_at->format('Y-m-d H:i:s') }}",
-                    "{{ addslashes($log->actor_name) }}",
-                    "{{ $log->actor_role ?? 'System' }}",
-                    "{{ $log->module }}",
-                    "{{ $log->action }}",
-                    "{{ addslashes(str_replace(["\r", "\n"], ' ', $log->description)) }}",
-                    "{{ $log->ip_address ?? '127.0.0.1' }}"
-                ],
-                @endforeach
-            ]
-        };
-
-        let csv = "";
-        csv += `"${reportData.title}"\n`;
-        csv += `"Generated At:","${reportData.generatedAt}"\n\n`;
-
-        csv += `"Timestamp","Actor Name","Actor Role","Module","Action","Description","IP Address"\n`;
-
-        reportData.items.forEach(row => {
-            csv += `"${row[0]}","${row[1]}","${row[2]}","${row[3]}","${row[4]}","${row[5]}","${row[6]}"\n`;
-        });
-
-        // Add UTF-8 BOM so Excel opens with proper encoding
-        const blob = new Blob(["\uFEFF" + csv], { type: 'text/csv;charset=utf-8;' });
-        const url = URL.createObjectURL(blob);
-        const link = document.createElement('a');
-        link.href = url;
-        link.download = `Heim_Audit_Logs_${new Date().toISOString().slice(0, 10)}.csv`;
-        link.click();
-        URL.revokeObjectURL(url);
-    }
-</script>
-@endpush

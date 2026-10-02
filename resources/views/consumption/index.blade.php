@@ -142,65 +142,66 @@
                 </div>
             </div>
 
+            <script>
+                window.exportCompleteConsumptionReportExcel = function() {
+                    const reportData = {
+                        title: "HEIM COFFEE - DAILY INGREDIENT CONSUMPTION MATRIX",
+                        date: "{{ \Carbon\Carbon::parse($date)->format('F d, Y') }}",
+                        generatedAt: new Date().toLocaleString('en-US', { month: 'short', day: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit', hour12: true }),
+                        ordersCount: "{{ $ordersCount }}",
+                        itemsSold: "{{ $itemsSold }}",
+                        items: [
+                            @foreach($ingredients as $ing)
+                            @php
+                                $ingTxns = $transactions->get($ing->id, collect());
+                                $salesUse = abs($ingTxns->where('type', 'sales_consumption')->sum('total_quantity'));
+                                $wasteUse = abs($ingTxns->where('type', 'waste')->sum('total_quantity'));
+                                $adjustUse = $ingTxns->where('type', 'adjustment')->sum('total_quantity');
+                                $stockIn = $ingTxns->where('type', 'stock_in')->sum('total_quantity');
+                                $netChange = $stockIn + $adjustUse - $salesUse - $wasteUse;
+                            @endphp
+                            [
+                                "{{ addslashes($ing->name) }}",
+                                "{{ $ing->unit }}",
+                                "{{ $salesUse > 0 ? '-' . number_format($salesUse, 2, '.', '') : '0.00' }}",
+                                "{{ $wasteUse > 0 ? '-' . number_format($wasteUse, 2, '.', '') : '0.00' }}",
+                                "{{ ($adjustUse > 0 ? '+' : '') . number_format($adjustUse, 2, '.', '') }}",
+                                "{{ $stockIn > 0 ? '+' . number_format($stockIn, 2, '.', '') : '0.00' }}",
+                                "{{ ($netChange > 0 ? '+' : '') . number_format($netChange, 2, '.', '') }}",
+                                "{{ number_format($ing->current_stock, 2, '.', '') }}"
+                            ],
+                            @endforeach
+                        ]
+                    };
+
+                    const escapeCsv = (str) => '"' + String(str ?? '').replace(/"/g, '""') + '"';
+
+                    let csv = "";
+                    csv += escapeCsv(reportData.title) + "\n";
+                    csv += escapeCsv("Report Date:") + "," + escapeCsv(reportData.date) + "\n";
+                    csv += escapeCsv("Generated At:") + "," + escapeCsv(reportData.generatedAt) + "\n";
+                    csv += escapeCsv("Orders Processed:") + "," + escapeCsv(reportData.ordersCount) + "\n";
+                    csv += escapeCsv("Total Items Sold:") + "," + escapeCsv(reportData.itemsSold) + "\n\n";
+
+                    csv += escapeCsv("--- DAILY INGREDIENT USAGE MATRIX ---") + "\n";
+                    csv += escapeCsv("Ingredient Name") + "," + escapeCsv("Unit") + "," + escapeCsv("Sales Usage (-)") + "," + escapeCsv("Waste / Spoilage (-)") + "," + escapeCsv("Adjustments (+/-)") + "," + escapeCsv("Stock Received (+)") + "," + escapeCsv("Net Daily Change") + "," + escapeCsv("Current Stock") + "\n";
+
+                    reportData.items.forEach(row => {
+                        csv += escapeCsv(row[0]) + "," + escapeCsv(row[1]) + "," + escapeCsv(row[2]) + "," + escapeCsv(row[3]) + "," + escapeCsv(row[4]) + "," + escapeCsv(row[5]) + "," + escapeCsv(row[6]) + "," + escapeCsv(row[7]) + "\n";
+                    });
+
+                    // Add UTF-8 BOM so Excel opens with proper column structure
+                    const blob = new Blob(["\uFEFF" + csv], { type: 'text/csv;charset=utf-8;' });
+                    const url = URL.createObjectURL(blob);
+                    const link = document.createElement('a');
+                    link.href = url;
+                    link.setAttribute('download', `Heim_Daily_Consumption_{{ $date }}.csv`);
+                    document.body.appendChild(link);
+                    link.click();
+                    document.body.removeChild(link);
+                    setTimeout(() => URL.revokeObjectURL(url), 1000);
+                };
+            </script>
         </div>
     </div>
 </x-app-layout>
-
-@push('scripts')
-<script>
-    function exportCompleteConsumptionReportExcel() {
-        const reportData = {
-            title: "HEIM COFFEE - DAILY INGREDIENT CONSUMPTION MATRIX",
-            date: "{{ \Carbon\Carbon::parse($date)->format('F d, Y') }}",
-            generatedAt: new Date().toLocaleString('en-US', { month: 'short', day: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit', hour12: true }),
-            ordersCount: "{{ $ordersCount }}",
-            itemsSold: "{{ $itemsSold }}",
-            items: [
-                @foreach($ingredients as $ing)
-                @php
-                    $ingTxns = $transactions->get($ing->id, collect());
-                    $salesUse = abs($ingTxns->where('type', 'sales_consumption')->sum('total_quantity'));
-                    $wasteUse = abs($ingTxns->where('type', 'waste')->sum('total_quantity'));
-                    $adjustUse = $ingTxns->where('type', 'adjustment')->sum('total_quantity');
-                    $stockIn = $ingTxns->where('type', 'stock_in')->sum('total_quantity');
-                    $netChange = $stockIn + $adjustUse - $salesUse - $wasteUse;
-                @endphp
-                [
-                    "{{ addslashes($ing->name) }}",
-                    "{{ $ing->unit }}",
-                    "{{ $salesUse > 0 ? '-' . number_format($salesUse, 2, '.', '') : '0.00' }}",
-                    "{{ $wasteUse > 0 ? '-' . number_format($wasteUse, 2, '.', '') : '0.00' }}",
-                    "{{ ($adjustUse > 0 ? '+' : '') . number_format($adjustUse, 2, '.', '') }}",
-                    "{{ $stockIn > 0 ? '+' . number_format($stockIn, 2, '.', '') : '0.00' }}",
-                    "{{ ($netChange > 0 ? '+' : '') . number_format($netChange, 2, '.', '') }}",
-                    "{{ number_format($ing->current_stock, 2, '.', '') }}"
-                ],
-                @endforeach
-            ]
-        };
-
-        let csv = "";
-        csv += `"${reportData.title}"\n`;
-        csv += `"Report Date:","${reportData.date}"\n`;
-        csv += `"Generated At:","${reportData.generatedAt}"\n`;
-        csv += `"Orders Processed:","${reportData.ordersCount}"\n`;
-        csv += `"Total Items Sold:","${reportData.itemsSold}"\n\n`;
-
-        csv += `"--- DAILY INGREDIENT USAGE MATRIX ---"\n`;
-        csv += `"Ingredient Name","Unit","Sales Usage (-)","Waste / Spoilage (-)","Adjustments (+/-)","Stock Received (+)","Net Daily Change","Current Stock"\n`;
-
-        reportData.items.forEach(row => {
-            csv += `"${row[0]}","${row[1]}","${row[2]}","${row[3]}","${row[4]}","${row[5]}","${row[6]}","${row[7]}"\n`;
-        });
-
-        // Add UTF-8 BOM so Excel opens with proper column structure
-        const blob = new Blob(["\uFEFF" + csv], { type: 'text/csv;charset=utf-8;' });
-        const url = URL.createObjectURL(blob);
-        const link = document.createElement('a');
-        link.href = url;
-        link.download = `Heim_Daily_Consumption_{{ $date }}.csv`;
-        link.click();
-        URL.revokeObjectURL(url);
-    }
-</script>
-@endpush

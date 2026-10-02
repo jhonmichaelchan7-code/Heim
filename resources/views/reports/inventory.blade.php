@@ -136,61 +136,62 @@
                 </div>
             </div>
 
+            <script>
+                window.exportCompleteInventoryReportExcel = function() {
+                    const reportData = {
+                        title: "HEIM COFFEE - INVENTORY STATUS & MOVEMENT REPORT",
+                        period: "{{ \Carbon\Carbon::parse($dateFrom)->format('M d, Y') }} to {{ \Carbon\Carbon::parse($dateTo)->format('M d, Y') }}",
+                        generatedAt: new Date().toLocaleString('en-US', { month: 'short', day: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit', hour12: true }),
+                        items: [
+                            @foreach($ingredients as $ing)
+                            @php
+                                $txns = $transactionSummary->get($ing->id, collect());
+                                $stockIn = $txns->where('type', 'stock_in')->sum('total_quantity');
+                                $sales = abs($txns->where('type', 'sales_consumption')->sum('total_quantity'));
+                                $waste = abs($txns->where('type', 'waste')->sum('total_quantity'));
+                                $adjust = $txns->where('type', 'adjustment')->sum('total_quantity');
+                                $status = $ing->current_stock <= 0 ? 'Out of Stock' : ($ing->current_stock <= $ing->minimum_stock ? 'Low Stock' : 'In Stock');
+                            @endphp
+                            [
+                                "{{ addslashes($ing->name) }}",
+                                "{{ $ing->unit }}",
+                                "{{ $stockIn > 0 ? '+' . number_format($stockIn, 2, '.', '') : '0.00' }}",
+                                "{{ $sales > 0 ? '-' . number_format($sales, 2, '.', '') : '0.00' }}",
+                                "{{ $waste > 0 ? '-' . number_format($waste, 2, '.', '') : '0.00' }}",
+                                "{{ ($adjust > 0 ? '+' : '') . number_format($adjust, 2, '.', '') }}",
+                                "{{ number_format($ing->current_stock, 2, '.', '') }}",
+                                "{{ $status }}"
+                            ],
+                            @endforeach
+                        ]
+                    };
+
+                    const escapeCsv = (str) => '"' + String(str ?? '').replace(/"/g, '""') + '"';
+
+                    let csv = "";
+                    csv += escapeCsv(reportData.title) + "\n";
+                    csv += escapeCsv("Date Range:") + "," + escapeCsv(reportData.period) + "\n";
+                    csv += escapeCsv("Generated At:") + "," + escapeCsv(reportData.generatedAt) + "\n\n";
+
+                    csv += escapeCsv("--- PERIOD STOCK MOVEMENT SUMMARY ---") + "\n";
+                    csv += escapeCsv("Ingredient Name") + "," + escapeCsv("Unit") + "," + escapeCsv("Stock Received (+)") + "," + escapeCsv("Sales Consumption (-)") + "," + escapeCsv("Spoilage / Waste (-)") + "," + escapeCsv("Net Adjustments") + "," + escapeCsv("Current Stock") + "," + escapeCsv("Status") + "\n";
+
+                    reportData.items.forEach(row => {
+                        csv += escapeCsv(row[0]) + "," + escapeCsv(row[1]) + "," + escapeCsv(row[2]) + "," + escapeCsv(row[3]) + "," + escapeCsv(row[4]) + "," + escapeCsv(row[5]) + "," + escapeCsv(row[6]) + "," + escapeCsv(row[7]) + "\n";
+                    });
+
+                    // Add UTF-8 BOM so Excel opens with proper characters and column delimiters
+                    const blob = new Blob(["\uFEFF" + csv], { type: 'text/csv;charset=utf-8;' });
+                    const url = URL.createObjectURL(blob);
+                    const link = document.createElement('a');
+                    link.href = url;
+                    link.setAttribute('download', `Heim_Inventory_Report_{{ $dateFrom }}_to_{{ $dateTo }}.csv`);
+                    document.body.appendChild(link);
+                    link.click();
+                    document.body.removeChild(link);
+                    setTimeout(() => URL.revokeObjectURL(url), 1000);
+                };
+            </script>
         </div>
     </div>
 </x-app-layout>
-
-@push('scripts')
-<script>
-    function exportCompleteInventoryReportExcel() {
-        const reportData = {
-            title: "HEIM COFFEE - INVENTORY STATUS & MOVEMENT REPORT",
-            period: "{{ \Carbon\Carbon::parse($dateFrom)->format('M d, Y') }} to {{ \Carbon\Carbon::parse($dateTo)->format('M d, Y') }}",
-            generatedAt: new Date().toLocaleString('en-US', { month: 'short', day: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit', hour12: true }),
-            items: [
-                @foreach($ingredients as $ing)
-                @php
-                    $txns = $transactionSummary->get($ing->id, collect());
-                    $stockIn = $txns->where('type', 'stock_in')->sum('total_quantity');
-                    $sales = abs($txns->where('type', 'sales_consumption')->sum('total_quantity'));
-                    $waste = abs($txns->where('type', 'waste')->sum('total_quantity'));
-                    $adjust = $txns->where('type', 'adjustment')->sum('total_quantity');
-                    $status = $ing->current_stock <= 0 ? 'Out of Stock' : ($ing->current_stock <= $ing->minimum_stock ? 'Low Stock' : 'In Stock');
-                @endphp
-                [
-                    "{{ addslashes($ing->name) }}",
-                    "{{ $ing->unit }}",
-                    "{{ $stockIn > 0 ? '+' . number_format($stockIn, 2, '.', '') : '0.00' }}",
-                    "{{ $sales > 0 ? '-' . number_format($sales, 2, '.', '') : '0.00' }}",
-                    "{{ $waste > 0 ? '-' . number_format($waste, 2, '.', '') : '0.00' }}",
-                    "{{ ($adjust > 0 ? '+' : '') . number_format($adjust, 2, '.', '') }}",
-                    "{{ number_format($ing->current_stock, 2, '.', '') }}",
-                    "{{ $status }}"
-                ],
-                @endforeach
-            ]
-        };
-
-        let csv = "";
-        csv += `"${reportData.title}"\n`;
-        csv += `"Date Range:","${reportData.period}"\n`;
-        csv += `"Generated At:","${reportData.generatedAt}"\n\n`;
-
-        csv += `"--- PERIOD STOCK MOVEMENT SUMMARY ---"\n`;
-        csv += `"Ingredient Name","Unit","Stock Received (+)","Sales Consumption (-)","Spoilage / Waste (-)","Net Adjustments","Current Stock","Status"\n`;
-
-        reportData.items.forEach(row => {
-            csv += `"${row[0]}","${row[1]}","${row[2]}","${row[3]}","${row[4]}","${row[5]}","${row[6]}","${row[7]}"\n`;
-        });
-
-        // Add UTF-8 BOM so Excel opens with proper characters and column delimiters
-        const blob = new Blob(["\uFEFF" + csv], { type: 'text/csv;charset=utf-8;' });
-        const url = URL.createObjectURL(blob);
-        const link = document.createElement('a');
-        link.href = url;
-        link.download = `Heim_Inventory_Report_{{ $dateFrom }}_to_{{ $dateTo }}.csv`;
-        link.click();
-        URL.revokeObjectURL(url);
-    }
-</script>
-@endpush
