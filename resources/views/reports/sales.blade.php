@@ -9,30 +9,41 @@
                     Periodic revenue tracking, cashier shift performance, and best selling beverages
                 </p>
             </div>
-            <div class="flex items-center gap-2 no-print">
-                <a href="{{ route('reports.inventory') }}" class="px-3.5 py-2 bg-white hover:bg-gray-50 text-gray-700 font-bold text-xs rounded-xl border border-gray-300 shadow-sm transition">
-                    Inventory Report &rarr;
-                </a>
-                <button onclick="exportReportCsv('sales-report-table', 'sales-report.csv')" class="px-3.5 py-2 bg-[#155d49] hover:bg-[#114a3b] text-white font-bold text-xs rounded-xl shadow-sm transition flex items-center gap-1.5">
-                    Export CSV
-                </button>
-                <button onclick="printReportTable('sales-report-table')" class="px-3.5 py-2 bg-gray-800 hover:bg-gray-900 text-white font-bold text-xs rounded-xl shadow-sm transition flex items-center gap-1.5">
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"/></svg>
-                    Print Data
+            <!-- HCI Theory: Single prominent primary action button (Hick's Law & Fitts's Law) -->
+            <div class="flex items-center no-print">
+                <button type="button" 
+                        onclick="exportCompleteSalesReportExcel()" 
+                        class="inline-flex items-center justify-center gap-2 h-10 px-4 py-2 bg-[#107c41] hover:bg-[#0c6133] text-white font-semibold text-xs sm:text-sm rounded-xl shadow-xs hover:shadow transition-all duration-150 active:scale-[0.98]">
+                    <svg class="w-4 h-4 shrink-0" fill="currentColor" viewBox="0 0 24 24">
+                        <path d="M14 2H6C4.89 2 4 2.89 4 4v16c0 1.11.89 2 2 2h12c1.11 0 2-.89 2-2V8l-6-6zm2 16H8v-2h8v2zm0-4H8v-2h8v2zm-3-5V3.5L18.5 9H13z"/>
+                    </svg>
+                    <span>Export Report (Excel)</span>
                 </button>
             </div>
         </div>
     </x-slot>
 
     <div class="py-4 sm:py-6">
-        <div class="w-full px-4 sm:px-6 lg:px-8 xl:px-10 2xl:max-w-[1880px] 2xl:mx-auto space-y-4 sm:space-y-6">
+        <div class="w-full px-4 sm:px-6 lg:px-8 xl:px-10 2xl:max-w-[1880px] 2xl:mx-auto space-y-5">
+
+            <!-- Report Navigation Tabs (Clean separation of Navigation vs Action) -->
+            <div class="flex items-center gap-2 border-b border-gray-200/80 pb-3 no-print">
+                <a href="{{ route('reports.sales') }}" 
+                   class="inline-flex items-center h-9 px-4 rounded-xl text-xs font-bold bg-[#155d49] text-white shadow-xs">
+                    Sales & Revenue
+                </a>
+                <a href="{{ route('reports.inventory') }}" 
+                   class="inline-flex items-center h-9 px-4 rounded-xl text-xs font-semibold bg-white hover:bg-gray-100 text-gray-600 border border-gray-200 transition">
+                    Inventory Movement
+                </a>
+            </div>
 
             <!-- Filter Card -->
             <div class="bg-white p-4 rounded-2xl shadow-sm border border-gray-100">
                 <form method="GET" action="{{ route('reports.sales') }}" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 items-end">
                     <div>
                         <label class="block text-xs font-bold uppercase tracking-wider text-gray-600 mb-1">Time Period</label>
-                        <select name="period" id="period-select" class="w-full px-3 py-2 text-sm border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#155d49] outline-none font-medium">
+                        <select name="period" id="period-select" class="w-full h-10 px-3 py-2 text-sm border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#155d49] outline-none font-medium">
                             <option value="daily" {{ $period === 'daily' ? 'selected' : '' }}>Today (Daily)</option>
                             <option value="weekly" {{ $period === 'weekly' ? 'selected' : '' }}>This Week</option>
                             <option value="monthly" {{ $period === 'monthly' ? 'selected' : '' }}>This Month</option>
@@ -44,45 +55,46 @@
 
                     <div>
                         <label class="block text-xs font-bold uppercase tracking-wider text-gray-600 mb-1">Date From</label>
-                        <input type="date" name="date_from" value="{{ $dateFrom }}" class="w-full px-3 py-2 text-sm border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#155d49] outline-none" />
+                        <input type="date" name="date_from" value="{{ $dateFrom }}" class="w-full h-10 px-3 py-2 text-sm border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#155d49] outline-none" />
                     </div>
 
                     <div>
                         <label class="block text-xs font-bold uppercase tracking-wider text-gray-600 mb-1">Date To</label>
-                        <input type="date" name="date_to" value="{{ $dateTo }}" class="w-full px-3 py-2 text-sm border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#155d49] outline-none" />
+                        <input type="date" name="date_to" value="{{ $dateTo }}" class="w-full h-10 px-3 py-2 text-sm border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#155d49] outline-none" />
                     </div>
 
-                    <div class="flex gap-2">
-                        <button type="submit" class="flex-1 px-4 py-2 bg-[#155d49] hover:bg-[#114a3b] text-white font-bold text-sm rounded-xl transition shadow-sm">
-                            Generate
+                    <div class="flex">
+                        <button type="submit" class="w-full h-10 px-4 py-2 bg-[#155d49] hover:bg-[#114a3b] text-white font-bold text-sm rounded-xl transition shadow-xs flex items-center justify-center gap-1.5 active:scale-[0.98]">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z"/></svg>
+                            <span>Filter Results</span>
                         </button>
                     </div>
                 </form>
             </div>
 
-            <!-- KPI Cards -->
+            <!-- Executive KPI Summary Cards -->
             <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
                 <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-5">
                     <p class="text-xs font-bold uppercase tracking-wider text-gray-400">Total Net Sales</p>
-                    <h3 class="text-2xl font-black text-[#155d49] mt-1">₱{{ number_format($totalSales, 2) }}</h3>
+                    <h3 class="text-2xl font-black text-[#155d49] mt-1 font-mono">₱{{ number_format($totalSales, 2) }}</h3>
                     <p class="text-xs text-gray-500 mt-1">{{ \Carbon\Carbon::parse($dateFrom)->format('M d') }} - {{ \Carbon\Carbon::parse($dateTo)->format('M d, Y') }}</p>
                 </div>
 
                 <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-5">
                     <p class="text-xs font-bold uppercase tracking-wider text-gray-400">Completed Orders</p>
-                    <h3 class="text-2xl font-black text-gray-900 mt-1">{{ $totalOrders }}</h3>
+                    <h3 class="text-2xl font-black text-gray-900 mt-1 font-mono">{{ $totalOrders }}</h3>
                     <p class="text-xs text-gray-500 mt-1">{{ $totalItems }} total items sold</p>
                 </div>
 
                 <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-5">
                     <p class="text-xs font-bold uppercase tracking-wider text-gray-400">Avg Order Value</p>
-                    <h3 class="text-2xl font-black text-gray-900 mt-1">₱{{ $totalOrders > 0 ? number_format($totalSales / $totalOrders, 2) : '0.00' }}</h3>
+                    <h3 class="text-2xl font-black text-gray-900 mt-1 font-mono">₱{{ $totalOrders > 0 ? number_format($totalSales / $totalOrders, 2) : '0.00' }}</h3>
                     <p class="text-xs text-[#155d49] font-semibold mt-1">Per transaction average</p>
                 </div>
 
                 <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-5">
                     <p class="text-xs font-bold uppercase tracking-wider text-gray-400">Total Refunds</p>
-                    <h3 class="text-2xl font-black text-rose-600 mt-1">₱{{ number_format($totalRefunds, 2) }}</h3>
+                    <h3 class="text-2xl font-black text-rose-600 mt-1 font-mono">₱{{ number_format($totalRefunds, 2) }}</h3>
                     <p class="text-xs text-rose-500 mt-1">{{ $refundedOrders->count() }} refunded orders</p>
                 </div>
             </div>
@@ -91,7 +103,7 @@
             <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
                 <!-- Payment Breakdown -->
                 <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-5">
-                    <h3 class="font-bold text-gray-800 text-base mb-4">Payment Method Breakdown</h3>
+                    <h3 class="font-bold text-gray-900 text-base mb-4">Payment Method Breakdown</h3>
                     <div class="space-y-3">
                         @forelse($paymentBreakdown as $method => $data)
                             <div class="p-3 bg-gray-50 rounded-xl flex items-center justify-between">
@@ -101,11 +113,11 @@
                                         {{ in_array($method, ['online', 'gcash']) ? 'bg-sky-100 text-sky-800' : '' }}
                                         {{ $method === 'card' ? 'bg-purple-100 text-purple-800' : '' }}
                                     ">
-                                        {{ in_array($method, ['online', 'gcash']) ? 'Online Payment' : ucfirst($method) }}
+                                        {{ in_array($method, ['online', 'gcash']) ? 'Online Payment (GCash/Maya)' : ucfirst($method) }}
                                     </span>
                                     <span class="text-xs text-gray-500 font-medium">{{ $data['count'] }} transactions</span>
                                 </div>
-                                <span class="font-bold text-gray-900 text-sm">₱{{ number_format($data['total'], 2) }}</span>
+                                <span class="font-bold text-gray-900 text-sm font-mono">₱{{ number_format($data['total'], 2) }}</span>
                             </div>
                         @empty
                             <p class="text-xs text-gray-400 text-center py-4">No payments recorded in this period.</p>
@@ -115,7 +127,7 @@
 
                 <!-- Sales by Cashier -->
                 <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-5">
-                    <h3 class="font-bold text-gray-800 text-base mb-4">Cashier Performance (Shift Attribution)</h3>
+                    <h3 class="font-bold text-gray-900 text-base mb-4">Cashier Performance (Shift Attribution)</h3>
                     <div class="space-y-3">
                         @forelse($salesByCashier as $cashier => $data)
                             <div class="p-3 bg-gray-50 rounded-xl flex items-center justify-between">
@@ -123,7 +135,7 @@
                                     <p class="font-bold text-gray-900 text-sm">{{ $cashier }}</p>
                                     <p class="text-xs text-gray-500">{{ $data['orders'] }} orders processed</p>
                                 </div>
-                                <span class="font-black text-[#155d49] text-base">₱{{ number_format($data['total'], 2) }}</span>
+                                <span class="font-black text-[#155d49] text-base font-mono">₱{{ number_format($data['total'], 2) }}</span>
                             </div>
                         @empty
                             <p class="text-xs text-gray-400 text-center py-4">No cashier data for this period.</p>
@@ -134,19 +146,20 @@
 
             <!-- Best Selling Products Table -->
             <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
-                <div class="p-5 border-b border-gray-100 bg-[#f0f8f5]/60">
+                <div class="p-5 border-b border-gray-100 bg-[#f0f8f5]/60 flex items-center justify-between">
                     <h3 class="font-bold text-gray-900 text-base">Top Selling Beverages & Items</h3>
+                    <span class="text-xs font-semibold text-gray-500">{{ $bestSellers->count() }} top items</span>
                 </div>
 
                 <div class="overflow-x-auto">
-                    <table id="sales-report-table" class="w-full text-left text-sm">
+                    <table class="w-full text-left text-sm">
                         <thead class="bg-gray-50 text-gray-500 text-xs uppercase font-semibold border-b border-gray-100">
                             <tr>
-                                <th class="py-3 px-4"># Rank</th>
-                                <th class="py-3 px-4">Product Name</th>
-                                <th class="py-3 px-4">Size</th>
-                                <th class="py-3 px-4 text-center">Quantity Sold</th>
-                                <th class="py-3 px-4 text-right">Revenue Generated</th>
+                                <th class="py-3.5 px-4"># Rank</th>
+                                <th class="py-3.5 px-4">Product Name</th>
+                                <th class="py-3.5 px-4">Size</th>
+                                <th class="py-3.5 px-4 text-center">Quantity Sold</th>
+                                <th class="py-3.5 px-4 text-right">Revenue Generated</th>
                             </tr>
                         </thead>
                         <tbody class="divide-y divide-gray-100">
@@ -163,7 +176,7 @@
                                             {{ $seller->size_name }}
                                         </span>
                                     </td>
-                                    <td class="py-3.5 px-4 text-center font-black text-gray-900">
+                                    <td class="py-3.5 px-4 text-center font-black text-gray-900 font-mono">
                                         {{ $seller->total_qty }}
                                     </td>
                                     <td class="py-3.5 px-4 text-right font-black text-[#155d49] font-mono">
@@ -188,53 +201,79 @@
 
 @push('scripts')
 <script>
-    function exportReportCsv(tableId, fileName) {
-        const table = document.getElementById(tableId);
-        if (!table) return;
+    function exportCompleteSalesReportExcel() {
+        const reportData = {
+            title: "HEIM COFFEE - SALES & REVENUE ANALYTICS REPORT",
+            period: "{{ ucfirst($period) }} ({{ \Carbon\Carbon::parse($dateFrom)->format('M d, Y') }} to {{ \Carbon\Carbon::parse($dateTo)->format('M d, Y') }})",
+            generatedAt: new Date().toLocaleString('en-US', { month: 'short', day: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit', hour12: true }),
+            summary: [
+                ["Total Net Sales (PHP)", "{{ number_format($totalSales, 2, '.', '') }}"],
+                ["Completed Orders Count", "{{ $totalOrders }}"],
+                ["Total Items Sold", "{{ $totalItems }}"],
+                ["Average Order Value (PHP)", "{{ $totalOrders > 0 ? number_format($totalSales / $totalOrders, 2, '.', '') : '0.00' }}"],
+                ["Total Refunds (PHP)", "{{ number_format($totalRefunds, 2, '.', '') }}"]
+            ],
+            payments: [
+                @foreach($paymentBreakdown as $method => $data)
+                ["{{ in_array($method, ['online', 'gcash']) ? 'Online Payment (GCash/Maya)' : ucfirst($method) }}", "{{ $data['count'] }}", "{{ number_format($data['total'], 2, '.', '') }}"],
+                @endforeach
+            ],
+            cashiers: [
+                @foreach($salesByCashier as $cashier => $data)
+                ["{{ addslashes($cashier) }}", "{{ $data['orders'] }}", "{{ number_format($data['total'], 2, '.', '') }}"],
+                @endforeach
+            ],
+            products: [
+                @foreach($bestSellers as $idx => $seller)
+                ["{{ $idx + 1 }}", "{{ addslashes($seller->product_name) }}", "{{ $seller->size_name }}", "{{ $seller->total_qty }}", "{{ number_format($seller->total_revenue, 2, '.', '') }}"],
+                @endforeach
+            ]
+        };
 
-        const rows = Array.from(table.querySelectorAll('tr')).map(row => Array.from(row.children).map(cell => '"' + (cell.textContent || '').replace(/"/g, '""').trim() + '"').join(','));
-        const csv = rows.join('\n');
-        const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+        let csv = "";
+        csv += `"${reportData.title}"\n`;
+        csv += `"Reporting Period:","${reportData.period}"\n`;
+        csv += `"Generated At:","${reportData.generatedAt}"\n\n`;
+
+        // Section 1: Executive KPI Summary
+        csv += `"--- EXECUTIVE KPI SUMMARY ---"\n`;
+        csv += `"Metric","Value"\n`;
+        reportData.summary.forEach(row => {
+            csv += `"${row[0]}","${row[1]}"\n`;
+        });
+        csv += `\n`;
+
+        // Section 2: Payment Breakdown
+        csv += `"--- PAYMENT METHOD BREAKDOWN ---"\n`;
+        csv += `"Payment Method","Transactions Count","Total Revenue (PHP)"\n`;
+        reportData.payments.forEach(row => {
+            csv += `"${row[0]}","${row[1]}","${row[2]}"\n`;
+        });
+        csv += `\n`;
+
+        // Section 3: Cashier Performance
+        csv += `"--- CASHIER PERFORMANCE (SHIFT ATTRIBUTION) ---"\n`;
+        csv += `"Cashier Name","Orders Processed","Total Revenue (PHP)"\n`;
+        reportData.cashiers.forEach(row => {
+            csv += `"${row[0]}","${row[1]}","${row[2]}"\n`;
+        });
+        csv += `\n`;
+
+        // Section 4: Top Selling Items
+        csv += `"--- TOP SELLING BEVERAGES & PRODUCTS ---"\n`;
+        csv += `"Rank","Product Name","Size","Quantity Sold","Total Revenue (PHP)"\n`;
+        reportData.products.forEach(row => {
+            csv += `"${row[0]}","${row[1]}","${row[2]}","${row[3]}","${row[4]}"\n`;
+        });
+
+        // Add UTF-8 BOM (\uFEFF) so Excel opens with proper character encoding and formatting
+        const blob = new Blob(["\uFEFF" + csv], { type: 'text/csv;charset=utf-8;' });
         const url = URL.createObjectURL(blob);
         const link = document.createElement('a');
         link.href = url;
-        link.download = fileName;
+        link.download = `Heim_Sales_Report_{{ $dateFrom }}_to_{{ $dateTo }}.csv`;
         link.click();
         URL.revokeObjectURL(url);
-    }
-
-    function printReportTable(tableId) {
-        const table = document.getElementById(tableId);
-        if (!table) return;
-
-        const printWindow = window.open('', '_blank', 'width=900,height=700');
-        if (!printWindow) {
-            alert('Please allow pop-ups to print the report data.');
-            return;
-        }
-
-        const html = `
-            <html>
-                <head>
-                    <title>Report Data</title>
-                    <style>
-                        body { font-family: Arial, sans-serif; padding: 24px; color: #111827; }
-                        table { width: 100%; border-collapse: collapse; font-size: 12px; }
-                        th, td { border: 1px solid #d1d5db; padding: 8px; text-align: left; }
-                        th { background: #f3f4f6; }
-                        @media print { body { margin: 0; } }
-                    </style>
-                </head>
-                <body>
-                    <h2 style="margin-bottom: 16px;">Sales Report</h2>
-                    ${table.outerHTML}
-                </body>
-            </html>
-        `;
-
-        printWindow.document.write(html);
-        printWindow.document.close();
-        setTimeout(() => printWindow.print(), 500);
     }
 </script>
 @endpush

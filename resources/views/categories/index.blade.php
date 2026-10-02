@@ -2,7 +2,7 @@
     <x-slot name="header">
         <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
             <div class="flex items-center gap-3">
-                <a href="{{ route('products.index') }}" class="p-2 bg-gray-100 hover:bg-gray-200 rounded-xl text-gray-600 transition">
+                <a href="{{ route('products.index') }}" class="inline-flex items-center justify-center h-10 w-10 bg-gray-100 hover:bg-gray-200 rounded-xl text-gray-700 transition active:scale-[0.98]">
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"/></svg>
                 </a>
                 <div>
@@ -15,7 +15,7 @@
                 </div>
             </div>
 
-            <button onclick="openCreateCategoryModal()" class="inline-flex items-center px-4 py-2 bg-[#155d49] hover:bg-[#114a3b] text-white font-bold text-xs rounded-xl shadow-sm transition gap-2">
+            <button onclick="openCreateCategoryModal()" class="inline-flex items-center justify-center h-10 px-4 py-2 bg-[#155d49] hover:bg-[#114a3b] text-white font-bold text-sm rounded-xl shadow-sm hover:shadow active:scale-[0.98] transition gap-2">
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
                 Add Category
             </button>
@@ -60,7 +60,7 @@
                                         </span>
                                     </td>
                                     <td class="py-3.5 px-4 text-right">
-                                        <button onclick="openEditCategoryModal({{ json_encode($category) }})" class="px-3 py-1.5 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg text-xs font-bold transition">
+                                        <button onclick="openEditCategoryModal({{ json_encode($category) }})" class="inline-flex items-center justify-center h-8 px-3 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg text-xs font-bold transition active:scale-[0.98]">
                                             Edit
                                         </button>
                                     </td>
@@ -107,10 +107,10 @@
                 </div>
 
                 <div class="pt-2 flex justify-end gap-3">
-                    <button type="button" onclick="closeCreateCategoryModal()" class="px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 font-bold text-xs rounded-xl transition">
+                    <button type="button" onclick="closeCreateCategoryModal()" class="h-10 px-4 inline-flex items-center justify-center bg-gray-100 hover:bg-gray-200 text-gray-700 font-bold text-sm rounded-xl transition active:scale-[0.98]">
                         Cancel
                     </button>
-                    <button type="submit" class="px-5 py-2 bg-[#155d49] hover:bg-[#114a3b] text-white font-bold text-xs rounded-xl shadow transition">
+                    <button type="submit" class="h-10 px-5 inline-flex items-center justify-center bg-[#155d49] hover:bg-[#114a3b] text-white font-bold text-sm rounded-xl shadow-sm transition active:scale-[0.98]">
                         Save Category
                     </button>
                 </div>
@@ -155,10 +155,10 @@
                 </div>
 
                 <div class="pt-2 flex justify-end gap-3">
-                    <button type="button" onclick="closeEditCategoryModal()" class="px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 font-bold text-xs rounded-xl transition">
+                    <button type="button" onclick="closeEditCategoryModal()" class="h-10 px-4 inline-flex items-center justify-center bg-gray-100 hover:bg-gray-200 text-gray-700 font-bold text-sm rounded-xl transition active:scale-[0.98]">
                         Cancel
                     </button>
-                    <button type="submit" class="px-5 py-2 bg-[#155d49] hover:bg-[#114a3b] text-white font-bold text-xs rounded-xl shadow transition">
+                    <button type="submit" class="h-10 px-5 inline-flex items-center justify-center bg-[#155d49] hover:bg-[#114a3b] text-white font-bold text-sm rounded-xl shadow-sm transition active:scale-[0.98]">
                         Update Category
                     </button>
                 </div>

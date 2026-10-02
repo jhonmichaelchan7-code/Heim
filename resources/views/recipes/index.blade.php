@@ -9,9 +9,9 @@
                     Define exact raw ingredient deduction amounts per product and cup size
                 </p>
             </div>
-            <a href="{{ route('recipes.create') }}" class="inline-flex items-center px-4 py-2 bg-[#155d49] hover:bg-[#114a3b] text-white font-bold text-xs rounded-xl shadow-sm transition gap-2">
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
-                Create New Recipe
+            <a href="{{ route('recipes.create') }}" class="inline-flex items-center justify-center gap-2 h-10 px-4 py-2 bg-[#155d49] hover:bg-[#114a3b] text-white font-semibold text-xs sm:text-sm rounded-xl shadow-xs transition active:scale-[0.98]">
+                <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
+                <span>Create New Recipe</span>
             </a>
         </div>
     </x-slot>
@@ -24,7 +24,7 @@
                 <form method="GET" action="{{ route('recipes.index') }}" class="flex flex-col sm:flex-row gap-3 items-end">
                     <div class="flex-1">
                         <label class="block text-xs font-bold uppercase tracking-wider text-gray-600 mb-1">Filter by Product</label>
-                        <select name="product_id" class="w-full px-3 py-2 text-sm border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#155d49] outline-none font-medium">
+                        <select name="product_id" class="w-full h-10 px-3 py-2 text-sm border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#155d49] outline-none font-medium">
                             <option value="">All Products</option>
                             @foreach($products as $p)
                                 <option value="{{ $p->id }}" {{ request('product_id') == $p->id ? 'selected' : '' }}>
@@ -34,8 +34,13 @@
                         </select>
                     </div>
                     <div class="flex gap-2">
-                        <button type="submit" class="px-4 py-2 bg-[#155d49] hover:bg-[#114a3b] text-white font-bold text-sm rounded-xl transition shadow-sm">Filter</button>
-                        <a href="{{ route('recipes.index') }}" class="px-3 py-2 bg-gray-100 hover:bg-gray-200 text-gray-600 font-bold text-sm rounded-xl transition">Reset</a>
+                        <button type="submit" class="h-10 px-5 bg-[#155d49] hover:bg-[#114a3b] text-white font-bold text-sm rounded-xl transition shadow-xs flex items-center justify-center gap-1.5 active:scale-[0.98]">
+                            <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z"/></svg>
+                            <span>Filter</span>
+                        </button>
+                        <a href="{{ route('recipes.index') }}" class="h-10 px-4 bg-gray-100 hover:bg-gray-200 text-gray-700 font-bold text-sm rounded-xl transition flex items-center justify-center">
+                            Reset
+                        </a>
                     </div>
                 </form>
             </div>

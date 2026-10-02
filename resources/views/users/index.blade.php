@@ -9,9 +9,9 @@
                     Manage system staff, shared cashier logins, supervisor permissions, and managerial access
                 </p>
             </div>
-            <a href="{{ route('users.create') }}" class="inline-flex items-center px-4 py-2 bg-[#155d49] hover:bg-[#114a3b] text-white font-bold text-xs rounded-xl shadow-sm transition gap-2">
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
-                Add Staff Member
+            <a href="{{ route('users.create') }}" class="inline-flex items-center justify-center gap-2 h-10 px-4 py-2 bg-[#155d49] hover:bg-[#114a3b] text-white font-semibold text-xs sm:text-sm rounded-xl shadow-xs transition active:scale-[0.98]">
+                <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
+                <span>Add Staff Member</span>
             </a>
         </div>
     </x-slot>
@@ -74,14 +74,14 @@
                                     <td class="py-4 px-4 text-xs text-gray-500 font-mono">
                                         {{ $user->created_at->format('M d, Y') }}
                                     </td>
-                                    <td class="py-4 px-4 text-right space-x-2">
-                                        <a href="{{ route('users.edit', $user) }}" class="inline-flex items-center px-3 py-1.5 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg text-xs font-bold transition">
+                                    <td class="py-4 px-4 text-right space-x-1.5">
+                                        <a href="{{ route('users.edit', $user) }}" class="inline-flex items-center justify-center h-8 px-3 bg-white hover:bg-gray-50 border border-gray-200 text-gray-700 rounded-lg text-xs font-semibold shadow-xs transition active:scale-[0.98]">
                                             Edit
-                                        </a>
+                                         </a>
                                         @if($user->id !== auth()->id())
                                             <form method="POST" action="{{ route('users.toggle-active', $user) }}" class="inline-block">
                                                 @csrf
-                                                <button type="submit" class="inline-flex items-center px-3 py-1.5 rounded-lg text-xs font-bold transition
+                                                <button type="submit" class="inline-flex items-center justify-center h-8 px-3 rounded-lg text-xs font-semibold shadow-xs transition active:scale-[0.98]
                                                     {{ $user->is_active ? 'bg-rose-600 hover:bg-rose-700 text-white' : 'bg-emerald-600 hover:bg-emerald-700 text-white' }}
                                                 ">
                                                     {{ $user->is_active ? 'Deactivate' : 'Activate' }}

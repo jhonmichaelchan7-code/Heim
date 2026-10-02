@@ -9,7 +9,7 @@
                     {{ !auth()->user()->isAtLeast('supervisor') ? 'View your cashier transaction history and manage order statuses' : 'View transaction histories, cashier shift records, and manage order statuses' }}
                 </p>
             </div>
-            <a href="{{ route('pos.index') }}" class="inline-flex items-center px-4 py-2 bg-[#155d49] hover:bg-[#114a3b] text-white font-bold text-sm rounded-xl shadow-sm transition gap-2">
+            <a href="{{ route('pos.index') }}" class="inline-flex items-center justify-center h-10 px-4 py-2 bg-[#155d49] hover:bg-[#114a3b] text-white font-bold text-sm rounded-xl shadow-sm hover:shadow active:scale-[0.98] transition-all gap-2">
                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
                 New POS Sale
             </a>
@@ -26,12 +26,12 @@
                         <label class="block text-xs font-bold uppercase tracking-wider text-gray-600 mb-1">
                             {{ auth()->user()->isAtLeast('supervisor') ? 'Search Order # or Cashier' : 'Search Order #' }}
                         </label>
-                        <input type="text" name="search" value="{{ request('search') }}" placeholder="{{ auth()->user()->isAtLeast('supervisor') ? 'e.g. ORD-2026... or John' : 'e.g. ORD-2026...' }}" class="w-full px-3 py-2 text-sm border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#155d49] outline-none" />
+                        <input type="text" name="search" value="{{ request('search') }}" placeholder="{{ auth()->user()->isAtLeast('supervisor') ? 'e.g. ORD-2026... or John' : 'e.g. ORD-2026...' }}" class="w-full h-10 px-3 py-2 text-sm border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#155d49] outline-none" />
                     </div>
 
                     <div>
                         <label class="block text-xs font-bold uppercase tracking-wider text-gray-600 mb-1">Order Status</label>
-                        <select name="status" class="w-full px-3 py-2 text-sm border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#155d49] outline-none font-medium">
+                        <select name="status" class="w-full h-10 px-3 py-2 text-sm border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#155d49] outline-none font-medium">
                             <option value="">All Statuses</option>
                             <option value="completed" {{ request('status') === 'completed' ? 'selected' : '' }}>Completed</option>
                             <option value="refunded" {{ request('status') === 'refunded' ? 'selected' : '' }}>Refunded</option>
@@ -40,14 +40,14 @@
 
                     <div>
                         <label class="block text-xs font-bold uppercase tracking-wider text-gray-600 mb-1">Filter by Date</label>
-                        <input type="date" name="date" value="{{ request('date') }}" class="w-full px-3 py-2 text-sm border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#155d49] outline-none" />
+                        <input type="date" name="date" value="{{ request('date') }}" class="w-full h-10 px-3 py-2 text-sm border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#155d49] outline-none" />
                     </div>
 
                     <div class="flex gap-2">
-                        <button type="submit" class="flex-1 px-4 py-2 bg-[#155d49] hover:bg-[#114a3b] text-white font-bold text-sm rounded-xl transition shadow-sm">
+                        <button type="submit" class="flex-1 inline-flex items-center justify-center h-10 px-4 py-2 bg-[#155d49] hover:bg-[#114a3b] text-white font-bold text-sm rounded-xl transition shadow-sm active:scale-[0.98]">
                             Apply Filter
                         </button>
-                        <a href="{{ route('orders.index') }}" class="px-3 py-2 bg-gray-100 hover:bg-gray-200 text-gray-600 font-bold text-sm rounded-xl transition">
+                        <a href="{{ route('orders.index') }}" class="inline-flex items-center justify-center h-10 px-3 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 font-bold text-sm rounded-xl transition active:scale-[0.98]">
                             Reset
                         </a>
                     </div>
@@ -110,7 +110,7 @@
                                         </span>
                                     </td>
                                     <td class="py-3.5 px-4 text-right">
-                                        <a href="{{ route('orders.show', $order) }}" class="inline-flex items-center px-3 py-1.5 bg-[#f0f8f5] hover:bg-emerald-100 text-[#155d49] rounded-lg text-xs font-bold transition">
+                                        <a href="{{ route('orders.show', $order) }}" class="inline-flex items-center justify-center h-8 px-3 bg-[#f0f8f5] hover:bg-emerald-100 text-[#155d49] rounded-lg text-xs font-bold transition active:scale-[0.98]">
                                             View Details &rarr;
                                         </a>
                                     </td>

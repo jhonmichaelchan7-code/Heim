@@ -9,14 +9,14 @@
                     Manage beverages, size pricing matrix, recipe associations, and catalog visibility
                 </p>
             </div>
-            <div class="flex items-center gap-3">
-                <a href="{{ route('categories.index') }}" class="inline-flex items-center px-4 py-2 bg-white hover:bg-gray-50 text-gray-700 font-bold text-xs rounded-xl border border-gray-300 shadow-sm transition gap-2">
-                    <svg class="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 10h16M4 14h16M4 18h16"/></svg>
-                    Categories
+            <div class="flex items-center gap-2.5">
+                <a href="{{ route('categories.index') }}" class="inline-flex items-center justify-center gap-2 h-10 px-4 py-2 bg-white hover:bg-gray-50 text-gray-700 font-semibold text-xs sm:text-sm rounded-xl border border-gray-200 shadow-xs transition active:scale-[0.98]">
+                    <svg class="w-4 h-4 text-gray-500 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 10h16M4 14h16M4 18h16"/></svg>
+                    <span>Categories</span>
                 </a>
-                <a href="{{ route('products.create') }}" class="inline-flex items-center px-4 py-2 bg-[#155d49] hover:bg-[#114a3b] text-white font-bold text-xs rounded-xl shadow-sm transition gap-2">
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
-                    Add Product
+                <a href="{{ route('products.create') }}" class="inline-flex items-center justify-center gap-2 h-10 px-4 py-2 bg-[#155d49] hover:bg-[#114a3b] text-white font-semibold text-xs sm:text-sm rounded-xl shadow-xs transition active:scale-[0.98]">
+                    <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
+                    <span>Add Product</span>
                 </a>
             </div>
         </div>
@@ -30,12 +30,12 @@
                 <form method="GET" action="{{ route('products.index') }}" class="grid grid-cols-1 sm:grid-cols-3 gap-3 items-end">
                     <div>
                         <label class="block text-xs font-bold uppercase tracking-wider text-gray-600 mb-1">Search Product Name</label>
-                        <input type="text" name="search" value="{{ request('search') }}" placeholder="e.g. Latte, Americano..." class="w-full px-3 py-2 text-sm border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#155d49] outline-none" />
+                        <input type="text" name="search" value="{{ request('search') }}" placeholder="e.g. Latte, Americano..." class="w-full h-10 px-3 py-2 text-sm border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#155d49] outline-none" />
                     </div>
 
                     <div>
                         <label class="block text-xs font-bold uppercase tracking-wider text-gray-600 mb-1">Filter by Category</label>
-                        <select name="category" class="w-full px-3 py-2 text-sm border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#155d49] outline-none font-medium">
+                        <select name="category" class="w-full h-10 px-3 py-2 text-sm border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#155d49] outline-none font-medium">
                             <option value="">All Categories</option>
                             @foreach($categories as $cat)
                                 <option value="{{ $cat->id }}" {{ request('category') == $cat->id ? 'selected' : '' }}>{{ $cat->name }}</option>
@@ -44,10 +44,11 @@
                     </div>
 
                     <div class="flex gap-2">
-                        <button type="submit" class="flex-1 px-4 py-2 bg-[#155d49] hover:bg-[#114a3b] text-white font-bold text-sm rounded-xl transition shadow-sm">
-                            Filter
+                        <button type="submit" class="flex-1 h-10 px-4 py-2 bg-[#155d49] hover:bg-[#114a3b] text-white font-bold text-sm rounded-xl transition shadow-xs flex items-center justify-center gap-1.5 active:scale-[0.98]">
+                            <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z"/></svg>
+                            <span>Filter</span>
                         </button>
-                        <a href="{{ route('products.index') }}" class="px-3 py-2 bg-gray-100 hover:bg-gray-200 text-gray-600 font-bold text-sm rounded-xl transition">
+                        <a href="{{ route('products.index') }}" class="h-10 px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 font-bold text-sm rounded-xl transition flex items-center justify-center">
                             Reset
                         </a>
                     </div>
@@ -108,13 +109,13 @@
                                             </button>
                                         </form>
                                     </td>
-                                    <td class="py-4 px-4 text-right space-x-2">
-                                        <a href="{{ route('products.edit', $product) }}" class="inline-flex items-center px-3 py-1.5 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg text-xs font-bold transition">
+                                    <td class="py-4 px-4 text-right space-x-1.5">
+                                        <a href="{{ route('products.edit', $product) }}" class="inline-flex items-center justify-center h-8 px-3 bg-white hover:bg-gray-50 border border-gray-200 text-gray-700 rounded-lg text-xs font-semibold shadow-xs transition active:scale-[0.98]">
                                             Edit
-                                        </a>
+                                         </a>
                                         <form method="POST" action="{{ route('products.toggle-active', $product) }}" class="inline-block">
                                             @csrf
-                                            <button type="submit" class="inline-flex items-center px-3 py-1.5 rounded-lg text-xs font-bold transition
+                                            <button type="submit" class="inline-flex items-center justify-center h-8 px-3 rounded-lg text-xs font-semibold shadow-xs transition active:scale-[0.98]
                                                 {{ $product->is_active ? 'bg-rose-600 hover:bg-rose-700 text-white' : 'bg-[#155d49] hover:bg-[#114a3b] text-white' }}
                                             ">
                                                 {{ $product->is_active ? 'Set Inactive' : 'Set Active' }}

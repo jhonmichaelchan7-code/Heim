@@ -2,7 +2,7 @@
     <x-slot name="header">
         <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
             <div class="flex items-center gap-3">
-                <a href="{{ route('orders.index') }}" class="p-2 bg-gray-100 hover:bg-gray-200 rounded-xl text-gray-600 transition">
+                <a href="{{ route('orders.index') }}" class="inline-flex items-center justify-center h-10 w-10 bg-gray-100 hover:bg-gray-200 rounded-xl text-gray-700 transition active:scale-[0.98]">
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"/></svg>
                 </a>
                 <div>
@@ -24,13 +24,13 @@
             </div>
 
             <div class="flex items-center gap-2">
-                <button onclick="printThermalReceipt()" class="inline-flex items-center px-4 py-2 bg-gray-900 hover:bg-black text-white font-bold text-xs rounded-xl transition gap-1.5 shadow-sm">
+                <button onclick="printThermalReceipt()" class="inline-flex items-center justify-center h-10 px-4 py-2 bg-gray-900 hover:bg-black text-white font-bold text-sm rounded-xl transition gap-2 shadow-sm active:scale-[0.98]">
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"/></svg>
                     Print Thermal Receipt
                 </button>
 
                 @if($order->status === 'completed')
-                    <button onclick="openRefundModal()" class="inline-flex items-center px-4 py-2 bg-rose-600 hover:bg-rose-700 text-white font-bold text-xs rounded-xl transition gap-1.5 shadow-sm">
+                    <button onclick="openRefundModal()" class="inline-flex items-center justify-center h-10 px-4 py-2 bg-rose-600 hover:bg-rose-700 text-white font-bold text-sm rounded-xl transition gap-2 shadow-sm active:scale-[0.98]">
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 15v-1a4 4 0 00-4-4H8m0 0l3 3m-3-3l3-3m9 14V5a2 2 0 00-2-2H6a2 2 0 00-2 2v16l4-2 4 2 4-2 4 2z"/></svg>
                         Issue Refund
                     </button>
@@ -308,10 +308,10 @@
                 </div>
 
                 <div class="pt-2 flex gap-3">
-                    <button type="button" onclick="closeRefundModal()" class="flex-1 py-3 bg-gray-200 hover:bg-gray-300 text-gray-700 font-bold rounded-xl text-xs transition">
+                    <button type="button" onclick="closeRefundModal()" class="flex-1 h-10 inline-flex items-center justify-center bg-gray-100 hover:bg-gray-200 text-gray-700 font-bold rounded-xl text-sm transition active:scale-[0.98]">
                         Cancel
                     </button>
-                    <button type="submit" class="flex-1 py-3 bg-rose-600 hover:bg-rose-700 text-white font-bold rounded-xl text-xs shadow transition">
+                    <button type="submit" class="flex-1 h-10 inline-flex items-center justify-center bg-rose-600 hover:bg-rose-700 text-white font-bold rounded-xl text-sm shadow-sm transition active:scale-[0.98]">
                         Authorize Refund
                     </button>
                 </div>

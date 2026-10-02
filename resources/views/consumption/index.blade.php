@@ -10,9 +10,9 @@
                 </p>
             </div>
             <form method="GET" action="{{ route('consumption.index') }}" class="flex items-center gap-2">
-                <input type="date" name="date" value="{{ $date }}" class="px-3.5 py-2 text-sm border border-gray-300 rounded-xl focus:ring-2 focus:ring-[#155d49] outline-none font-semibold text-gray-800" />
-                <button type="submit" class="px-4 py-2 bg-[#155d49] hover:bg-[#114a3b] text-white text-xs font-bold rounded-xl transition shadow-sm">
-                    View Date
+                <input type="date" name="date" value="{{ $date }}" class="h-10 px-3.5 py-2 text-sm border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#155d49] outline-none font-semibold text-gray-800" />
+                <button type="submit" class="inline-flex items-center justify-center gap-1.5 h-10 px-4 py-2 bg-[#155d49] hover:bg-[#114a3b] text-white text-xs sm:text-sm font-semibold rounded-xl transition shadow-xs active:scale-[0.98]">
+                    <span>View Date</span>
                 </button>
             </form>
         </div>
@@ -60,15 +60,18 @@
             <!-- Detailed Consumption Table -->
             <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
                 <div class="p-5 border-b border-gray-100 bg-[#f0f8f5]/60 flex justify-between items-center no-print">
-                    <h3 class="font-bold text-gray-900 text-base">Ingredient Usage Matrix</h3>
-                    <div class="flex items-center gap-2">
-                        <button onclick="exportReportCsv('consumption-table', 'daily-ingredient-consumption.csv')" class="px-3.5 py-1.5 bg-[#155d49] hover:bg-[#114a3b] text-white rounded-xl text-xs font-bold transition flex items-center gap-1.5">
-                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
-                            Export Excel / CSV
-                        </button>
-                        <button onclick="printReportTable('consumption-table')" class="px-3.5 py-1.5 bg-gray-800 hover:bg-gray-900 text-white rounded-xl text-xs font-bold transition flex items-center gap-1.5">
-                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"/></svg>
-                            Print Data Only
+                    <div>
+                        <h3 class="font-bold text-gray-900 text-base">Ingredient Usage Matrix</h3>
+                        <p class="text-xs text-gray-500">Summary of all recipe deductions and adjustments for {{ \Carbon\Carbon::parse($date)->format('M d, Y') }}</p>
+                    </div>
+                    <div class="flex items-center">
+                        <button type="button" 
+                                onclick="exportCompleteConsumptionReportExcel()" 
+                                class="inline-flex items-center justify-center gap-2 h-10 px-4 py-2 bg-[#107c41] hover:bg-[#0c6133] text-white font-semibold text-xs sm:text-sm rounded-xl shadow-xs hover:shadow transition-all duration-150 active:scale-[0.98]">
+                            <svg class="w-4 h-4 shrink-0" fill="currentColor" viewBox="0 0 24 24">
+                                <path d="M14 2H6C4.89 2 4 2.89 4 4v16c0 1.11.89 2 2 2h12c1.11 0 2-.89 2-2V8l-6-6zm2 16H8v-2h8v2zm0-4H8v-2h8v2zm-3-5V3.5L18.5 9H13z"/>
+                            </svg>
+                            <span>Export Report (Excel)</span>
                         </button>
                     </div>
                 </div>
@@ -145,58 +148,59 @@
 
 @push('scripts')
 <script>
-    function exportReportCsv(tableId, fileName) {
-        const table = document.getElementById(tableId);
-        if (!table) return;
+    function exportCompleteConsumptionReportExcel() {
+        const reportData = {
+            title: "HEIM COFFEE - DAILY INGREDIENT CONSUMPTION MATRIX",
+            date: "{{ \Carbon\Carbon::parse($date)->format('F d, Y') }}",
+            generatedAt: new Date().toLocaleString('en-US', { month: 'short', day: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit', hour12: true }),
+            ordersCount: "{{ $ordersCount }}",
+            itemsSold: "{{ $itemsSold }}",
+            items: [
+                @foreach($ingredients as $ing)
+                @php
+                    $ingTxns = $transactions->get($ing->id, collect());
+                    $salesUse = abs($ingTxns->where('type', 'sales_consumption')->sum('total_quantity'));
+                    $wasteUse = abs($ingTxns->where('type', 'waste')->sum('total_quantity'));
+                    $adjustUse = $ingTxns->where('type', 'adjustment')->sum('total_quantity');
+                    $stockIn = $ingTxns->where('type', 'stock_in')->sum('total_quantity');
+                    $netChange = $stockIn + $adjustUse - $salesUse - $wasteUse;
+                @endphp
+                [
+                    "{{ addslashes($ing->name) }}",
+                    "{{ $ing->unit }}",
+                    "{{ $salesUse > 0 ? '-' . number_format($salesUse, 2, '.', '') : '0.00' }}",
+                    "{{ $wasteUse > 0 ? '-' . number_format($wasteUse, 2, '.', '') : '0.00' }}",
+                    "{{ ($adjustUse > 0 ? '+' : '') . number_format($adjustUse, 2, '.', '') }}",
+                    "{{ $stockIn > 0 ? '+' . number_format($stockIn, 2, '.', '') : '0.00' }}",
+                    "{{ ($netChange > 0 ? '+' : '') . number_format($netChange, 2, '.', '') }}",
+                    "{{ number_format($ing->current_stock, 2, '.', '') }}"
+                ],
+                @endforeach
+            ]
+        };
 
-        const rows = Array.from(table.querySelectorAll('tr')).map(row => 
-            Array.from(row.children).map(cell => '"' + (cell.textContent || '').replace(/"/g, '""').replace(/\s+/g, ' ').trim() + '"').join(',')
-        );
-        const csv = rows.join('\n');
-        const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+        let csv = "";
+        csv += `"${reportData.title}"\n`;
+        csv += `"Report Date:","${reportData.date}"\n`;
+        csv += `"Generated At:","${reportData.generatedAt}"\n`;
+        csv += `"Orders Processed:","${reportData.ordersCount}"\n`;
+        csv += `"Total Items Sold:","${reportData.itemsSold}"\n\n`;
+
+        csv += `"--- DAILY INGREDIENT USAGE MATRIX ---"\n`;
+        csv += `"Ingredient Name","Unit","Sales Usage (-)","Waste / Spoilage (-)","Adjustments (+/-)","Stock Received (+)","Net Daily Change","Current Stock"\n`;
+
+        reportData.items.forEach(row => {
+            csv += `"${row[0]}","${row[1]}","${row[2]}","${row[3]}","${row[4]}","${row[5]}","${row[6]}","${row[7]}"\n`;
+        });
+
+        // Add UTF-8 BOM so Excel opens with proper column structure
+        const blob = new Blob(["\uFEFF" + csv], { type: 'text/csv;charset=utf-8;' });
         const url = URL.createObjectURL(blob);
         const link = document.createElement('a');
         link.href = url;
-        link.download = fileName;
+        link.download = `Heim_Daily_Consumption_{{ $date }}.csv`;
         link.click();
         URL.revokeObjectURL(url);
-    }
-
-    function printReportTable(tableId) {
-        const table = document.getElementById(tableId);
-        if (!table) return;
-
-        const printWindow = window.open('', '_blank', 'width=950,height=700');
-        if (!printWindow) {
-            alert('Please allow pop-ups to print the report data.');
-            return;
-        }
-
-        const html = `
-            <html>
-                <head>
-                    <title>Daily Ingredient Consumption</title>
-                    <style>
-                        body { font-family: Arial, sans-serif; padding: 24px; color: #111827; }
-                        h2 { margin: 0 0 4px 0; font-size: 18px; color: #155d49; }
-                        p { margin: 0 0 16px 0; font-size: 12px; color: #6b7280; }
-                        table { width: 100%; border-collapse: collapse; font-size: 11px; }
-                        th, td { border: 1px solid #d1d5db; padding: 6px 8px; text-align: left; }
-                        th { background: #f3f4f6; font-weight: bold; text-transform: uppercase; font-size: 10px; }
-                        @media print { body { margin: 0; padding: 12px; } }
-                    </style>
-                </head>
-                <body>
-                    <h2>HEIM COFFEE - DAILY INGREDIENT CONSUMPTION MATRIX</h2>
-                    <p>Report Date: {{ \Carbon\Carbon::parse($date)->format('M d, Y') }} | Printed: ${new Date().toLocaleString()}</p>
-                    ${table.outerHTML}
-                </body>
-            </html>
-        `;
-
-        printWindow.document.write(html);
-        printWindow.document.close();
-        setTimeout(() => printWindow.print(), 500);
     }
 </script>
 @endpush

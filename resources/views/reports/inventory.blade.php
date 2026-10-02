@@ -9,40 +9,52 @@
                     Periodic summary of stock on hand, incoming deliveries, waste, and recipe consumption
                 </p>
             </div>
-            <div class="flex items-center gap-2 no-print">
-                <a href="{{ route('reports.sales') }}" class="px-3.5 py-2 bg-white hover:bg-gray-50 text-gray-700 font-bold text-xs rounded-xl border border-gray-300 shadow-sm transition">
-                    &larr; Sales Report
-                </a>
-                <button onclick="exportReportCsv('inventory-report-table', 'inventory-report.csv')" class="px-3.5 py-2 bg-[#155d49] hover:bg-[#114a3b] text-white font-bold text-xs rounded-xl shadow-sm transition flex items-center gap-1.5">
-                    Export CSV
-                </button>
-                <button onclick="printReportTable('inventory-report-table')" class="px-3.5 py-2 bg-gray-800 hover:bg-gray-900 text-white font-bold text-xs rounded-xl shadow-sm transition flex items-center gap-1.5">
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"/></svg>
-                    Print Data
+            <!-- HCI Theory: Single prominent primary action button (Hick's Law & Fitts's Law) -->
+            <div class="flex items-center no-print">
+                <button type="button" 
+                        onclick="exportCompleteInventoryReportExcel()" 
+                        class="inline-flex items-center justify-center gap-2 h-10 px-4 py-2 bg-[#107c41] hover:bg-[#0c6133] text-white font-semibold text-xs sm:text-sm rounded-xl shadow-xs hover:shadow transition-all duration-150 active:scale-[0.98]">
+                    <svg class="w-4 h-4 shrink-0" fill="currentColor" viewBox="0 0 24 24">
+                        <path d="M14 2H6C4.89 2 4 2.89 4 4v16c0 1.11.89 2 2 2h12c1.11 0 2-.89 2-2V8l-6-6zm2 16H8v-2h8v2zm0-4H8v-2h8v2zm-3-5V3.5L18.5 9H13z"/>
+                    </svg>
+                    <span>Export Report (Excel)</span>
                 </button>
             </div>
         </div>
     </x-slot>
 
     <div class="py-4 sm:py-6">
-        <div class="w-full px-4 sm:px-6 lg:px-8 xl:px-10 2xl:max-w-[1880px] 2xl:mx-auto space-y-4 sm:space-y-6">
+        <div class="w-full px-4 sm:px-6 lg:px-8 xl:px-10 2xl:max-w-[1880px] 2xl:mx-auto space-y-5">
+
+            <!-- Report Navigation Tabs -->
+            <div class="flex items-center gap-2 border-b border-gray-200/80 pb-3 no-print">
+                <a href="{{ route('reports.sales') }}" 
+                   class="inline-flex items-center h-9 px-4 rounded-xl text-xs font-semibold bg-white hover:bg-gray-100 text-gray-600 border border-gray-200 transition">
+                    Sales & Revenue
+                </a>
+                <a href="{{ route('reports.inventory') }}" 
+                   class="inline-flex items-center h-9 px-4 rounded-xl text-xs font-bold bg-[#155d49] text-white shadow-xs">
+                    Inventory Movement
+                </a>
+            </div>
 
             <!-- Filter Card -->
             <div class="bg-white p-4 rounded-2xl shadow-sm border border-gray-100">
                 <form method="GET" action="{{ route('reports.inventory') }}" class="grid grid-cols-1 sm:grid-cols-3 gap-3 items-end">
                     <div>
                         <label class="block text-xs font-bold uppercase tracking-wider text-gray-600 mb-1">Date From</label>
-                        <input type="date" name="date_from" value="{{ $dateFrom }}" class="w-full px-3 py-2 text-sm border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#155d49] outline-none" />
+                        <input type="date" name="date_from" value="{{ $dateFrom }}" class="w-full h-10 px-3 py-2 text-sm border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#155d49] outline-none" />
                     </div>
 
                     <div>
                         <label class="block text-xs font-bold uppercase tracking-wider text-gray-600 mb-1">Date To</label>
-                        <input type="date" name="date_to" value="{{ $dateTo }}" class="w-full px-3 py-2 text-sm border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#155d49] outline-none" />
+                        <input type="date" name="date_to" value="{{ $dateTo }}" class="w-full h-10 px-3 py-2 text-sm border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#155d49] outline-none" />
                     </div>
 
-                    <div class="flex gap-2">
-                        <button type="submit" class="flex-1 px-4 py-2 bg-[#155d49] hover:bg-[#114a3b] text-white font-bold text-sm rounded-xl transition shadow-sm">
-                            Generate Report
+                    <div class="flex">
+                        <button type="submit" class="w-full h-10 px-4 py-2 bg-[#155d49] hover:bg-[#114a3b] text-white font-bold text-sm rounded-xl transition shadow-xs flex items-center justify-center gap-1.5 active:scale-[0.98]">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z"/></svg>
+                            <span>Filter Results</span>
                         </button>
                     </div>
                 </form>
@@ -56,7 +68,7 @@
                 </div>
 
                 <div class="overflow-x-auto">
-                    <table id="inventory-report-table" class="w-full text-left text-sm">
+                    <table class="w-full text-left text-sm">
                         <thead class="bg-gray-50 text-gray-500 text-xs uppercase font-semibold border-b border-gray-100">
                             <tr>
                                 <th class="py-3.5 px-4">Ingredient Name</th>
@@ -130,53 +142,55 @@
 
 @push('scripts')
 <script>
-    function exportReportCsv(tableId, fileName) {
-        const table = document.getElementById(tableId);
-        if (!table) return;
+    function exportCompleteInventoryReportExcel() {
+        const reportData = {
+            title: "HEIM COFFEE - INVENTORY STATUS & MOVEMENT REPORT",
+            period: "{{ \Carbon\Carbon::parse($dateFrom)->format('M d, Y') }} to {{ \Carbon\Carbon::parse($dateTo)->format('M d, Y') }}",
+            generatedAt: new Date().toLocaleString('en-US', { month: 'short', day: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit', hour12: true }),
+            items: [
+                @foreach($ingredients as $ing)
+                @php
+                    $txns = $transactionSummary->get($ing->id, collect());
+                    $stockIn = $txns->where('type', 'stock_in')->sum('total_quantity');
+                    $sales = abs($txns->where('type', 'sales_consumption')->sum('total_quantity'));
+                    $waste = abs($txns->where('type', 'waste')->sum('total_quantity'));
+                    $adjust = $txns->where('type', 'adjustment')->sum('total_quantity');
+                    $status = $ing->current_stock <= 0 ? 'Out of Stock' : ($ing->current_stock <= $ing->minimum_stock ? 'Low Stock' : 'In Stock');
+                @endphp
+                [
+                    "{{ addslashes($ing->name) }}",
+                    "{{ $ing->unit }}",
+                    "{{ $stockIn > 0 ? '+' . number_format($stockIn, 2, '.', '') : '0.00' }}",
+                    "{{ $sales > 0 ? '-' . number_format($sales, 2, '.', '') : '0.00' }}",
+                    "{{ $waste > 0 ? '-' . number_format($waste, 2, '.', '') : '0.00' }}",
+                    "{{ ($adjust > 0 ? '+' : '') . number_format($adjust, 2, '.', '') }}",
+                    "{{ number_format($ing->current_stock, 2, '.', '') }}",
+                    "{{ $status }}"
+                ],
+                @endforeach
+            ]
+        };
 
-        const rows = Array.from(table.querySelectorAll('tr')).map(row => Array.from(row.children).map(cell => '"' + (cell.textContent || '').replace(/"/g, '""').trim() + '"').join(','));
-        const csv = rows.join('\n');
-        const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+        let csv = "";
+        csv += `"${reportData.title}"\n`;
+        csv += `"Date Range:","${reportData.period}"\n`;
+        csv += `"Generated At:","${reportData.generatedAt}"\n\n`;
+
+        csv += `"--- PERIOD STOCK MOVEMENT SUMMARY ---"\n`;
+        csv += `"Ingredient Name","Unit","Stock Received (+)","Sales Consumption (-)","Spoilage / Waste (-)","Net Adjustments","Current Stock","Status"\n`;
+
+        reportData.items.forEach(row => {
+            csv += `"${row[0]}","${row[1]}","${row[2]}","${row[3]}","${row[4]}","${row[5]}","${row[6]}","${row[7]}"\n`;
+        });
+
+        // Add UTF-8 BOM so Excel opens with proper characters and column delimiters
+        const blob = new Blob(["\uFEFF" + csv], { type: 'text/csv;charset=utf-8;' });
         const url = URL.createObjectURL(blob);
         const link = document.createElement('a');
         link.href = url;
-        link.download = fileName;
+        link.download = `Heim_Inventory_Report_{{ $dateFrom }}_to_{{ $dateTo }}.csv`;
         link.click();
         URL.revokeObjectURL(url);
-    }
-
-    function printReportTable(tableId) {
-        const table = document.getElementById(tableId);
-        if (!table) return;
-
-        const printWindow = window.open('', '_blank', 'width=900,height=700');
-        if (!printWindow) {
-            alert('Please allow pop-ups to print the report data.');
-            return;
-        }
-
-        const html = `
-            <html>
-                <head>
-                    <title>Report Data</title>
-                    <style>
-                        body { font-family: Arial, sans-serif; padding: 24px; color: #111827; }
-                        table { width: 100%; border-collapse: collapse; font-size: 12px; }
-                        th, td { border: 1px solid #d1d5db; padding: 8px; text-align: left; }
-                        th { background: #f3f4f6; }
-                        @media print { body { margin: 0; } }
-                    </style>
-                </head>
-                <body>
-                    <h2 style="margin-bottom: 16px;">Inventory Report</h2>
-                    ${table.outerHTML}
-                </body>
-            </html>
-        `;
-
-        printWindow.document.write(html);
-        printWindow.document.close();
-        setTimeout(() => printWindow.print(), 500);
     }
 </script>
 @endpush

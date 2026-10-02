@@ -9,10 +9,17 @@
                     Immutable activity log of user actions, financial transactions, inventory movements, and system changes
                 </p>
             </div>
-            <button onclick="window.print()" class="px-3.5 py-2 bg-gray-800 hover:bg-gray-900 text-white font-bold text-xs rounded-xl shadow-sm transition flex items-center gap-1.5">
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"/></svg>
-                Print Logs
-            </button>
+            <!-- HCI Theory: Single prominent primary action button -->
+            <div class="flex items-center no-print">
+                <button type="button" 
+                        onclick="exportCompleteAuditLogsExcel()" 
+                        class="inline-flex items-center justify-center gap-2 h-10 px-4 py-2 bg-[#107c41] hover:bg-[#0c6133] text-white font-semibold text-xs sm:text-sm rounded-xl shadow-xs hover:shadow transition-all duration-150 active:scale-[0.98]">
+                    <svg class="w-4 h-4 shrink-0" fill="currentColor" viewBox="0 0 24 24">
+                        <path d="M14 2H6C4.89 2 4 2.89 4 4v16c0 1.11.89 2 2 2h12c1.11 0 2-.89 2-2V8l-6-6zm2 16H8v-2h8v2zm0-4H8v-2h8v2zm-3-5V3.5L18.5 9H13z"/>
+                    </svg>
+                    <span>Export Logs (Excel)</span>
+                </button>
+            </div>
         </div>
     </x-slot>
 
@@ -24,12 +31,12 @@
                 <form method="GET" action="{{ route('audit-logs.index') }}" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3 items-end">
                     <div>
                         <label class="block text-xs font-bold uppercase tracking-wider text-gray-600 mb-1">Search Actor / Action</label>
-                        <input type="text" name="search" value="{{ request('search') }}" placeholder="e.g. John, Order #..." class="w-full px-3 py-2 text-sm border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#155d49] outline-none" />
+                        <input type="text" name="search" value="{{ request('search') }}" placeholder="e.g. John, Order #..." class="w-full h-10 px-3 py-2 text-sm border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#155d49] outline-none" />
                     </div>
 
                     <div>
                         <label class="block text-xs font-bold uppercase tracking-wider text-gray-600 mb-1">Module</label>
-                        <select name="module" class="w-full px-3 py-2 text-sm border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#155d49] outline-none font-medium">
+                        <select name="module" class="w-full h-10 px-3 py-2 text-sm border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#155d49] outline-none font-medium">
                             <option value="">All Modules</option>
                             @foreach($modules as $mod)
                                 <option value="{{ $mod }}" {{ request('module') === $mod ? 'selected' : '' }}>{{ ucfirst($mod) }}</option>
@@ -39,19 +46,20 @@
 
                     <div>
                         <label class="block text-xs font-bold uppercase tracking-wider text-gray-600 mb-1">Date From</label>
-                        <input type="date" name="date_from" value="{{ request('date_from') }}" class="w-full px-3 py-2 text-sm border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#155d49] outline-none" />
+                        <input type="date" name="date_from" value="{{ request('date_from') }}" class="w-full h-10 px-3 py-2 text-sm border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#155d49] outline-none" />
                     </div>
 
                     <div>
                         <label class="block text-xs font-bold uppercase tracking-wider text-gray-600 mb-1">Date To</label>
-                        <input type="date" name="date_to" value="{{ request('date_to') }}" class="w-full px-3 py-2 text-sm border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#155d49] outline-none" />
+                        <input type="date" name="date_to" value="{{ request('date_to') }}" class="w-full h-10 px-3 py-2 text-sm border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#155d49] outline-none" />
                     </div>
 
                     <div class="flex gap-2">
-                        <button type="submit" class="flex-1 px-4 py-2 bg-[#155d49] hover:bg-[#114a3b] text-white font-bold text-sm rounded-xl transition shadow-sm">
-                            Filter
+                        <button type="submit" class="flex-1 h-10 px-4 py-2 bg-[#155d49] hover:bg-[#114a3b] text-white font-bold text-sm rounded-xl transition shadow-xs flex items-center justify-center gap-1.5 active:scale-[0.98]">
+                            <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z"/></svg>
+                            <span>Filter</span>
                         </button>
-                        <a href="{{ route('audit-logs.index') }}" class="px-3 py-2 bg-gray-100 hover:bg-gray-200 text-gray-600 font-bold text-sm rounded-xl transition">
+                        <a href="{{ route('audit-logs.index') }}" class="h-10 px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 font-bold text-sm rounded-xl transition flex items-center justify-center">
                             Reset
                         </a>
                     </div>
@@ -138,3 +146,46 @@
         </div>
     </div>
 </x-app-layout>
+
+@push('scripts')
+<script>
+    function exportCompleteAuditLogsExcel() {
+        const reportData = {
+            title: "HEIM COFFEE - AUDIT TRAILS & ACTIVITY LOGS",
+            generatedAt: new Date().toLocaleString('en-US', { month: 'short', day: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit', hour12: true }),
+            items: [
+                @foreach($logs as $log)
+                [
+                    "{{ $log->created_at->format('Y-m-d H:i:s') }}",
+                    "{{ addslashes($log->actor_name) }}",
+                    "{{ $log->actor_role ?? 'System' }}",
+                    "{{ $log->module }}",
+                    "{{ $log->action }}",
+                    "{{ addslashes(str_replace(["\r", "\n"], ' ', $log->description)) }}",
+                    "{{ $log->ip_address ?? '127.0.0.1' }}"
+                ],
+                @endforeach
+            ]
+        };
+
+        let csv = "";
+        csv += `"${reportData.title}"\n`;
+        csv += `"Generated At:","${reportData.generatedAt}"\n\n`;
+
+        csv += `"Timestamp","Actor Name","Actor Role","Module","Action","Description","IP Address"\n`;
+
+        reportData.items.forEach(row => {
+            csv += `"${row[0]}","${row[1]}","${row[2]}","${row[3]}","${row[4]}","${row[5]}","${row[6]}"\n`;
+        });
+
+        // Add UTF-8 BOM so Excel opens with proper encoding
+        const blob = new Blob(["\uFEFF" + csv], { type: 'text/csv;charset=utf-8;' });
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = `Heim_Audit_Logs_${new Date().toISOString().slice(0, 10)}.csv`;
+        link.click();
+        URL.revokeObjectURL(url);
+    }
+</script>
+@endpush
