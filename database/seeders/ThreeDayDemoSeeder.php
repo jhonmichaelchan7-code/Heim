@@ -45,7 +45,7 @@ class ThreeDayDemoSeeder extends Seeder
         $this->manager = User::where('email', 'manager@coffee.com')->first()
             ?? User::firstOrCreate(['email' => 'manager@coffee.com'], ['name' => 'Maria Santos', 'password' => bcrypt('password'), 'role' => 'manager']);
         $this->supervisor = User::where('email', 'supervisor@coffee.com')->first()
-            ?? User::firstOrCreate(['email' => 'supervisor@coffee.com'], ['name' => 'Carlos Reyes', 'password' => bcrypt('password'), 'role' => 'supervisor']);
+            ?? User::firstOrCreate(['email' => 'supervisor@coffee.com'], ['name' => 'Carlos Reyes', 'password' => bcrypt('password'), 'role' => 'manager']);
         $this->cashier = User::where('email', 'cashier@coffee.com')->first()
             ?? User::firstOrCreate(['email' => 'cashier@coffee.com'], ['name' => 'anna', 'password' => bcrypt('password'), 'role' => 'cashier']);
 

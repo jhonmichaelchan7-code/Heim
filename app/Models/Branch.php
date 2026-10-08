@@ -31,6 +31,11 @@ class Branch extends Model
         return $this->hasMany(Shift::class);
     }
 
+    public function users()
+    {
+        return $this->hasMany(User::class);
+    }
+
     public function scopeActive($query)
     {
         return $query->where('is_active', true);

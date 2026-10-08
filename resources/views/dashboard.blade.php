@@ -234,14 +234,14 @@
                         <div>
                             <div class="flex items-center gap-2">
                                 <h3 class="font-bold text-gray-900 text-lg">
-                                    {{ !auth()->user()->isAtLeast('supervisor') ? 'Current Shift Orders' : 'Recent Orders' }}
+                                    {{ !auth()->user()->isAtLeast('manager') ? 'Current Shift Orders' : 'Recent Orders' }}
                                 </h3>
-                                @if(!auth()->user()->isAtLeast('supervisor'))
+                                @if(!auth()->user()->isAtLeast('manager'))
                                     <span class="px-2 py-0.5 text-[10px] font-bold rounded-full bg-emerald-100 text-[#155d49]">Active Shift</span>
                                 @endif
                             </div>
                             <p class="text-xs text-gray-500 mt-0.5">
-                                @if(!auth()->user()->isAtLeast('supervisor'))
+                                @if(!auth()->user()->isAtLeast('manager'))
                                     Showing orders from your current active shift • Matches your POS cash drawer
                                 @else
                                     <span x-show="tab === 'current'">Showing orders from current active shift (matches Cash in POS)</span>
@@ -252,7 +252,7 @@
 
                         <div class="flex items-center gap-3">
                             {{-- Toggle Tabs visible ONLY for Manager, Supervisor, and Owner --}}
-                            @if(auth()->user()->isAtLeast('supervisor') && $activeShift)
+                            @if(auth()->user()->isAtLeast('manager') && $activeShift)
                                 <div class="inline-flex p-1 bg-gray-100 rounded-xl">
                                     <button type="button" 
                                         @click="tab = 'current'" 
@@ -300,7 +300,7 @@
                                         $isCurrent = $activeShift && $order->shift_id === $activeShift->id;
                                     @endphp
                                     <tr class="hover:bg-gray-50 transition" 
-                                        @if(auth()->user()->isAtLeast('supervisor'))
+                                        @if(auth()->user()->isAtLeast('manager'))
                                             x-show="tab === 'all' || {{ $isCurrent ? 'true' : 'false' }}"
                                             @if(!$isCurrent) style="display: none;" @endif
                                         @endif
@@ -308,7 +308,7 @@
                                         <td class="py-3 px-4 font-mono font-bold text-gray-900">
                                             <div class="flex items-center gap-1.5">
                                                 <span>{{ $order->order_number }}</span>
-                                                @if(auth()->user()->isAtLeast('supervisor') && $activeShift && !$isCurrent)
+                                                @if(auth()->user()->isAtLeast('manager') && $activeShift && !$isCurrent)
                                                     <span class="px-1.5 py-0.5 rounded text-[9px] font-semibold bg-gray-100 text-gray-500 border border-gray-200">Prev Shift</span>
                                                 @endif
                                             </div>
@@ -346,7 +346,7 @@
                                 @empty
                                     <tr>
                                         <td colspan="7" class="py-6 text-center text-gray-400">
-                                            {{ !auth()->user()->isAtLeast('supervisor') ? 'No orders recorded in your current shift yet.' : 'No orders recorded yet today.' }}
+                                            {{ !auth()->user()->isAtLeast('manager') ? 'No orders recorded in your current shift yet.' : 'No orders recorded yet today.' }}
                                         </td>
                                     </tr>
                                 @endforelse
@@ -358,7 +358,7 @@
                     @if($activeShift)
                         <div class="mt-4 pt-3 border-t border-gray-100 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 text-xs text-gray-500">
                             <div>
-                                @if(!auth()->user()->isAtLeast('supervisor'))
+                                @if(!auth()->user()->isAtLeast('manager'))
                                     <span>Current Shift Orders Total: </span>
                                     <span class="font-extrabold text-[#155d49] text-sm">₱{{ number_format($recentOrders->sum('total'), 2) }}</span>
                                     <span class="text-gray-400">({{ $recentOrders->count() }} orders)</span>
@@ -449,7 +449,7 @@
                     <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
                         <div class="flex justify-between items-center mb-4">
                             <h3 class="font-bold text-gray-900 text-base">Ingredient Alerts</h3>
-                            @if(auth()->user()->isAtLeast('supervisor'))
+                            @if(auth()->user()->isAtLeast('manager'))
                                 <a href="{{ route('inventory.index') }}" class="text-xs font-bold text-[#155d49] hover:underline">Manage</a>
                             @endif
                         </div>

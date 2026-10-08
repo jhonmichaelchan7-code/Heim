@@ -6,7 +6,7 @@
                     {{ __('Orders Management') }}
                 </h2>
                 <p class="text-xs text-gray-500 mt-0.5">
-                    {{ !auth()->user()->isAtLeast('supervisor') ? 'View your cashier transaction history, print receipts, and manage order statuses' : 'View multi-branch transaction histories, cashier shift records, and manage order statuses' }}
+                    {{ !auth()->user()->isAtLeast('manager') ? 'View your cashier transaction history, print receipts, and manage order statuses' : 'View multi-branch transaction histories, cashier shift records, and manage order statuses' }}
                 </p>
             </div>
             <a href="{{ route('pos.index') }}" class="inline-flex items-center justify-center h-10 px-4 py-2 bg-[#155d49] hover:bg-[#114a3b] text-white font-bold text-sm rounded-xl shadow-sm hover:shadow active:scale-[0.98] transition-all gap-2">
@@ -24,9 +24,9 @@
                 <form method="GET" action="{{ route('orders.index') }}" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3 items-end">
                     <div>
                         <label class="block text-xs font-bold uppercase tracking-wider text-gray-600 mb-1">
-                            {{ auth()->user()->isAtLeast('supervisor') ? 'Search Order # or Cashier' : 'Search Order #' }}
+                            {{ auth()->user()->isAtLeast('manager') ? 'Search Order # or Cashier' : 'Search Order #' }}
                         </label>
-                        <input type="text" name="search" value="{{ request('search') }}" placeholder="{{ auth()->user()->isAtLeast('supervisor') ? 'e.g. ORD-2026... or John' : 'e.g. ORD-2026...' }}" class="w-full h-10 px-3 py-2 text-sm border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#155d49] outline-none" />
+                        <input type="text" name="search" value="{{ request('search') }}" placeholder="{{ auth()->user()->isAtLeast('manager') ? 'e.g. ORD-2026... or John' : 'e.g. ORD-2026...' }}" class="w-full h-10 px-3 py-2 text-sm border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#155d49] outline-none" />
                     </div>
 
                     <div>

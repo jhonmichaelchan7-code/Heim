@@ -22,11 +22,29 @@ class PosController extends Controller
 {
     public function index()
     {
+        $user = auth()->user();
+
+        // Block POS if cashier has no assigned branch
+        if ($user && $user->role === 'cashier' && !$user->branch_id) {
+            abort(403, 'No branch assigned. Ask the owner to assign your branch in Staff & Users.');
+        }
+
         $categories = Category::active()->ordered()->with(['activeProducts.sizes'])->get();
         $addOns = AddOn::active()->orderBy('name')->get();
         $activeShift = Shift::where('status', 'open')->latest()->first();
         $requireShift = (bool) PosSetting::get('require_user_shift', true);
-        $branches = \App\Models\Branch::active()->get();
+
+        // Lock POS branch for user with assigned branch; otherwise allow owner/manager to select
+        if ($user && $user->branch_id) {
+            $assignedBranch = $user->branch;
+            $branches = collect([$assignedBranch]);
+            $isBranchLocked = true;
+            $currentBranch = $assignedBranch;
+        } else {
+            $branches = \App\Models\Branch::active()->get();
+            $isBranchLocked = false;
+            $currentBranch = $activeShift?->branch ?? null;
+        }
 
         // Calculate Best Sellers / Popular Products (Phase 3)
         $popularProductIds = OrderItem::select('product_id', DB::raw('SUM(quantity) as total_sold'))
@@ -42,7 +60,7 @@ class PosController extends Controller
             $popularProductIds = array_values(array_unique(array_merge($popularProductIds, $fallbackIds)));
         }
 
-        return view('pos.index', compact('categories', 'addOns', 'activeShift', 'requireShift', 'branches', 'popularProductIds'));
+        return view('pos.index', compact('categories', 'addOns', 'activeShift', 'requireShift', 'branches', 'popularProductIds', 'isBranchLocked', 'currentBranch'));
     }
 
     public function store(Request $request, InventoryService $inventoryService)
@@ -168,7 +186,18 @@ class PosController extends Controller
 
                 $subtotal = collect($lineTotals)->sum('lineSubtotal');
 
-                $branchId = $request->branch_id ?? $activeShift?->branch_id ?? \App\Models\Branch::where('is_active', true)->first()?->id;
+                // Server-side branch resolution: user branch or active shift branch, ignoring request
+                $user = auth()->user();
+                if ($user && $user->branch_id) {
+                    $branchId = $user->branch_id;
+                } elseif ($activeShift && $activeShift->branch_id) {
+                    $branchId = $activeShift->branch_id;
+                } elseif ($user && ($user->isOwner() || $user->isManager())) {
+                    $branchId = $request->branch_id ?? $activeShift?->branch_id;
+                } else {
+                    $branchId = null;
+                }
+
                 $orderType = $request->order_type ?: 'dine_in';
 
                 // Create order

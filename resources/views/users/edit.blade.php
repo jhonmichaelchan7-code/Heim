@@ -9,7 +9,7 @@
                     Edit Staff Member: {{ $user->name }}
                 </h2>
                 <p class="text-sm text-gray-500 mt-0.5">
-                    Update staff member profile, email, role, or reset password
+                    Update staff member profile, email, role, assigned branch, or reset password
                 </p>
             </div>
         </div>
@@ -18,7 +18,7 @@
     <div class="py-6">
         <div class="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
-                <form method="POST" action="{{ route('users.update', $user) }}" class="space-y-5">
+                <form method="POST" action="{{ route('users.update', $user) }}" x-data="{ selectedRole: '{{ old('role', $user->role) }}' }" class="space-y-5">
                     @csrf
                     @method('PUT')
 
@@ -36,13 +36,37 @@
 
                     <div>
                         <label class="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-1">Role / Permissions</label>
-                        <select name="role" required class="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:ring-2 focus:ring-[#155d49] focus:border-[#155d49] outline-none">
+                        <select name="role" x-model="selectedRole" required class="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:ring-2 focus:ring-[#155d49] focus:border-[#155d49] outline-none">
                             <option value="cashier" {{ old('role', $user->role) === 'cashier' ? 'selected' : '' }}>Cashier — Shared POS Terminal access</option>
-                            <option value="supervisor" {{ old('role', $user->role) === 'supervisor' ? 'selected' : '' }}>Supervisor — POS + Products + Recipes + Stock In/Waste + Refund Authorization</option>
-                            <option value="manager" {{ old('role', $user->role) === 'manager' ? 'selected' : '' }}>Manager — Supervisor + Daily Consumption + Sales/Inventory Reports + Audit Logs</option>
+                            <option value="manager" {{ old('role', $user->role) === 'manager' ? 'selected' : '' }}>Manager — Products + Recipes + Inventory + Reports + Audit Logs</option>
                             <option value="owner" {{ old('role', $user->role) === 'owner' ? 'selected' : '' }}>Owner — Full System Access + User Management</option>
                         </select>
                         @error('role') <span class="text-xs text-red-500">{{ $message }}</span> @enderror
+                    </div>
+
+                    <!-- Assigned Branch Select (Required for Cashier, All branches for Manager/Owner) -->
+                    <div x-show="selectedRole === 'cashier'" class="space-y-1" x-cloak>
+                        <label class="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-1">
+                            Assigned branch <span class="text-rose-500">*</span>
+                        </label>
+                        <select name="branch_id" :required="selectedRole === 'cashier'" class="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:ring-2 focus:ring-[#155d49] focus:border-[#155d49] outline-none">
+                            <option value="">Select branch...</option>
+                            @foreach($branches as $branch)
+                                <option value="{{ $branch->id }}" {{ old('branch_id', $user->branch_id) == $branch->id ? 'selected' : '' }}>
+                                    📍 {{ $branch->name }} ({{ $branch->code }})
+                                </option>
+                            @endforeach
+                        </select>
+                        <p class="text-[11px] text-gray-500">Cashiers are locked to their assigned branch for shift opening, POS transactions, and thermal receipts.</p>
+                        @error('branch_id') <span class="text-xs text-red-500">{{ $message }}</span> @enderror
+                    </div>
+
+                    <div x-show="['manager', 'owner'].includes(selectedRole)" class="space-y-1" x-cloak>
+                        <label class="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-1">Assigned branch</label>
+                        <div class="p-3 bg-gray-50 border border-gray-200 rounded-lg text-xs text-gray-600 flex items-center gap-2">
+                            <span>🌐</span>
+                            <span class="font-medium">All branches (owner access) — Managers and Owners have global access across all branches.</span>
+                        </div>
                     </div>
 
                     @if($user->id !== auth()->id())

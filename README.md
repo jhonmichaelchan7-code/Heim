@@ -45,14 +45,13 @@ Engineered with **Laravel 10**, **Standalone SQLite** (no XAMPP or external data
 
 ## 👥 Default Login Accounts
 
-The system comes pre-seeded with 4 default staff roles (Password: `password` for all):
+The system comes pre-seeded with 3 default staff roles (Password: `password` for all):
 
 | Role | Email | Password | Access Level |
 | :--- | :--- | :--- | :--- |
-| **👑 Owner** | `owner@coffee.com` | `password` | Full system access, multi-branch control, authorizations, reports |
+| **👑 Owner** | `owner@coffee.com` | `password` | Full system access, multi-branch control, staff assignments, reports |
 | **💼 Manager** | `manager@coffee.com` | `password` | Authorize refunds/voids, recipe BOMs, inventory stock-ins, analytics |
-| **🛡️ Supervisor** | `supervisor@coffee.com` | `password` | POS checkout, inventory adjustments, shift float monitoring |
-| **☕ Cashier** | `cashier@coffee.com` | `password` | POS terminal operations, taking orders, split payments, receipts |
+| **☕ Cashier** | `cashier@coffee.com` | `password` | POS terminal operations, branch-locked orders, split payments, receipts |
 
 ---
 

@@ -43,7 +43,6 @@
                             <option value="">All roles</option>
                             <option value="owner" {{ request('role') === 'owner' ? 'selected' : '' }}>Owner</option>
                             <option value="manager" {{ request('role') === 'manager' ? 'selected' : '' }}>Manager</option>
-                            <option value="supervisor" {{ request('role') === 'supervisor' ? 'selected' : '' }}>Supervisor</option>
                             <option value="cashier" {{ request('role') === 'cashier' ? 'selected' : '' }}>Cashier</option>
                         </select>
                     </div>
@@ -69,6 +68,7 @@
                                 <th class="py-3.5 px-4 font-bold">Staff member</th>
                                 <th class="py-3.5 px-4 font-bold">Email address</th>
                                 <th class="py-3.5 px-4 font-bold">System role</th>
+                                <th class="py-3.5 px-4 font-bold">Branch</th>
                                 <th class="py-3.5 px-4 text-center font-bold">Account status</th>
                                 <th class="py-3.5 px-4 font-bold">Member since</th>
                                 <th class="py-3.5 px-4 text-right font-bold">Actions</th>
@@ -88,7 +88,6 @@
                                             <div class="w-9 h-9 rounded-full flex items-center justify-center font-black text-xs shrink-0 shadow-2xs border
                                                 {{ $isOwner ? 'bg-emerald-100 text-[#0e703c] border-emerald-200' : '' }}
                                                 {{ $user->role === 'manager' ? 'bg-indigo-100 text-indigo-700 border-indigo-200' : '' }}
-                                                {{ $user->role === 'supervisor' ? 'bg-amber-100 text-amber-800 border-amber-200' : '' }}
                                                 {{ $user->role === 'cashier' ? 'bg-cyan-100 text-cyan-800 border-cyan-200' : '' }}
                                             ">
                                                 {{ strtoupper(substr($user->name, 0, 1)) }}
@@ -108,7 +107,7 @@
                                         {{ $user->email }}
                                     </td>
 
-                                    <!-- Distinct Role Badges (Staff #2: Distinct colors and icons) -->
+                                    <!-- Distinct Role Badges -->
                                     <td class="py-3.5 px-4">
                                         @if($user->role === 'owner')
                                             <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-black bg-emerald-100 text-[#0e703c] border border-emerald-200/80 shadow-2xs">
@@ -120,15 +119,27 @@
                                                 <span>🛡️</span>
                                                 <span>Manager</span>
                                             </span>
-                                        @elseif($user->role === 'supervisor')
-                                            <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-black bg-amber-100 text-amber-900 border border-amber-200/80 shadow-2xs">
-                                                <span>⚡</span>
-                                                <span>Supervisor</span>
-                                            </span>
                                         @elseif($user->role === 'cashier')
                                             <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-black bg-cyan-100 text-cyan-900 border border-cyan-200/80 shadow-2xs">
                                                 <span>🏷️</span>
                                                 <span>Cashier</span>
+                                            </span>
+                                        @endif
+                                    </td>
+
+                                    <!-- Assigned Branch Column -->
+                                    <td class="py-3.5 px-4 font-medium text-xs">
+                                        @if($user->branch)
+                                            <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-bold bg-emerald-50 text-[#0e703c] border border-emerald-200">
+                                                📍 {{ $user->branch->name }}
+                                            </span>
+                                        @elseif(in_array($user->role, ['owner', 'manager']))
+                                            <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-semibold bg-gray-100 text-gray-600 border border-gray-200">
+                                                🌐 All branches (owner access)
+                                            </span>
+                                        @else
+                                            <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-bold bg-amber-50 text-amber-700 border border-amber-200">
+                                                ⚠️ Unassigned
                                             </span>
                                         @endif
                                     </td>

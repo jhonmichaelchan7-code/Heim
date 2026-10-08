@@ -19,8 +19,8 @@ class OrderController extends Controller
         $user = auth()->user();
         $query = Order::with('items', 'payment', 'branch')->latest();
 
-        // Cashiers only view their own orders; Supervisors, Managers, and Owners view all orders
-        if (!$user->isAtLeast('supervisor')) {
+        // Cashiers only view their own orders; Managers and Owners view all orders
+        if (!$user->isAtLeast('manager')) {
             $query->where(function ($q) use ($user) {
                 $q->where('user_id', $user->id)
                   ->orWhere('cashier_name', $user->name);
@@ -30,7 +30,9 @@ class OrderController extends Controller
         if ($request->filled('status')) {
             $query->where('status', $request->status);
         }
-        if ($request->filled('branch_id')) {
+        if ($user->branch_id) {
+            $query->where('branch_id', $user->branch_id);
+        } elseif ($request->filled('branch_id')) {
             $query->where('branch_id', $request->branch_id);
         }
         if ($request->filled('order_type')) {
@@ -57,7 +59,7 @@ class OrderController extends Controller
         $user = auth()->user();
 
         // Cashiers can only view their own order details
-        if (!$user->isAtLeast('supervisor') && $order->user_id !== $user->id && $order->cashier_name !== $user->name) {
+        if (!$user->isAtLeast('manager') && $order->user_id !== $user->id && $order->cashier_name !== $user->name) {
             abort(403, 'Unauthorized access to order details.');
         }
 
@@ -149,7 +151,7 @@ class OrderController extends Controller
         $user = auth()->user();
 
         // Cashiers may record split or partial payments only for orders assigned to them
-        if (!$user->isAtLeast('supervisor') && $order->user_id !== $user->id && $order->cashier_name !== $user->name) {
+        if (!$user->isAtLeast('manager') && $order->user_id !== $user->id && $order->cashier_name !== $user->name) {
             abort(403, 'You may only record partial or split payments for orders assigned to you.');
         }
 

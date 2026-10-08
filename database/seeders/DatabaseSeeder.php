@@ -17,21 +17,42 @@ class DatabaseSeeder extends Seeder
     public function run(): void
     {
         // ── Users ──
+        // ── Branches (Bangkal & San Rafael) ──
+        $bangkalBranch = \App\Models\Branch::firstOrCreate(
+            ['code' => 'BNG-01'],
+            [
+                'name' => 'Bangkal Branch',
+                'address' => 'MacArthur Hwy, Bangkal, Davao City, PH',
+                'phone' => '(082) 297-1234',
+                'is_active' => true,
+            ]
+        );
+
+        $sanRafaelBranch = \App\Models\Branch::firstOrCreate(
+            ['code' => 'SRF-02'],
+            [
+                'name' => 'San Rafael Branch',
+                'address' => 'San Rafael Park, Davao City, PH',
+                'phone' => '(082) 221-5678',
+                'is_active' => true,
+            ]
+        );
+
         User::firstOrCreate(
             ['email' => 'owner@coffee.com'],
-            ['name' => 'Owner Admin', 'password' => bcrypt('password'), 'role' => 'owner']
+            ['name' => 'Owner Admin', 'password' => bcrypt('password'), 'role' => 'owner', 'branch_id' => null]
         );
         User::firstOrCreate(
             ['email' => 'manager@coffee.com'],
-            ['name' => 'Maria Santos', 'password' => bcrypt('password'), 'role' => 'manager']
+            ['name' => 'Maria Santos', 'password' => bcrypt('password'), 'role' => 'manager', 'branch_id' => null]
         );
         User::firstOrCreate(
             ['email' => 'supervisor@coffee.com'],
-            ['name' => 'Carlos Reyes', 'password' => bcrypt('password'), 'role' => 'supervisor']
+            ['name' => 'Carlos Reyes', 'password' => bcrypt('password'), 'role' => 'manager', 'branch_id' => null]
         );
         User::firstOrCreate(
             ['email' => 'cashier@coffee.com'],
-            ['name' => 'anna', 'password' => bcrypt('password'), 'role' => 'cashier']
+            ['name' => 'anna', 'password' => bcrypt('password'), 'role' => 'cashier', 'branch_id' => $bangkalBranch->id]
         );
 
         // ── Sizes ──

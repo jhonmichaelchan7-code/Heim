@@ -13,7 +13,7 @@ echo   - Seeds Multi-Branch Structure (Bangkal Branch & San Rafael Branch)
 echo   - Seeds Complete Menu with Dynamic Modifier BOM Ingredients
 echo   - Prepares Order Channels (Dine-In, Takeout, Grab Delivery)
 echo   - Sets up Manager/Owner Authorization & Cash-Only Refund Security
-echo   - Sets up default demo accounts (Owner, Manager, Supervisor, Cashier)
+echo   - Sets up default demo accounts (Owner, Manager, Cashier)
 echo.
 echo WARNING: All existing transactions will be wiped clean!
 echo.
@@ -79,8 +79,7 @@ echo.
 echo Default Demo Accounts (Password: 'password' for all):
 echo   - Owner:      owner@coffee.com
 echo   - Manager:    manager@coffee.com
-echo   - Supervisor: supervisor@coffee.com
-echo   - Cashier:    cashier@coffee.com (anna)
+echo   - Cashier:    cashier@coffee.com (anna - Bangkal Branch)
 echo.
 echo Fresh Data Summary:
 echo   - Database:   Standalone SQLite (database\database.sqlite)

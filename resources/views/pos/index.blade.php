@@ -74,7 +74,18 @@ html, body {
                             <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
                             <span class="font-extrabold text-gray-900">{{ $activeShift ? $activeShift->opened_by : Auth::user()->name }}</span>
                             <span class="text-gray-300">·</span>
-                            <span class="font-semibold text-gray-600">📍 {{ $activeShift?->branch?->name ?? ($branches->first()?->name ?? 'Main Branch') }}</span>
+                            @if($isBranchLocked ?? false)
+                                <span class="font-semibold text-gray-600">📍 {{ $currentBranch?->name ?? 'No Branch' }}</span>
+                            @else
+                                <div class="flex items-center gap-1">
+                                    <span class="text-gray-400">📍</span>
+                                    <select id="pos-header-branch-select" onchange="document.getElementById('pos-branch-select').value = this.value" class="text-xs font-semibold text-gray-700 bg-transparent border-0 focus:ring-0 p-0 cursor-pointer outline-none">
+                                        @foreach($branches as $b)
+                                            <option value="{{ $b->id }}" {{ ($currentBranch?->id ?? '') == $b->id ? 'selected' : '' }}>{{ $b->name }}</option>
+                                        @endforeach
+                                    </select>
+                                </div>
+                            @endif
                         </div>
 
                         <!-- Mobile-only Quick Jump to Cart Button -->
@@ -248,13 +259,12 @@ html, body {
 
                     <!-- Hidden Inputs for Form/AJAX Submissions -->
                     <input type="hidden" id="cashier-name" value="{{ $activeShift ? $activeShift->opened_by : Auth::user()->name }}" />
-                    <input type="hidden" id="pos-branch-select" value="{{ $activeShift?->branch_id ?? ($branches->first()?->id ?? '') }}" />
+                    <input type="hidden" id="pos-branch-select" value="{{ $currentBranch?->id ?? $activeShift?->branch_id ?? '' }}" />
 
                     <!-- Order Type Tabs & Grab Details -->
                     <div class="space-y-2 pt-0.5">
                         <div class="flex items-center justify-between">
                             <label class="block text-[11px] font-extrabold uppercase tracking-wider text-gray-700">Order Mode</label>
-                            <span class="text-[11px] font-medium text-gray-500">📍 {{ $activeShift?->branch?->name ?? ($branches->first()?->name ?? 'Main Branch') }}</span>
                         </div>
                         
                         <!-- Segmented Tab Bar -->
@@ -706,8 +716,8 @@ html, body {
                 <div class="flex items-center gap-2.5">
                     <span class="w-9 h-9 rounded-xl bg-emerald-100/80 border border-emerald-200 text-emerald-800 flex items-center justify-center text-lg">🛡️</span>
                     <div>
-                        <h3 class="font-bold text-gray-900 text-base leading-tight">Supervisor Authorization</h3>
-                        <p class="text-[11px] text-gray-500 font-medium">Supervisor, Manager, or Owner required</p>
+                        <h3 class="font-bold text-gray-900 text-base leading-tight">Manager Authorization</h3>
+                        <p class="text-[11px] text-gray-500 font-medium">Manager or Owner credentials required</p>
                     </div>
                 </div>
                 <button type="button" onclick="closeShiftAuthModal()" class="text-gray-400 hover:text-gray-600 p-1.5 rounded-xl hover:bg-gray-100 transition">
@@ -739,18 +749,18 @@ html, body {
                 <!-- Credential Inputs -->
                 <div class="space-y-3 pt-1">
                     <div>
-                        <label class="block text-xs font-bold text-gray-700 mb-1">Supervisor / Manager / Owner Email</label>
-                        <input type="email" id="shift-auth-email" placeholder="e.g. supervisor@coffee.com" autocomplete="username" class="w-full px-3.5 py-2.5 text-xs bg-white border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#155d49] font-medium text-gray-900 outline-none transition" required />
+                        <label class="block text-xs font-bold text-gray-700 mb-1">Manager / Owner Email</label>
+                        <input type="email" id="shift-auth-email" placeholder="e.g. manager@coffee.com" autocomplete="username" class="w-full px-3.5 py-2.5 text-xs bg-white border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#155d49] font-medium text-gray-900 outline-none transition" required />
                     </div>
 
                     <div>
                         <label class="block text-xs font-bold text-gray-700 mb-1">Password</label>
-                        <input type="password" id="shift-auth-password" placeholder="Enter supervisor or manager password" autocomplete="current-password" class="w-full px-3.5 py-2.5 text-xs bg-white border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#155d49] font-medium text-gray-900 outline-none transition" required />
+                        <input type="password" id="shift-auth-password" placeholder="Enter manager or owner password" autocomplete="current-password" class="w-full px-3.5 py-2.5 text-xs bg-white border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#155d49] font-medium text-gray-900 outline-none transition" required />
                     </div>
                 </div>
 
                 <p class="text-[11px] text-gray-400 leading-relaxed italic">
-                    🔒 An audit log entry with the authorizing supervisor's name and role will be recorded upon closing this shift.
+                    🔒 An audit log entry with the authorizing manager's name and role will be recorded upon closing this shift.
                 </p>
             </div>
 

@@ -3,14 +3,17 @@
 namespace App\Http\Controllers;
 
 use App\Models\AuditLog;
+use App\Models\Branch;
+use App\Models\Shift;
 use App\Models\User;
 use Illuminate\Http\Request;
+use Illuminate\Validation\Rule;
 
 class UserController extends Controller
 {
     public function index(Request $request)
     {
-        $query = User::query()->orderBy('role')->orderBy('name');
+        $query = User::with('branch')->orderBy('role')->orderBy('name');
 
         if ($request->filled('search')) {
             $query->where(function($q) use ($request) {
@@ -29,7 +32,8 @@ class UserController extends Controller
 
     public function create()
     {
-        return view('users.create');
+        $branches = Branch::active()->orderBy('name')->get();
+        return view('users.create', compact('branches'));
     }
 
     public function store(Request $request)
@@ -38,14 +42,22 @@ class UserController extends Controller
             'name' => 'required|string|max:255',
             'email' => 'required|email|unique:users',
             'password' => 'required|string|min:6|confirmed',
-            'role' => 'required|in:cashier,supervisor,manager,owner',
+            'role' => 'required|in:cashier,manager,owner',
+            'branch_id' => [
+                Rule::requiredIf(fn() => $request->role === 'cashier'),
+                'nullable',
+                'exists:branches,id',
+            ],
         ]);
+
+        $branchId = in_array($request->role, ['owner', 'manager']) ? null : $request->branch_id;
 
         $user = User::create([
             'name' => $request->name,
             'email' => $request->email,
             'password' => bcrypt($request->password),
             'role' => $request->role,
+            'branch_id' => $branchId,
         ]);
 
         AuditLog::log('user_created', 'users', "User '{$user->name}' created with role {$user->role}", null, 'user', $user->id);
@@ -55,7 +67,8 @@ class UserController extends Controller
 
     public function edit(User $user)
     {
-        return view('users.edit', compact('user'));
+        $branches = Branch::active()->orderBy('name')->get();
+        return view('users.edit', compact('user', 'branches'));
     }
 
     public function update(Request $request, User $user)
@@ -63,15 +76,55 @@ class UserController extends Controller
         $request->validate([
             'name' => 'required|string|max:255',
             'email' => 'required|email|unique:users,email,' . $user->id,
-            'role' => 'required|in:cashier,supervisor,manager,owner',
+            'role' => 'required|in:cashier,manager,owner',
+            'branch_id' => [
+                Rule::requiredIf(fn() => $request->role === 'cashier'),
+                'nullable',
+                'exists:branches,id',
+            ],
             'is_active' => 'nullable|boolean',
             'password' => 'nullable|string|min:6|confirmed',
         ]);
+
+        $newBranchId = in_array($request->role, ['owner', 'manager']) ? null : ($request->branch_id ? (int)$request->branch_id : null);
+        $oldBranchId = $user->branch_id ? (int)$user->branch_id : null;
+
+        // Block branch change if the user has an active open shift
+        if ($oldBranchId !== $newBranchId) {
+            $hasOpenShift = Shift::where('status', 'open')
+                ->where(function ($q) use ($user) {
+                    $q->where('authorized_by', $user->id)
+                      ->orWhere('opened_by', $user->name);
+                })->exists();
+
+            if ($hasOpenShift) {
+                return back()->withInput()->withErrors([
+                    'branch_id' => "Cannot change branch while staff member '{$user->name}' has an active open shift. Please reconcile and end the shift first."
+                ]);
+            }
+
+            $oldBranchName = $user->branch?->name ?? 'All branches (owner access)';
+            $newBranchName = $newBranchId ? Branch::find($newBranchId)?->name : 'All branches (owner access)';
+
+            AuditLog::log(
+                'user_branch_updated',
+                'users',
+                "Assigned branch for staff '{$user->name}' changed from {$oldBranchName} to {$newBranchName}",
+                $user,
+                'user',
+                $user->id,
+                [
+                    'before' => ['branch_id' => $oldBranchId, 'branch' => $oldBranchName],
+                    'after' => ['branch_id' => $newBranchId, 'branch' => $newBranchName]
+                ]
+            );
+        }
 
         $updateData = [
             'name' => $request->name,
             'email' => $request->email,
             'role' => $request->role,
+            'branch_id' => $newBranchId,
         ];
 
         if ($request->has('is_active') && $user->id !== auth()->id()) {

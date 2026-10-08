@@ -12,15 +12,13 @@ class User extends Authenticatable
     use HasApiTokens, HasFactory, Notifiable;
 
     const ROLE_CASHIER = 'cashier';
-    const ROLE_SUPERVISOR = 'supervisor';
     const ROLE_MANAGER = 'manager';
     const ROLE_OWNER = 'owner';
 
     const ROLE_HIERARCHY = [
         self::ROLE_CASHIER => 1,
-        self::ROLE_SUPERVISOR => 2,
-        self::ROLE_MANAGER => 3,
-        self::ROLE_OWNER => 4,
+        self::ROLE_MANAGER => 2,
+        self::ROLE_OWNER => 3,
     ];
 
     protected $fillable = [
@@ -28,6 +26,7 @@ class User extends Authenticatable
         'email',
         'password',
         'role',
+        'branch_id',
         'is_active',
     ];
 
@@ -41,6 +40,11 @@ class User extends Authenticatable
         'password' => 'hashed',
         'is_active' => 'boolean',
     ];
+
+    public function branch(): \Illuminate\Database\Eloquent\Relations\BelongsTo
+    {
+        return $this->belongsTo(Branch::class);
+    }
 
     public function hasRole(string $role): bool
     {
@@ -60,11 +64,6 @@ class User extends Authenticatable
     public function isManager(): bool
     {
         return $this->isAtLeast(self::ROLE_MANAGER);
-    }
-
-    public function isSupervisor(): bool
-    {
-        return $this->isAtLeast(self::ROLE_SUPERVISOR);
     }
 
     public function orders()

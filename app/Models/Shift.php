@@ -54,6 +54,11 @@ class Shift extends Model
         return $this->belongsTo(User::class, 'authorized_by');
     }
 
+    public function branch(): BelongsTo
+    {
+        return $this->belongsTo(Branch::class);
+    }
+
     public function isOpen(): bool
     {
         return $this->status === 'open';

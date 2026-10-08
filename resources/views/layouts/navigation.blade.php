@@ -27,7 +27,6 @@
             <span class="px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider
                 {{ auth()->user()->role === 'owner' ? 'bg-emerald-100 text-[#155d49]' : '' }}
                 {{ auth()->user()->role === 'manager' ? 'bg-blue-100 text-blue-800' : '' }}
-                {{ auth()->user()->role === 'supervisor' ? 'bg-teal-100 text-teal-800' : '' }}
                 {{ auth()->user()->role === 'cashier' ? 'bg-gray-100 text-gray-700' : '' }}
             ">
                 {{ ucfirst(auth()->user()->role) }}
@@ -73,8 +72,8 @@
                 </a>
             </div>
 
-            <!-- Management Group (Supervisor+) -->
-            @if(auth()->user()->isAtLeast('supervisor'))
+            <!-- Management Group (Manager+) -->
+            @if(auth()->user()->isAtLeast('manager'))
                 <div class="space-y-1">
                     <div class="px-3 pb-1 text-[11px] font-extrabold text-gray-400 uppercase tracking-wider {{ request()->routeIs('pos.*') ? 'hidden group-hover/pos-sidebar:block' : '' }}">
                         Catalog & Inventory
@@ -346,8 +345,8 @@
                     </a>
                 </div>
 
-                <!-- Catalog & Stock (Supervisor+) -->
-                @if(auth()->user()->isAtLeast('supervisor'))
+                <!-- Catalog & Stock (Manager+) -->
+                @if(auth()->user()->isAtLeast('manager'))
                     <div class="space-y-1">
                         <div class="px-2 text-[10px] font-bold text-gray-400 uppercase tracking-wider">Catalog & Inventory</div>
                         <a href="{{ route('products.index') }}" 

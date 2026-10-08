@@ -62,6 +62,7 @@ class ShiftController extends Controller
             'starting_cash' => 'required|numeric|min:0',
             'cashier_name' => 'nullable|string|max:100',
             'open_cash_drawer' => 'nullable|boolean',
+            'branch_id' => 'nullable|exists:branches,id',
         ]);
 
         $existingShift = Shift::where('status', 'open')->first();
@@ -74,6 +75,16 @@ class ShiftController extends Controller
 
         $cashierName = $request->cashier_name ?: (auth()->user()->name ?? 'Admin');
 
+        // Server-side branch resolution: user assigned branch, or owner/manager selection
+        $user = auth()->user();
+        if ($user && $user->branch_id) {
+            $branchId = $user->branch_id;
+        } elseif ($user && ($user->isOwner() || $user->isManager())) {
+            $branchId = $request->branch_id;
+        } else {
+            $branchId = null;
+        }
+
         $shift = Shift::create([
             'opened_by' => $cashierName,
             'opened_at' => now(),
@@ -83,6 +94,7 @@ class ShiftController extends Controller
             'expected_cash' => $request->starting_cash,
             'status' => 'open',
             'authorized_by' => auth()->id(),
+            'branch_id' => $branchId,
         ]);
 
         // Audit log
@@ -190,10 +202,10 @@ class ShiftController extends Controller
             ], 403);
         }
 
-        if (!$authorizer->isAtLeast('supervisor')) {
+        if (!$authorizer->isAtLeast('manager')) {
             return response()->json([
                 'success' => false,
-                'message' => 'Access denied. Ending a shift requires authorization from a Supervisor, Manager, or Owner.',
+                'message' => 'Access denied. Ending a shift requires authorization from a Manager or Owner.',
             ], 403);
         }
 

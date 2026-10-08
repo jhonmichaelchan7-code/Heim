@@ -60,8 +60,8 @@ Route::middleware(['auth'])->group(function () {
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
 
-    // ── Supervisor+ Routes ──
-    Route::middleware(['role:supervisor'])->group(function () {
+    // ── Manager+ Routes (Catalog & Inventory) ──
+    Route::middleware(['role:manager'])->group(function () {
 
         // Products
         Route::get('/products', [ProductController::class, 'index'])->name('products.index');

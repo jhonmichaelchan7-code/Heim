@@ -19,7 +19,8 @@ class ReportController extends Controller
         $period = $request->get('period', 'daily');
         $dateFrom = $request->get('date_from', today()->format('Y-m-d'));
         $dateTo = $request->get('date_to', today()->format('Y-m-d'));
-        $branchId = $request->get('branch_id');
+        $user = auth()->user();
+        $branchId = $user?->branch_id ?: $request->get('branch_id');
         $orderType = $request->get('order_type');
         $branches = Branch::active()->get();
 

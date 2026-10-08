@@ -15,7 +15,7 @@ class DashboardController extends Controller
     public function index(Request $request)
     {
         $user = auth()->user();
-        $selectedBranchId = $request->get('branch_id');
+        $selectedBranchId = $user->branch_id ?: $request->get('branch_id');
         $branches = Branch::active()->get();
 
         // Base query for completed orders with optional branch filtering
@@ -84,7 +84,7 @@ class DashboardController extends Controller
             $recentOrdersQuery->where('branch_id', $selectedBranchId);
         }
 
-        if (!$user->isAtLeast('supervisor')) {
+        if (!$user->isAtLeast('manager')) {
             if ($activeShift) {
                 $recentOrdersQuery->where('shift_id', $activeShift->id)
                     ->where(function ($q) use ($user) {
