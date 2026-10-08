@@ -25,6 +25,11 @@ class Category extends Model
         return $this->hasMany(Product::class)->where('is_active', true);
     }
 
+    public function sizeRules()
+    {
+        return $this->hasMany(CategorySizeRule::class)->orderBy('sort_order');
+    }
+
     public function scopeActive($query)
     {
         return $query->where('is_active', true);

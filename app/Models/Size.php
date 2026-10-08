@@ -9,7 +9,11 @@ class Size extends Model
 {
     use HasFactory;
 
-    protected $fillable = ['name', 'sort_order'];
+    protected $fillable = ['name', 'sort_order', 'is_active'];
+
+    protected $casts = [
+        'is_active' => 'boolean',
+    ];
 
     public function products()
     {
@@ -24,6 +28,11 @@ class Size extends Model
     public function recipes()
     {
         return $this->hasMany(Recipe::class);
+    }
+
+    public function categoryRules()
+    {
+        return $this->hasMany(CategorySizeRule::class);
     }
 
     public function scopeOrdered($query)

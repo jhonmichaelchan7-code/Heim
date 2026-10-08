@@ -45,6 +45,11 @@ class OrderItem extends Model
         return $this->hasMany(OrderItemAddOn::class);
     }
 
+    public function modifiers()
+    {
+        return $this->hasMany(OrderItemModifier::class);
+    }
+
     public function getTotalWithAddOnsAttribute(): float
     {
         return $this->subtotal + $this->addOns->sum('add_on_price');

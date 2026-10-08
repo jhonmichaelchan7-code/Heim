@@ -1,0 +1,55 @@
+product,size,ingredient,quantity,unit
+Lone,Regular,Chicken Wing,4,pc
+Lone,Regular,Rice,70,g
+Lone,Regular,Dip Sauce,30,g
+Lone,Regular,Dip Cup,1,pc
+Lone,Regular,Meal Box,1,pc
+Wingman,Regular,Chicken Wing,6,pc
+Wingman,Regular,Dip Sauce,30,g
+Wingman,Regular,Dip Cup,1,pc
+Wingman,Regular,Meal Box,1,pc
+Wingstreak,Regular,Chicken Wing,8,pc
+Wingstreak,Regular,French Fries,250,g
+Wingstreak,Regular,Dip Sauce,30,g
+Wingstreak,Regular,Dip Cup,1,pc
+Wingstreak,Regular,Sharing Box,1,pc
+Trio,Regular,Chicken Wing,12,pc
+Trio,Regular,Dip Sauce,30,g
+Trio,Regular,Dip Cup,1,pc
+Trio,Regular,Sharing Box,1,pc
+Squad,Regular,Chicken Wing,16,pc
+Squad,Regular,Dip Sauce,30,g
+Squad,Regular,Dip Cup,1,pc
+Squad,Regular,Sharing Box,2,pc
+Winner Chicken Dinner,Regular,Chicken Wing,30,pc
+Winner Chicken Dinner,Regular,Dip Sauce,60,g
+Winner Chicken Dinner,Regular,Dip Cup,2,pc
+Winner Chicken Dinner,Regular,Party Box,1,pc
+Chicken Wings & Hashbrown,Regular,Chicken Wing,4,pc
+Chicken Wings & Hashbrown,Regular,Hashbrown,2,pc
+Chicken Wings & Hashbrown,Regular,Meal Box,1,pc
+Chicken Wings & Fries,Regular,Chicken Wing,4,pc
+Chicken Wings & Fries,Regular,French Fries,150,g
+Chicken Wings & Fries,Regular,Meal Box,1,pc
+Cheesy Buffalo Drip,Regular,Cheese Drip Sauce,40,g
+Cheesy Buffalo Drip,Regular,Buffalo Sauce,15,g
+Double Cheese Drip,Regular,Cheese Drip Sauce,60,g
+Rice,Regular,Rice,70,g
+Coke 1.75L,Regular,Coke 1.75L,1,pc
+Coke 1.5L,Regular,Coke 1.5L,1,pc
+Mountain Dew 1.5L,Regular,Mountain Dew 1.5L,1,pc
+Coke in Can,Regular,Coke in Can,1,pc
+Coke Zero in Can,Regular,Coke Zero in Can,1,pc
+Sprite in Can,Regular,Sprite in Can,1,pc
+Royal in Can,Regular,Royal in Can,1,pc
+Mountain Dew in Can,Regular,Mountain Dew in Can,1,pc
+Sola Lemon in Can,Regular,Sola Lemon in Can,1,pc
+Sola Raspberry in Can,Regular,Sola Raspberry in Can,1,pc
+Sola Lemon in Bottle,Regular,Sola Lemon in Bottle,1,pc
+Sola Raspberry in Bottle,Regular,Sola Raspberry in Bottle,1,pc
+Mineral Water,Regular,Mineral Water,1,pc
+OG Fudgy Brownie,Regular,OG Fudgy Brownie,1,pc
+Matcha Brownie,Regular,Matcha Brownie,1,pc
+Strawberry Brownie,Regular,Strawberry Brownie,1,pc
+Mini Dimsum Egg Tart,Regular,Mini Dimsum Egg Tart,1,pc
+Matcha Cheese Tart,Regular,Matcha Cheese Tart,1,pc

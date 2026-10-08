@@ -30,7 +30,7 @@
 
                     <div>
                         <label class="block text-xs font-bold text-gray-800 mb-1">Category</label>
-                        <select name="category_id" required class="w-full px-4 py-2 text-sm border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#155d49] outline-none font-medium">
+                        <select id="product-category" name="category_id" required class="w-full px-4 py-2 text-sm border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#155d49] outline-none font-medium">
                             <option value="">Select Category</option>
                             @foreach($categories as $category)
                                 <option value="{{ $category->id }}" {{ old('category_id', $product->category_id) == $category->id ? 'selected' : '' }}>
@@ -71,19 +71,20 @@
                     <div class="border-t border-gray-100 pt-5">
                         <div class="flex justify-between items-center mb-3">
                             <div>
-                                <label class="block text-xs font-bold text-gray-800">Cup sizes & pricing</label>
-                                <p class="text-xs text-gray-500">Update prices or add new serving sizes</p>
+                                <label id="sizes-title" class="block text-xs font-bold text-gray-800">Sizes & pricing</label>
+                                <p class="text-xs text-gray-500">Each size has its own price and recipe.</p>
                             </div>
-                            <button type="button" onclick="addSizeRow()" class="px-3.5 py-1.5 bg-[#f0f8f5] hover:bg-emerald-100 text-[#155d49] text-xs font-bold rounded-xl transition">
+                            <button id="add-size-button" type="button" onclick="addSizeRow()" class="px-3.5 py-1.5 bg-[#f0f8f5] hover:bg-emerald-100 text-[#155d49] text-xs font-bold rounded-xl transition">
                                 + Add Size
                             </button>
                         </div>
 
                         <div id="size-rows-container" class="space-y-3">
                             @foreach($product->productSizes as $idx => $ps)
-                                <div class="size-row flex items-center gap-3 p-3.5 bg-gray-50 rounded-2xl border border-gray-200">
+                                <div class="size-row flex items-center gap-3 p-3.5 bg-gray-50 rounded-2xl border border-gray-200" data-recipe="{{ $recipeSizeIds->contains((int) $ps->size_id) ? '1' : '0' }}">
                                     <div class="flex-1">
                                         <label class="block text-[11px] font-semibold text-gray-800 mb-1">Size</label>
+                                        <span class="size-single-label hidden text-sm font-semibold"></span>
                                         <select name="sizes[{{ $idx }}][size_id]" required class="w-full px-3 py-1.5 text-sm bg-white border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#155d49] outline-none font-semibold">
                                             @foreach($sizes as $s)
                                                 <option value="{{ $s->id }}" {{ $s->id == $ps->size_id ? 'selected' : '' }}>{{ $s->name }}</option>
@@ -120,18 +121,75 @@
     @push('scripts')
     <script>
         const allSizes = @json($sizes);
+        const sizeRules = @json($sizeRules);
         let rowCount = {{ $product->productSizes->count() }};
+        let lastCategory = document.getElementById('product-category').value;
+
+        function categorySizes(categoryId = document.getElementById('product-category').value) {
+            return sizeRules[categoryId] || [];
+        }
+
+        function updateSizeHeader() {
+            const drinks = ['Espresso', 'Cold Brew', 'Non-Coffee', 'Refreshers'];
+            const categoryName = document.getElementById('product-category').selectedOptions[0]?.text || '';
+            const allowed = categorySizes();
+            document.getElementById('sizes-title').innerText =
+                drinks.includes(categoryName) ? 'Cup sizes & pricing' : 'Sizes & pricing';
+            document.getElementById('add-size-button').classList.toggle('hidden', allowed.length <= 1);
+
+            document.querySelectorAll('.size-row').forEach(row => {
+                const select = row.querySelector('select');
+                const label = row.querySelector('.size-single-label');
+                const selectedSize = allSizes.find(size => parseInt(size.id, 10) === parseInt(select.value, 10));
+                const singleSize = allowed.length === 1;
+                if (singleSize) {
+                    label.innerText = selectedSize ? selectedSize.name : allowed[0].name;
+                    label.classList.remove('hidden');
+                    select.classList.add('hidden');
+                } else {
+                    label.classList.add('hidden');
+                    select.classList.remove('hidden');
+                }
+            });
+        }
+
+        function refreshSizeRows() {
+            const rows = [...document.querySelectorAll('.size-row')];
+            rows.forEach((row, index) => {
+                const select = row.querySelector('select');
+                const selectedId = select.value;
+                const retiredExisting = allSizes.find(size =>
+                    parseInt(size.id, 10) === parseInt(selectedId, 10) && !size.is_active
+                );
+                const options = [...categorySizes()];
+                if (retiredExisting && !options.some(size => parseInt(size.id, 10) === parseInt(selectedId, 10))) {
+                    options.push({ id: retiredExisting.id, name: retiredExisting.name, sort_order: retiredExisting.sort_order });
+                    options.sort((a, b) => a.sort_order - b.sort_order);
+                }
+                select.innerHTML = options.map(size =>
+                    `<option value="${size.id}">${size.name}</option>`
+                ).join('');
+                select.value = selectedId;
+                [...select.options].forEach(option => {
+                    option.disabled = rows.some((otherRow, otherIndex) =>
+                        otherIndex !== index && otherRow.querySelector('select').value === option.value
+                    );
+                });
+            });
+            updateSizeHeader();
+        }
 
         function addSizeRow() {
+            const allowedSizes = categorySizes();
+            if (!allowedSizes.length || (allowedSizes.length === 1 && document.querySelector('.size-row'))) return;
             const container = document.getElementById('size-rows-container');
             const newRow = document.createElement('div');
             newRow.className = 'size-row flex items-center gap-3 p-3.5 bg-gray-50 rounded-2xl border border-gray-200';
-            
-            let options = allSizes.map(s => `<option value="${s.id}">${s.name}</option>`).join('');
-
+            const options = allowedSizes.map(size => `<option value="${size.id}">${size.name}</option>`).join('');
             newRow.innerHTML = `
                 <div class="flex-1">
                     <label class="block text-[11px] font-semibold text-gray-800 mb-1">Size</label>
+                    <span class="size-single-label hidden text-sm font-semibold"></span>
                     <select name="sizes[${rowCount}][size_id]" required class="w-full px-3 py-1.5 text-sm bg-white border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#155d49] outline-none font-semibold">
                         ${options}
                     </select>
@@ -145,8 +203,10 @@
                     <span>Remove</span>
                 </button>
             `;
+            newRow.querySelector('select').addEventListener('change', refreshSizeRows);
             container.appendChild(newRow);
             rowCount++;
+            refreshSizeRows();
         }
 
         function removeSizeRow(btn) {
@@ -155,11 +215,46 @@
                 alert('Product must have at least one size.');
                 return;
             }
-            if (!confirm('Are you sure you want to remove this size?')) {
+            const row = btn.closest('.size-row');
+            const message = row.dataset.recipe === '1'
+                ? 'This size has a recipe. Removing it will also remove the size-specific recipe link. Continue?'
+                : 'Are you sure you want to remove this size?';
+            if (!confirm(message)) {
                 return;
             }
-            btn.closest('.size-row').remove();
+            row.remove();
+            refreshSizeRows();
         }
+
+        document.getElementById('product-category').addEventListener('change', event => {
+            const newCategory = event.target.value;
+            const validIds = categorySizes(newCategory).map(size => parseInt(size.id, 10));
+            const invalidRows = [...document.querySelectorAll('.size-row')].filter(row => {
+                const sizeId = parseInt(row.querySelector('select').value, 10);
+                const size = allSizes.find(item => parseInt(item.id, 10) === sizeId);
+                return size && size.is_active && !validIds.includes(sizeId);
+            });
+
+            if (invalidRows.length) {
+                const hasRecipes = invalidRows.some(row => row.dataset.recipe === '1');
+                const detail = hasRecipes ? ' Some have recipes that will be unlinked.' : '';
+                if (!confirm(`Changing category removes ${invalidRows.length} size(s) not allowed in the new category.${detail} Continue?`)) {
+                    event.target.value = lastCategory;
+                    return;
+                }
+                invalidRows.forEach(row => row.remove());
+            }
+            lastCategory = newCategory;
+            refreshSizeRows();
+            if (!document.querySelector('.size-row') && categorySizes(newCategory).length === 1) {
+                addSizeRow();
+            }
+        });
+
+        document.querySelectorAll('#size-rows-container select').forEach(select => {
+            select.addEventListener('change', refreshSizeRows);
+        });
+        refreshSizeRows();
     </script>
     @endpush
 </x-app-layout>

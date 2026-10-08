@@ -29,7 +29,9 @@ class InventoryService
                 if ($recipe) {
                     foreach ($recipe->recipeIngredients as $recipeIngredient) {
                         $ingredient = $recipeIngredient->ingredient;
-                        if (!$ingredient) continue;
+                        if (! $ingredient) {
+                            continue;
+                        }
 
                         $totalQty = $recipeIngredient->quantity * $item->quantity;
                         $previousStock = $ingredient->current_stock;
@@ -56,10 +58,40 @@ class InventoryService
                 // 2. Dynamic Modifier Deductions (Add-ons BOM)
                 if ($item->addOns && $item->addOns->isNotEmpty()) {
                     foreach ($item->addOns as $orderItemAddOn) {
+                        $snapshots = $orderItemAddOn->ingredientSnapshots;
+                        if ($snapshots->isNotEmpty()) {
+                            foreach ($snapshots as $snapshot) {
+                                $ingredient = $snapshot->ingredient;
+                                if (! $ingredient) {
+                                    throw new \RuntimeException("Missing inventory ingredient for add-on {$orderItemAddOn->add_on_name}.");
+                                }
+                                $quantity = (float) $snapshot->quantity;
+                                $previousStock = $ingredient->current_stock;
+                                $newStock = $previousStock - $quantity;
+                                $ingredient->update(['current_stock' => $newStock]);
+                                InventoryTransaction::create([
+                                    'ingredient_id' => $ingredient->id,
+                                    'type' => 'sales_consumption',
+                                    'quantity' => $quantity,
+                                    'previous_stock' => $previousStock,
+                                    'new_stock' => $newStock,
+                                    'reference_type' => 'order',
+                                    'reference_id' => $order->id,
+                                    'notes' => "Add-on BOM: +{$orderItemAddOn->add_on_name} on {$item->product_name} x{$item->quantity}",
+                                    'performed_by' => auth()->id(),
+                                ]);
+                                $this->checkStockLevel($ingredient->fresh());
+                            }
+
+                            continue;
+                        }
+
                         $addOn = \App\Models\AddOn::find($orderItemAddOn->add_on_id);
                         if ($addOn && $addOn->ingredient_id && $addOn->quantity > 0) {
                             $ingredient = $addOn->ingredient;
-                            if (!$ingredient) continue;
+                            if (! $ingredient) {
+                                continue;
+                            }
 
                             $totalModifierQty = $addOn->quantity * $item->quantity;
                             $previousStock = $ingredient->current_stock;
@@ -83,6 +115,38 @@ class InventoryService
                         }
                     }
                 }
+
+                foreach ($item->modifiers ?? [] as $modifier) {
+                    if ((float) $modifier->consumed_quantity <= 0) {
+                        continue;
+                    }
+
+                    $ingredient = $modifier->ingredient;
+                    if (! $ingredient) {
+                        throw new \RuntimeException(
+                            "Missing inventory ingredient for {$modifier->group_name} modifier {$modifier->option_name}."
+                        );
+                    }
+
+                    $quantity = (float) $modifier->consumed_quantity;
+                    $previousStock = $ingredient->current_stock;
+                    $newStock = $previousStock - $quantity;
+                    $ingredient->update(['current_stock' => $newStock]);
+
+                    InventoryTransaction::create([
+                        'ingredient_id' => $ingredient->id,
+                        'type' => 'sales_consumption',
+                        'quantity' => $quantity,
+                        'previous_stock' => $previousStock,
+                        'new_stock' => $newStock,
+                        'reference_type' => 'order',
+                        'reference_id' => $order->id,
+                        'notes' => "Modifier BOM: {$modifier->group_name} - {$modifier->option_name} on {$item->product_name} x{$item->quantity}",
+                        'performed_by' => auth()->id(),
+                    ]);
+
+                    $this->checkStockLevel($ingredient->fresh());
+                }
             }
         });
     }
@@ -103,7 +167,9 @@ class InventoryService
                 if ($recipe) {
                     foreach ($recipe->recipeIngredients as $recipeIngredient) {
                         $ingredient = $recipeIngredient->ingredient;
-                        if (!$ingredient) continue;
+                        if (! $ingredient) {
+                            continue;
+                        }
 
                         $totalQty = $recipeIngredient->quantity * $item->quantity;
                         $previousStock = $ingredient->current_stock;
@@ -130,10 +196,40 @@ class InventoryService
                 // Restore Dynamic Add-on Modifier BOM
                 if ($item->addOns && $item->addOns->isNotEmpty()) {
                     foreach ($item->addOns as $orderItemAddOn) {
+                        $snapshots = $orderItemAddOn->ingredientSnapshots;
+                        if ($snapshots->isNotEmpty()) {
+                            foreach ($snapshots as $snapshot) {
+                                $ingredient = $snapshot->ingredient;
+                                if (! $ingredient) {
+                                    throw new \RuntimeException("Missing inventory ingredient for add-on {$orderItemAddOn->add_on_name}.");
+                                }
+                                $quantity = (float) $snapshot->quantity;
+                                $previousStock = $ingredient->current_stock;
+                                $newStock = $previousStock + $quantity;
+                                $ingredient->update(['current_stock' => $newStock]);
+                                InventoryTransaction::create([
+                                    'ingredient_id' => $ingredient->id,
+                                    'type' => 'adjustment',
+                                    'quantity' => $quantity,
+                                    'previous_stock' => $previousStock,
+                                    'new_stock' => $newStock,
+                                    'reason' => "Add-on restoration: +{$orderItemAddOn->add_on_name} on {$item->product_name} (Order #{$order->order_number}); {$reason}",
+                                    'reference_type' => 'order',
+                                    'reference_id' => $order->id,
+                                    'performed_by' => auth()->id(),
+                                ]);
+                                $this->resolveStockNotifications($ingredient->fresh());
+                            }
+
+                            continue;
+                        }
+
                         $addOn = \App\Models\AddOn::find($orderItemAddOn->add_on_id);
                         if ($addOn && $addOn->ingredient_id && $addOn->quantity > 0) {
                             $ingredient = $addOn->ingredient;
-                            if (!$ingredient) continue;
+                            if (! $ingredient) {
+                                continue;
+                            }
 
                             $totalModifierQty = $addOn->quantity * $item->quantity;
                             $previousStock = $ingredient->current_stock;
@@ -156,6 +252,38 @@ class InventoryService
                             $this->resolveStockNotifications($ingredient->fresh());
                         }
                     }
+                }
+
+                foreach ($item->modifiers ?? [] as $modifier) {
+                    if ((float) $modifier->consumed_quantity <= 0 || ! $modifier->ingredient_id) {
+                        continue;
+                    }
+
+                    $ingredient = $modifier->ingredient;
+                    if (! $ingredient) {
+                        throw new \RuntimeException(
+                            "Missing inventory ingredient for {$modifier->group_name} modifier {$modifier->option_name}."
+                        );
+                    }
+
+                    $quantity = (float) $modifier->consumed_quantity;
+                    $previousStock = $ingredient->current_stock;
+                    $newStock = $previousStock + $quantity;
+                    $ingredient->update(['current_stock' => $newStock]);
+
+                    InventoryTransaction::create([
+                        'ingredient_id' => $ingredient->id,
+                        'type' => 'adjustment',
+                        'quantity' => $quantity,
+                        'previous_stock' => $previousStock,
+                        'new_stock' => $newStock,
+                        'reason' => "Modifier Restoration: {$modifier->group_name} - {$modifier->option_name} (Order #{$order->order_number}); {$reason}",
+                        'reference_type' => 'order',
+                        'reference_id' => $order->id,
+                        'performed_by' => auth()->id(),
+                    ]);
+
+                    $this->resolveStockNotifications($ingredient->fresh());
                 }
             }
         });
@@ -330,7 +458,7 @@ class InventoryService
                 ->whereNull('resolved_at')
                 ->exists();
 
-            if (!$exists) {
+            if (! $exists) {
                 SystemNotification::create([
                     'type' => 'out_of_stock',
                     'title' => 'Out of Stock',
@@ -345,7 +473,7 @@ class InventoryService
                 ->whereNull('resolved_at')
                 ->exists();
 
-            if (!$exists) {
+            if (! $exists) {
                 SystemNotification::create([
                     'type' => 'low_stock',
                     'title' => 'Low Stock Alert',

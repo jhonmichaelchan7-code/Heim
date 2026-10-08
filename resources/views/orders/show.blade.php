@@ -168,6 +168,15 @@
                                                         @endforeach
                                                     </div>
                                                 @endif
+                                                @if($item->modifiers->count() > 0)
+                                                    <div class="mt-1 space-y-0.5">
+                                                        @foreach($item->modifiers as $modifier)
+                                                            <span class="inline-block px-2 py-0.5 rounded text-[11px] font-bold bg-amber-50 text-amber-800 border border-amber-100 mr-1">
+                                                                {{ $modifier->group_name }}: {{ $modifier->option_name }}
+                                                            </span>
+                                                        @endforeach
+                                                    </div>
+                                                @endif
                                                 @if($item->discount > 0 || ($item->discount_type && $item->discount_type !== 'none'))
                                                     <div class="mt-1 flex flex-wrap items-center gap-1.5">
                                                         @if($item->discount_type === 'pwd_senior')
@@ -711,6 +720,13 @@
                         </div>
                     `).join('');
                 }
+                const modifiers = item.modifiers || [];
+                const modifiersHtml = modifiers.map(modifier => `
+                    <div style="display:flex; justify-content:space-between; padding-left:10px; font-size:0.9em; color:#7c4a03;">
+                        <span>${modifier.group_name}: ${modifier.option_name}</span>
+                        <span>₱${parseFloat(modifier.price || 0).toFixed(2)}</span>
+                    </div>
+                `).join('');
 
                 let discRow = '';
                 if (parseFloat(item.discount || 0) > 0) {
@@ -732,6 +748,7 @@
                             <span>₱${parseFloat(item.subtotal).toFixed(2)}</span>
                         </div>
                         ${addons}
+                        ${modifiersHtml}
                         ${discRow}
                     </div>
                 `;

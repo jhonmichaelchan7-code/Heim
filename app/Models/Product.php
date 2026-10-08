@@ -35,6 +35,11 @@ class Product extends Model
         return $this->hasMany(Recipe::class);
     }
 
+    public function modifierRules()
+    {
+        return $this->hasMany(ProductModifierRule::class);
+    }
+
     public function orderItems()
     {
         return $this->hasMany(OrderItem::class);

@@ -1,0 +1,63 @@
+ingredient,type,can_be_addon
+Espresso Shot,food,yes
+Coffee Beans,food,yes
+Cold Brew Concentrate,food,yes
+Water,food,yes
+Fresh Milk,food,yes
+Oat Milk,food,yes
+Condensed Milk,food,yes
+Chocolate Powder,food,yes
+Caramel Syrup,food,yes
+Hazelnut Syrup,food,yes
+Cinnamon Syrup,food,yes
+Honey,food,yes
+Orange Juice,food,yes
+Cream Foam,food,yes
+Matcha Powder,food,yes
+Strawberry Puree,food,yes
+Lychee Syrup,food,yes
+Apple Juice,food,yes
+Passion Fruit Puree,food,yes
+Ice,food,yes
+Hot 8oz Cup,packaging,no
+Iced 12oz Cup,packaging,no
+Iced 16oz Cup,packaging,no
+Lid,packaging,no
+Straw,packaging,no
+Chicken Wing,food,yes
+French Fries,food,yes
+Hashbrown,food,yes
+Rice,food,yes
+Dip Sauce,food,yes
+Dip Cup,packaging,no
+Meal Box,packaging,no
+Sharing Box,packaging,no
+Party Box,packaging,no
+Buffalo Sauce,food,yes
+Sour Cream Powder,food,yes
+Salted Egg Sauce,food,yes
+Cheese Powder,food,yes
+Honey Glaze Sauce,food,yes
+Garlic Parmesan Sauce,food,yes
+Cheese Drip Sauce,food,yes
+Coke 1.75L,food,yes
+Coke 1.5L,food,yes
+Mountain Dew 1.5L,food,yes
+Coke in Can,food,yes
+Coke Zero in Can,food,yes
+Sprite in Can,food,yes
+Royal in Can,food,yes
+Mountain Dew in Can,food,yes
+Sola Lemon in Can,food,yes
+Sola Raspberry in Can,food,yes
+Sola Lemon in Bottle,food,yes
+Sola Raspberry in Bottle,food,yes
+Mineral Water,food,yes
+OG Fudgy Brownie,food,yes
+Matcha Brownie,food,yes
+Strawberry Brownie,food,yes
+Mini Dimsum Egg Tart,food,yes
+Matcha Cheese Tart,food,yes
+Vanilla Syrup,food,yes
+Whipped Cream,food,yes
+Tapioca Pearls,food,yes

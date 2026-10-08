@@ -140,12 +140,18 @@ html, body {
                                     $cardTheme = ['bg' => 'bg-[#f4faff]', 'border' => 'border-[#cbe7fd]', 'headerBg' => 'bg-gradient-to-br from-sky-100/90 to-sky-200/60', 'icon' => '🧊'];
                                 } elseif (str_contains($catLower, 'frappe')) {
                                     $cardTheme = ['bg' => 'bg-[#fffdf5]', 'border' => 'border-[#faeec5]', 'headerBg' => 'bg-gradient-to-br from-amber-100/90 to-yellow-200/60', 'icon' => '🥤'];
-                                } elseif (str_contains($catLower, 'snack') || str_contains($catLower, 'pastr') || str_contains($catLower, 'bake')) {
+                                }                                 elseif (str_contains($catLower, 'snack') || str_contains($catLower, 'pastr') || str_contains($catLower, 'bake') || str_contains($catLower, 'dessert')) {
                                     $cardTheme = ['bg' => 'bg-[#fffdf2]', 'border' => 'border-[#faefbe]', 'headerBg' => 'bg-gradient-to-br from-yellow-100/90 to-amber-200/60', 'icon' => '🥐'];
                                 } elseif (str_contains($catLower, 'non') || str_contains($catLower, 'tea')) {
                                     $cardTheme = ['bg' => 'bg-[#f4fbf7]', 'border' => 'border-[#c7edd9]', 'headerBg' => 'bg-gradient-to-br from-emerald-100/90 to-teal-200/60', 'icon' => '🍵'];
+                                } elseif (str_contains($catLower, 'espresso') || str_contains($catLower, 'coffee') || str_contains($catLower, 'refresh')) {
+                                    $cardTheme = ['bg' => 'bg-[#fffaf4]', 'border' => 'border-[#fae8d2]', 'headerBg' => 'bg-gradient-to-br from-amber-100/90 to-amber-200/60', 'icon' => '☕'];
+                                } elseif (str_contains($catLower, 'drink')) {
+                                    $cardTheme = ['bg' => 'bg-[#f4faff]', 'border' => 'border-[#cbe7fd]', 'headerBg' => 'bg-gradient-to-br from-sky-100/90 to-sky-200/60', 'icon' => '🥤'];
+                                } elseif (str_contains($catLower, 'add-on') || str_contains($catLower, 'side') || str_contains($catLower, 'food') || str_contains($catLower, 'wing') || str_contains($catLower, 'fry')) {
+                                    $cardTheme = ['bg' => 'bg-[#fffdf2]', 'border' => 'border-[#faefbe]', 'headerBg' => 'bg-gradient-to-br from-yellow-100/90 to-amber-200/60', 'icon' => '🍗'];
                                 } else {
-                                    $cardTheme = ['bg' => 'bg-[#f9fafb]', 'border' => 'border-gray-200', 'headerBg' => 'bg-gradient-to-br from-gray-100 to-gray-200', 'icon' => '☕'];
+                                    $cardTheme = ['bg' => 'bg-[#fffdf2]', 'border' => 'border-[#faefbe]', 'headerBg' => 'bg-gradient-to-br from-yellow-100/90 to-amber-200/60', 'icon' => '🍗'];
                                 }
                             @endphp
                             @foreach($category->activeProducts as $product)
@@ -816,6 +822,7 @@ html, body {
                     <div>
                         <h3 id="modal-product-name" class="font-extrabold text-gray-900 text-lg">Product Name</h3>
                         <p id="modal-product-category" class="text-xs font-semibold text-[#155d49] uppercase">Category</p>
+                        <p id="modal-product-description" class="text-xs text-gray-600 mt-1"></p>
                     </div>
                 </div>
                 <button onclick="closeProductModal()" class="text-gray-400 hover:text-gray-600 p-1">
@@ -825,30 +832,29 @@ html, body {
 
             <div class="p-6 space-y-5 max-h-[70vh] overflow-y-auto">
                 <!-- Size Selection -->
-                <div>
-                    <label class="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-2.5">Select Cup Size</label>
+                <div id="modal-size-section">
+                    <label id="modal-size-label" class="block text-xs font-bold text-gray-700 tracking-wider mb-2.5">Cup size</label>
                     <div id="modal-sizes" class="grid grid-cols-2 sm:grid-cols-3 gap-2.5">
                         <!-- Populated dynamically -->
                     </div>
                 </div>
 
                 <!-- Add-ons Selection -->
-                @if($addOns->count() > 0)
-                    <div>
-                        <label class="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-2.5">Add-ons (Optional)</label>
-                        <div class="space-y-2">
-                            @foreach($addOns as $addOn)
-                                <label class="flex items-center justify-between p-3 rounded-xl border border-gray-200 hover:border-emerald-300 hover:bg-[#f0f8f5] cursor-pointer transition">
-                                    <div class="flex items-center gap-2.5">
-                                        <input type="checkbox" name="modal_addon" value="{{ $addOn->id }}" data-name="{{ $addOn->name }}" data-price="{{ $addOn->price }}" class="rounded text-[#155d49] focus:ring-[#155d49]">
-                                        <span class="text-sm font-semibold text-gray-800">{{ $addOn->name }}</span>
-                                    </div>
-                                    <span class="text-xs font-bold text-[#155d49]">+₱{{ number_format($addOn->price, 2) }}</span>
-                                </label>
-                            @endforeach
-                        </div>
-                    </div>
-                @endif
+                <div id="modal-addons-section" class="hidden">
+                    <label class="block text-xs font-bold text-gray-700 tracking-wider mb-2.5">Add-ons</label>
+                    <div id="modal-addons" class="space-y-2"></div>
+                </div>
+
+                <div id="modal-wing-flavors-section" class="hidden">
+                    <label id="modal-wing-flavors-label" class="block text-xs font-bold text-gray-700 tracking-wider mb-2.5"></label>
+                    <div id="modal-wing-flavors" class="space-y-2"></div>
+                    <p id="modal-wing-flavors-counter" class="mt-2 text-xs font-semibold text-gray-500"></p>
+                    <p id="modal-wing-flavors-message" class="mt-1 text-xs font-bold text-rose-600 hidden">Choose a flavor to continue</p>
+                </div>
+
+                <script>
+                    window.posAddOns = @json($addOns);
+                </script>
 
                 <!-- Quantity -->
                 <div class="flex items-center justify-between pt-3 border-t border-gray-100">
@@ -862,10 +868,8 @@ html, body {
             </div>
 
             <div class="p-5 bg-[#f0f8f5] border-t border-gray-100">
-                <button onclick="addCurrentModalItemToCart()" class="w-full py-3.5 bg-[#155d49] hover:bg-[#114a3b] text-white font-bold rounded-2xl shadow transition flex items-center justify-center gap-2">
-                    <span>Add to Order</span>
-                    <span>•</span>
-                    <span id="modal-calculated-price">₱0.00</span>
+                <button id="modal-add-to-order" onclick="addCurrentModalItemToCart()" class="w-full py-3.5 bg-[#155d49] hover:bg-[#114a3b] text-white font-bold rounded-2xl shadow transition flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed">
+                    <span id="modal-add-to-order-label">Add to order · ₱0.00</span>
                 </button>
             </div>
         </div>
@@ -1321,6 +1325,7 @@ html, body {
         let cart = [];
         let currentModalProduct = null;
         let selectedModalSize = null;
+        let currentWingFlavorRule = null;
         let modalQuantity = 1;
         let paymentMethod = 'cash';
         let currentOrderType = 'dine_in';
@@ -1415,13 +1420,26 @@ html, body {
             document.getElementById('modal-qty').innerText = modalQuantity;
             document.getElementById('modal-product-name').innerText = product.name;
             document.getElementById('modal-product-category').innerText = product.category ? product.category.name : '';
+            document.getElementById('modal-product-description').innerText = product.description || '';
+            document.getElementById('modal-product-description').classList.toggle('hidden', !product.description);
 
             // Reset add-on checkboxes
-            document.querySelectorAll('input[name="modal_addon"]').forEach(cb => cb.checked = false);
+            document.getElementById('modal-addons').innerHTML = '';
+            selectedModalSize = null;
+            currentWingFlavorRule = (product.modifier_rules || []).find(rule =>
+                rule.group && rule.group.name === 'Wing flavor'
+            ) || null;
+            renderWingFlavorOptions();
 
             // Populate Sizes
             const sizesContainer = document.getElementById('modal-sizes');
             sizesContainer.innerHTML = '';
+            const sizeSection = document.getElementById('modal-size-section');
+            const categoryName = product.category ? product.category.name : '';
+            const drinkCategories = ['Espresso', 'Cold Brew', 'Non-Coffee', 'Refreshers'];
+            document.getElementById('modal-size-label').innerText =
+                drinkCategories.includes(categoryName) ? 'Cup size' : 'Size';
+            sizeSection.classList.toggle('hidden', product.sizes && product.sizes.length <= 1);
 
             if (product.sizes && product.sizes.length > 0) {
                 selectedModalSize = product.sizes[0];
@@ -1439,10 +1457,110 @@ html, body {
                     btn.onclick = () => selectModalSize(size, btn);
                     sizesContainer.appendChild(btn);
                 });
+                renderAddOnOptions(product);
+            } else {
+                selectedModalSize = null;
             }
 
-            updateModalPrice();
+            updateModalState();
             document.getElementById('product-modal').classList.remove('hidden');
+        }
+
+        function renderWingFlavorOptions() {
+            const section = document.getElementById('modal-wing-flavors-section');
+            const container = document.getElementById('modal-wing-flavors');
+            container.innerHTML = '';
+            section.classList.toggle('hidden', !currentWingFlavorRule);
+
+            if (!currentWingFlavorRule) {
+                updateModalState();
+                return;
+            }
+
+            const minChoices = parseInt(currentWingFlavorRule.min_choices, 10);
+            const maxChoices = parseInt(currentWingFlavorRule.max_choices, 10);
+            document.getElementById('modal-wing-flavors-label').innerText = 'Choose a flavor';
+
+            (currentWingFlavorRule.group.options || []).forEach(option => {
+                if (!option.is_active) return;
+
+                const label = document.createElement('label');
+                label.className = 'flex items-center justify-between p-3 rounded-xl border border-gray-200 hover:border-emerald-300 hover:bg-[#f0f8f5] cursor-pointer transition';
+
+                const choice = document.createElement('input');
+                choice.type = maxChoices === 1 ? 'radio' : 'checkbox';
+                choice.name = 'modal_wing_flavor';
+                choice.value = option.id;
+                choice.dataset.name = option.name;
+                choice.dataset.price = option.price;
+                choice.className = 'rounded text-[#155d49] focus:ring-[#155d49]';
+                choice.addEventListener('change', () => {
+                    const selected = document.querySelectorAll('input[name="modal_wing_flavor"]:checked');
+                    if (selected.length > maxChoices) {
+                        choice.checked = false;
+                    }
+                    updateModalState();
+                });
+
+                const name = document.createElement('span');
+                name.className = 'text-sm font-semibold text-gray-800';
+                name.innerText = option.name;
+
+                const left = document.createElement('div');
+                left.className = 'flex items-center gap-2.5';
+                left.append(choice, name);
+
+                const price = document.createElement('span');
+                price.className = 'text-xs font-bold text-[#155d49]';
+                price.innerText = `+₱${parseFloat(option.price).toFixed(2)}`;
+
+                label.append(left, price);
+                container.appendChild(label);
+            });
+            updateModalState();
+        }
+
+        function renderAddOnOptions(product) {
+            const section = document.getElementById('modal-addons-section');
+            const container = document.getElementById('modal-addons');
+            container.innerHTML = '';
+
+            const categoryId = product.category_id;
+            const isIced = selectedModalSize && /^iced\b/i.test(selectedModalSize.name);
+            const applicableAddOns = (window.posAddOns || []).filter(addOn =>
+                (addOn.category_rules || []).some(rule =>
+                    rule.is_active
+                    && parseInt(rule.category_id, 10) === parseInt(categoryId, 10)
+                    && (!rule.only_iced_sizes || isIced)
+                )
+            );
+
+            section.classList.toggle('hidden', applicableAddOns.length === 0);
+            applicableAddOns.forEach(addOn => {
+                const label = document.createElement('label');
+                label.className = 'flex items-center justify-between p-3 rounded-xl border border-gray-200 hover:border-emerald-300 hover:bg-[#f0f8f5] cursor-pointer transition';
+                const checkbox = document.createElement('input');
+                checkbox.type = 'checkbox';
+                checkbox.name = 'modal_addon';
+                checkbox.value = addOn.id;
+                checkbox.dataset.name = addOn.name;
+                checkbox.dataset.price = addOn.price;
+                checkbox.className = 'rounded text-[#155d49] focus:ring-[#155d49]';
+                checkbox.addEventListener('change', updateModalPrice);
+
+                const name = document.createElement('span');
+                name.className = 'text-sm font-semibold text-gray-800';
+                name.innerText = addOn.name;
+                const left = document.createElement('div');
+                left.className = 'flex items-center gap-2.5';
+                left.append(checkbox, name);
+
+                const price = document.createElement('span');
+                price.className = 'text-xs font-bold text-[#155d49]';
+                price.innerText = `+₱${parseFloat(addOn.price).toFixed(2)}`;
+                label.append(left, price);
+                container.appendChild(label);
+            });
         }
 
         function selectModalSize(size, btn) {
@@ -1451,7 +1569,8 @@ html, body {
                 b.className = 'size-choice-btn p-3 rounded-2xl border-2 border-gray-200 hover:border-gray-300 text-gray-700 text-left transition flex flex-col justify-between';
             });
             btn.className = 'size-choice-btn p-3 rounded-2xl border-2 border-[#155d49] bg-[#f0f8f5] text-[#155d49] text-left transition flex flex-col justify-between';
-            updateModalPrice();
+            renderAddOnOptions(currentModalProduct);
+            updateModalState();
         }
 
         function adjustModalQty(delta) {
@@ -1468,15 +1587,39 @@ html, body {
             document.querySelectorAll('input[name="modal_addon"]:checked').forEach(cb => {
                 unitPrice += parseFloat(cb.dataset.price);
             });
+            document.querySelectorAll('input[name="modal_wing_flavor"]:checked').forEach(cb => {
+                unitPrice += parseFloat(cb.dataset.price);
+            });
 
             const total = unitPrice * modalQuantity;
-            document.getElementById('modal-calculated-price').innerText = `₱${total.toFixed(2)}`;
+            document.getElementById('modal-add-to-order-label').innerText =
+                `Add to order · ₱${total.toFixed(2)}`;
+        }
+
+        function updateModalState() {
+            const selectedCount = document.querySelectorAll('input[name="modal_wing_flavor"]:checked').length;
+            const minChoices = currentWingFlavorRule ? parseInt(currentWingFlavorRule.min_choices, 10) : 0;
+            const maxChoices = currentWingFlavorRule ? parseInt(currentWingFlavorRule.max_choices, 10) : 0;
+            const hasEnoughFlavors = selectedCount >= minChoices;
+
+            if (currentWingFlavorRule && maxChoices > 1) {
+                document.getElementById('modal-wing-flavors-counter').innerText =
+                    `${selectedCount} of ${maxChoices} selected (choose at least ${minChoices})`;
+                document.getElementById('modal-wing-flavors-counter').classList.remove('hidden');
+            } else {
+                document.getElementById('modal-wing-flavors-counter').classList.add('hidden');
+            }
+
+            document.getElementById('modal-wing-flavors-message').classList.toggle(
+                'hidden',
+                !currentWingFlavorRule || hasEnoughFlavors
+            );
+            document.getElementById('modal-add-to-order').disabled =
+                !selectedModalSize || !hasEnoughFlavors;
+            updateModalPrice();
         }
 
         // Listen to addon checkbox changes
-        document.querySelectorAll('input[name="modal_addon"]').forEach(cb => {
-            cb.addEventListener('change', updateModalPrice);
-        });
 
         function closeProductModal() {
             document.getElementById('product-modal').classList.add('hidden');
@@ -1494,9 +1637,26 @@ html, body {
                 });
             });
 
+            const selectedWingFlavors = [];
+            document.querySelectorAll('input[name="modal_wing_flavor"]:checked').forEach(cb => {
+                selectedWingFlavors.push({
+                    id: parseInt(cb.value, 10),
+                    name: cb.dataset.name,
+                    price: parseFloat(cb.dataset.price)
+                });
+            });
+
+            if (currentWingFlavorRule && (
+                selectedWingFlavors.length < parseInt(currentWingFlavorRule.min_choices, 10)
+                || selectedWingFlavors.length > parseInt(currentWingFlavorRule.max_choices, 10)
+            )) {
+                alert('Choose a flavor to continue.');
+                return;
+            }
+
             const unitPrice = parseFloat(selectedModalSize.pivot.price);
-            const addOnTotal = selectedAddOns.reduce((sum, a) => sum + a.price, 0);
-            const itemTotal = (unitPrice + addOnTotal) * modalQuantity;
+            const customizationTotal = [...selectedAddOns, ...selectedWingFlavors].reduce((sum, a) => sum + a.price, 0);
+            const itemTotal = (unitPrice + customizationTotal) * modalQuantity;
 
             // Add to cart array with per-line discount fields
             cart.push({
@@ -1506,6 +1666,7 @@ html, body {
                 size_name: selectedModalSize.name,
                 unit_price: unitPrice,
                 add_ons: selectedAddOns,
+                wing_flavors: selectedWingFlavors,
                 quantity: modalQuantity,
                 subtotal: itemTotal,
                 discount_type: 'none',
@@ -1890,6 +2051,9 @@ html, body {
                         ${item.add_ons.map(a => `+ ${a.name} (₱${a.price.toFixed(2)})`).join('<br>')}
                     </div>`;
                 }
+                const wingFlavorsHtml = item.wing_flavors && item.wing_flavors.length > 0
+                    ? `<div class="text-[11px] text-amber-700 pl-2 border-l-2 border-amber-300 font-medium">Wing flavor: ${item.wing_flavors.map(flavor => flavor.name).join(', ')}</div>`
+                    : '';
 
                 // Line discount badge / button
                 let discBadge = '';
@@ -1943,6 +2107,7 @@ html, body {
                         <span class="font-bold text-gray-900 text-sm">₱${item.subtotal.toFixed(2)}</span>
                     </div>
                     ${addOnsHtml}
+                    ${wingFlavorsHtml}
                     ${discBadge}
                     <div class="flex justify-between items-center mt-2 pt-1 border-t border-gray-100/80">
                         <div class="flex items-center gap-2.5">
@@ -2020,7 +2185,8 @@ html, body {
             } else {
                 const unitPrice = cart[index].unit_price;
                 const addOnTotal = cart[index].add_ons.reduce((sum, a) => sum + a.price, 0);
-                cart[index].subtotal = (unitPrice + addOnTotal) * cart[index].quantity;
+                const flavorTotal = (cart[index].wing_flavors || []).reduce((sum, flavor) => sum + flavor.price, 0);
+                cart[index].subtotal = (unitPrice + addOnTotal + flavorTotal) * cart[index].quantity;
             }
             renderCart();
         }
@@ -2341,6 +2507,7 @@ html, body {
                     size_id: item.size_id,
                     quantity: item.quantity,
                     add_ons: item.add_ons.map(a => a.id),
+                    wing_flavors: (item.wing_flavors || []).map(flavor => flavor.id),
                     discount_type: item.discount_type || 'none',
                     discount_rate: item.discount_rate || 0,
                     discount: item.discount || 0,
@@ -2548,6 +2715,12 @@ html, body {
                         </div>
                     `).join('');
                 }
+                const flavorHtml = (item.modifiers || []).map(modifier => `
+                    <div class="flex justify-between pl-3 text-[10px] text-amber-700">
+                        <span>${modifier.group_name}: ${modifier.option_name}</span>
+                        <span>₱${parseFloat(modifier.price || 0).toFixed(2)}</span>
+                    </div>
+                `).join('');
 
                 let discHtml = '';
                 if (parseFloat(item.discount || 0) > 0) {
@@ -2568,6 +2741,7 @@ html, body {
                         <span class="font-mono">₱${parseFloat(item.subtotal).toFixed(2)}</span>
                     </div>
                     ${addonsHtml}
+                    ${flavorHtml}
                     ${discHtml}
                 `;
                 itemsContainer.appendChild(itemDiv);
@@ -2599,6 +2773,12 @@ html, body {
                         </div>
                     `).join('');
                 }
+                const flavors = (item.modifiers || []).map(modifier => `
+                    <div style="display:flex; justify-content:space-between; padding-left:10px; font-size:0.9em; color:#7c4a03;">
+                        <span>${modifier.group_name}: ${modifier.option_name}</span>
+                        <span>₱${parseFloat(modifier.price || 0).toFixed(2)}</span>
+                    </div>
+                `).join('');
 
                 let discRow = '';
                 if (parseFloat(item.discount || 0) > 0) {
@@ -2620,6 +2800,7 @@ html, body {
                             <span>₱${parseFloat(item.subtotal).toFixed(2)}</span>
                         </div>
                         ${addons}
+                        ${flavors}
                         ${discRow}
                     </div>
                 `;

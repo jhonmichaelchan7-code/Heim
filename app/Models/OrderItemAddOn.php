@@ -26,4 +26,9 @@ class OrderItemAddOn extends Model
     {
         return $this->belongsTo(AddOn::class);
     }
+
+    public function ingredientSnapshots()
+    {
+        return $this->hasMany(OrderItemAddOnIngredient::class);
+    }
 }

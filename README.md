@@ -100,3 +100,29 @@ Because Heim uses standalone SQLite and Cloudflare Tunneling, **you do not need 
 * `app/Services/InventoryService.php`: Automatic Recipe BOM and Modifier ingredient deduction & return logic.
 * `resources/views/pos/index.blade.php`: Real-time touch POS interface with branch/channel toggles and thermal printing.
 * `START-HEIM.bat`: Turnkey 1-click launcher for SQLite + Cloudflare tunnel.
+
+## Menu CSV Import
+
+The printed menu catalog and CSV templates are in `database/seeders/menu/`. Import them with:
+
+```bash
+php artisan menu:import
+```
+
+To import another directory containing `ingredients.csv`, `products.csv`, and `recipes.csv`, pass its path:
+
+```bash
+php artisan menu:import path/to/csv-files
+```
+
+The import updates matching records without deleting products or ingredients, deactivates products and categories absent from the menu, and keeps only the listed sizes for menu products. Ingredient stock and minimum thresholds are set from `ingredients.csv`. Recipe rows with blank quantities are ignored; for populated rows, the CSV unit must match the ingredient's inventory unit.
+
+## Fryers Menu Import
+
+After running database migrations, import the Fryers CSV files from `database/seeders/fryers_menu_import/` with:
+
+```bash
+php artisan fryers:import
+```
+
+To use a different directory, pass it as the command argument. The import matches ingredients and products by name, does not delete catalog or inventory records, sets stock from `opening_stock` for newly created ingredients, and preserves current stock for existing ingredients on re-import.

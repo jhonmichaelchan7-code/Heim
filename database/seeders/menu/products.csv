@@ -1,0 +1,34 @@
+category,product,size,price
+Espresso,Americano,Hot 8oz,120
+Espresso,Americano,Iced 12oz,125
+Espresso,Latte,Hot 8oz,130
+Espresso,Latte,Iced 12oz,140
+Espresso,Mocha,Hot 8oz,140
+Espresso,Mocha,Iced 12oz,150
+Espresso,Spanish Latte,Hot 8oz,140
+Espresso,Spanish Latte,Iced 12oz,150
+Espresso,Caramel Latte,Hot 8oz,140
+Espresso,Caramel Latte,Iced 12oz,150
+Espresso,Hazelnut Mocha,Hot 8oz,140
+Espresso,Hazelnut Mocha,Iced 12oz,150
+Espresso,Cinnamon Latte,Hot 8oz,150
+Espresso,Cinnamon Latte,Iced 12oz,160
+Espresso,Cinnamon Oat Latte,Iced 12oz,170
+Espresso,Honey Oat Latte,Iced 12oz,150
+Espresso,Orange Espresso,Iced 12oz,150
+Espresso,Salted Cream,Iced 12oz,150
+Cold Brew,Cold Brew,Iced 12oz,135
+Cold Brew,Cold Brew Latte,Iced 12oz,140
+Cold Brew,Spanish Cold Brew Latte,Iced 12oz,150
+Cold Brew,Orange Cold Brew,Iced 12oz,150
+Cold Brew,Lychee Apple Cold Brew,Iced 12oz,160
+Non-Coffee,Choco,Hot 8oz,140
+Non-Coffee,Choco,Iced 16oz,140
+Non-Coffee,Matcha Latte,Hot 8oz,150
+Non-Coffee,Matcha Latte,Iced 16oz,160
+Non-Coffee,Matcha Oat Latte,Iced 16oz,180
+Non-Coffee,Strawberry Cream,Iced 16oz,150
+Refreshers,Lychee Apple,Iced 16oz,100
+Refreshers,Strawberry,Iced 16oz,100
+Refreshers,Passion Fruit,Iced 16oz,100
+Refreshers,Orange,Iced 16oz,100

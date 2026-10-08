@@ -1,0 +1,35 @@
+name,unit,opening_stock,min_threshold,note
+Chicken Wing,pcs,400,80,"Raw/prepared wing, 1 pc = 1 wing"
+French Fries,g,15000,3000,
+Hashbrown,pcs,100,20,
+Rice,g,15000,3000,"Raw rice; 70 g raw is about 1 cooked serving"
+Dip Sauce,g,3000,600,"Ask client which dips are offered; split into separate items if they differ"
+Dip Cup,pcs,300,60,
+Meal Box,pcs,200,50,Single-serve box
+Sharing Box,pcs,100,25,
+Party Box,pcs,50,10,
+Buffalo Sauce,g,3000,600,Flavor
+Sour Cream Powder,g,1500,300,Flavor
+Salted Egg Sauce,g,3000,600,Flavor
+Cheese Powder,g,1500,300,Flavor
+Honey Glaze Sauce,g,3000,600,Flavor
+Garlic Parmesan Sauce,g,3000,600,Flavor
+Cheese Drip Sauce,g,3000,600,Creamy cheese drip add-on
+Coke 1.75L,pcs,24,6,Finished goods
+Coke 1.5L,pcs,24,6,
+Mountain Dew 1.5L,pcs,24,6,
+Coke in Can,pcs,48,12,
+Coke Zero in Can,pcs,48,12,
+Sprite in Can,pcs,48,12,
+Royal in Can,pcs,48,12,
+Mountain Dew in Can,pcs,48,12,
+Sola Lemon in Can,pcs,24,6,
+Sola Raspberry in Can,pcs,24,6,
+Sola Lemon in Bottle,pcs,24,6,
+Sola Raspberry in Bottle,pcs,24,6,
+Mineral Water,pcs,48,12,
+OG Fudgy Brownie,pcs,30,6,"Finished goods; record each baked batch as stock-in"
+Matcha Brownie,pcs,30,6,Finished goods
+Strawberry Brownie,pcs,30,6,Finished goods
+Mini Dimsum Egg Tart,pcs,30,6,Finished goods
+Matcha Cheese Tart,pcs,30,6,Finished goods

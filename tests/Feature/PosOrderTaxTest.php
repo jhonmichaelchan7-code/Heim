@@ -213,4 +213,52 @@ class PosOrderTaxTest extends TestCase
         $this->assertSame('80.00', (string) $seniorItem->total);
         $this->assertSame('OSCA-98765', $seniorItem->id_number);
     }
+
+    public function test_order_total_of_280_has_250_vatable_sales_and_30_vat(): void
+    {
+        $user = User::factory()->create(['role' => 'cashier']);
+
+        Shift::create([
+            'opened_by' => $user->id,
+            'opened_at' => now(),
+            'starting_cash' => 500.00,
+            'status' => 'open',
+        ]);
+
+        $category = Category::create([
+            'name' => 'Espresso',
+            'sort_order' => 1,
+            'is_active' => true,
+        ]);
+        $size = Size::create(['name' => 'Hot 8oz', 'sort_order' => 1]);
+        $product = Product::create([
+            'category_id' => $category->id,
+            'name' => 'Test Latte',
+            'is_active' => true,
+        ]);
+
+        ProductSize::create([
+            'product_id' => $product->id,
+            'size_id' => $size->id,
+            'price' => 280.00,
+        ]);
+
+        $response = $this->actingAs($user)->postJson('/pos/order', [
+            'cashier_name' => 'Alice',
+            'items' => [[
+                'product_id' => $product->id,
+                'size_id' => $size->id,
+                'quantity' => 1,
+                'add_ons' => [],
+            ]],
+            'payment_method' => 'cash',
+            'amount_tendered' => 280.00,
+        ]);
+
+        $response->assertOk();
+        $order = Order::firstOrFail();
+        $this->assertSame('280.00', (string) $order->total);
+        $this->assertSame('250.00', (string) $order->vatable_sales);
+        $this->assertSame('30.00', (string) $order->tax);
+    }
 }

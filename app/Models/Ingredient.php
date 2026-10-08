@@ -9,11 +9,14 @@ class Ingredient extends Model
 {
     use HasFactory;
 
-    protected $fillable = ['name', 'unit', 'current_stock', 'minimum_stock'];
+    protected $fillable = [
+        'name', 'unit', 'current_stock', 'minimum_stock', 'notes', 'type', 'can_be_addon',
+    ];
 
     protected $casts = [
         'current_stock' => 'decimal:2',
         'minimum_stock' => 'decimal:2',
+        'can_be_addon' => 'boolean',
     ];
 
     public function recipeIngredients()

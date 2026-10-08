@@ -63,7 +63,7 @@ class OrderController extends Controller
             abort(403, 'Unauthorized access to order details.');
         }
 
-        $order->load('items.addOns', 'payment', 'payments', 'branch', 'refunds.authorizer');
+        $order->load('items.addOns', 'items.modifiers', 'payment', 'payments', 'branch', 'refunds.authorizer');
         return view('orders.show', compact('order'));
     }
 
