@@ -11,12 +11,18 @@ class AddOn extends Model
 
     protected $table = 'add_ons';
 
-    protected $fillable = ['name', 'price', 'is_active'];
+    protected $fillable = ['name', 'price', 'ingredient_id', 'quantity', 'is_active'];
 
     protected $casts = [
         'price' => 'decimal:2',
+        'quantity' => 'decimal:2',
         'is_active' => 'boolean',
     ];
+
+    public function ingredient()
+    {
+        return $this->belongsTo(Ingredient::class);
+    }
 
     public function scopeActive($query)
     {

@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\AuditLog;
+use App\Models\Category;
 use App\Models\Ingredient;
 use App\Models\Product;
 use App\Models\Recipe;
@@ -16,22 +17,37 @@ class RecipeController extends Controller
     {
         $query = Recipe::with('product.category', 'size', 'recipeIngredients.ingredient');
 
+        if ($request->filled('search')) {
+            $query->whereHas('product', fn ($q) => $q->where('name', 'like', "%{$request->search}%"));
+        }
+
+        if ($request->filled('category_id')) {
+            $query->whereHas('product', fn ($q) => $q->where('category_id', $request->category_id));
+        }
+
         if ($request->filled('product_id')) {
             $query->where('product_id', $request->product_id);
         }
 
         $recipes = $query->get()->groupBy('product_id');
         $products = Product::with('category')->orderBy('name')->get();
+        $categories = Category::orderBy('name')->get();
 
-        return view('recipes.index', compact('recipes', 'products'));
+        return view('recipes.index', compact('recipes', 'products', 'categories'));
     }
 
-    public function create()
+    public function create(Request $request)
     {
         $products = Product::active()->with('sizes')->orderBy('name')->get();
         $ingredients = Ingredient::orderBy('name')->get();
         $sizes = Size::ordered()->get();
-        return view('recipes.create', compact('products', 'ingredients', 'sizes'));
+        
+        $duplicateRecipe = null;
+        if ($request->filled('duplicate_from')) {
+            $duplicateRecipe = Recipe::with('recipeIngredients.ingredient')->find($request->duplicate_from);
+        }
+
+        return view('recipes.create', compact('products', 'ingredients', 'sizes', 'duplicateRecipe'));
     }
 
     public function store(Request $request)

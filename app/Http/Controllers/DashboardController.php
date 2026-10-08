@@ -2,27 +2,64 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Branch;
 use App\Models\Ingredient;
 use App\Models\Order;
+use App\Models\OrderItem;
+use App\Models\Shift;
 use App\Models\SystemNotification;
 use Illuminate\Http\Request;
 
 class DashboardController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
         $user = auth()->user();
+        $selectedBranchId = $request->get('branch_id');
+        $branches = Branch::active()->get();
+
+        // Base query for completed orders with optional branch filtering
+        $baseOrdersQuery = Order::completed();
+        if ($selectedBranchId) {
+            $baseOrdersQuery->where('branch_id', $selectedBranchId);
+        }
 
         // Today's stats
-        $todayOrders = Order::whereDate('created_at', today())->completed()->get();
+        $todayOrders = (clone $baseOrdersQuery)->whereDate('created_at', today())->with('items', 'payment', 'payments')->get();
         $todayRevenue = $todayOrders->sum('total');
         $todayOrderCount = $todayOrders->count();
-        $todayItemsSold = $todayOrders->load('items')->flatMap->items->sum('quantity');
+        $todayItemsSold = $todayOrders->flatMap->items->sum('quantity');
+
+        // Order Type breakdown today
+        $orderTypesBreakdown = [
+            'dine_in' => [
+                'count' => $todayOrders->where('order_type', 'dine_in')->count(),
+                'total' => $todayOrders->where('order_type', 'dine_in')->sum('total'),
+            ],
+            'takeout' => [
+                'count' => $todayOrders->where('order_type', 'takeout')->count(),
+                'total' => $todayOrders->where('order_type', 'takeout')->sum('total'),
+            ],
+            'grab_delivery' => [
+                'count' => $todayOrders->where('order_type', 'grab_delivery')->count(),
+                'total' => $todayOrders->where('order_type', 'grab_delivery')->sum('total'),
+            ],
+        ];
+
+        // Payment Method breakdown today (Cash vs Online)
+        $cashTotal = 0.0;
+        $onlineTotal = 0.0;
+        foreach ($todayOrders as $ord) {
+            $pm = $ord->payment?->method ?? 'cash';
+            if ($pm === 'cash') {
+                $cashTotal += (float) $ord->total;
+            } else {
+                $onlineTotal += (float) $ord->total;
+            }
+        }
 
         // Weekly revenue (last 7 days)
-        $weeklyRevenue = Order::where('created_at', '>=', now()->subDays(7))
-            ->completed()
-            ->sum('total');
+        $weeklyRevenue = (clone $baseOrdersQuery)->where('created_at', '>=', now()->subDays(7))->sum('total');
 
         // Low stock ingredients
         $lowStockIngredients = Ingredient::whereColumn('current_stock', '<=', 'minimum_stock')
@@ -31,17 +68,23 @@ class DashboardController extends Controller
             ->get();
 
         // Shift Information
-        $activeShift = \App\Models\Shift::where('status', 'open')->latest()->first();
+        $activeShiftQuery = Shift::where('status', 'open');
+        if ($selectedBranchId) {
+            $activeShiftQuery->where('branch_id', $selectedBranchId);
+        }
+        $activeShift = $activeShiftQuery->latest()->first();
         $activeShiftMetrics = $activeShift ? $activeShift->calculateMetrics() : null;
         $recentShifts = ($user->isManager() || in_array($user->role, ['manager', 'owner'])) 
-            ? \App\Models\Shift::latest()->take(5)->get() 
+            ? Shift::latest()->take(5)->get() 
             : collect();
 
         // Recent orders
-        $recentOrdersQuery = Order::with('items', 'payment')->latest();
+        $recentOrdersQuery = Order::with('items', 'payment', 'branch')->latest();
+        if ($selectedBranchId) {
+            $recentOrdersQuery->where('branch_id', $selectedBranchId);
+        }
 
         if (!$user->isAtLeast('supervisor')) {
-            // For Cashier: strictly view only their own orders from the current active shift so it matches their cash drawer
             if ($activeShift) {
                 $recentOrdersQuery->where('shift_id', $activeShift->id)
                     ->where(function ($q) use ($user) {
@@ -69,8 +112,11 @@ class DashboardController extends Controller
         }
 
         // Best sellers today
-        $bestSellers = \App\Models\OrderItem::whereHas('order', function ($q) {
+        $bestSellers = OrderItem::whereHas('order', function ($q) use ($selectedBranchId) {
                 $q->whereDate('created_at', today())->where('status', 'completed');
+                if ($selectedBranchId) {
+                    $q->where('branch_id', $selectedBranchId);
+                }
             })
             ->selectRaw('product_name, SUM(quantity) as total_qty')
             ->groupBy('product_name')
@@ -81,7 +127,8 @@ class DashboardController extends Controller
         return view('dashboard', compact(
             'todayRevenue', 'todayOrderCount', 'todayItemsSold',
             'weeklyRevenue', 'lowStockIngredients', 'recentOrders',
-            'notifications', 'bestSellers', 'activeShift', 'activeShiftMetrics', 'recentShifts'
+            'notifications', 'bestSellers', 'activeShift', 'activeShiftMetrics', 'recentShifts',
+            'branches', 'selectedBranchId', 'orderTypesBreakdown', 'cashTotal', 'onlineTotal'
         ));
     }
 }

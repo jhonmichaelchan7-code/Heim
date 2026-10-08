@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\AuditLog;
+use App\Models\Branch;
 use App\Models\Ingredient;
 use App\Models\InventoryTransaction;
 use App\Models\Order;
@@ -18,6 +19,9 @@ class ReportController extends Controller
         $period = $request->get('period', 'daily');
         $dateFrom = $request->get('date_from', today()->format('Y-m-d'));
         $dateTo = $request->get('date_to', today()->format('Y-m-d'));
+        $branchId = $request->get('branch_id');
+        $orderType = $request->get('order_type');
+        $branches = Branch::active()->get();
 
         switch ($period) {
             case 'weekly':
@@ -41,44 +45,119 @@ class ReportController extends Controller
                 break;
         }
 
-        $orders = Order::whereBetween('created_at', ["{$dateFrom} 00:00:00", "{$dateTo} 23:59:59"])
+        $query = Order::whereBetween('created_at', ["{$dateFrom} 00:00:00", "{$dateTo} 23:59:59"])
             ->completed()
-            ->with('items', 'payment')
-            ->get();
+            ->with('items', 'payment', 'payments', 'branch');
 
-        $totalSales = $orders->sum('total');
+        if ($branchId) {
+            $query->where('branch_id', $branchId);
+        }
+        if ($orderType && $orderType !== 'all') {
+            $query->where('order_type', $orderType);
+        }
+
+        $orders = $query->get();
+
+        $totalSales = (float) $orders->sum('total');
         $totalOrders = $orders->count();
         $totalItems = $orders->flatMap->items->sum('quantity');
+        $avgTicketSize = $totalOrders > 0 ? round($totalSales / $totalOrders, 2) : 0.00;
 
-        // Payment breakdown
-        $paymentBreakdown = $orders->groupBy(fn ($o) => $o->payment?->method ?? 'unknown')
+        // Payment breakdown (Cash vs Online digital breakdown)
+        $paymentBreakdown = $orders->groupBy(function ($o) {
+            $m = strtolower($o->payment?->method ?? 'cash');
+            if (in_array($m, ['online', 'gcash', 'card'])) return 'online';
+            return 'cash';
+        })->map(fn ($group) => [
+            'count' => $group->count(),
+            'total' => (float) $group->sum('total'),
+            'pct' => $totalSales > 0 ? round(($group->sum('total') / $totalSales) * 100, 1) : 0,
+        ]);
+
+        // Detailed Payment Methods (Cash, GCash, Online, Card, Split)
+        $detailedPayments = $orders->groupBy(fn ($o) => $o->payment?->method ?? 'cash')
             ->map(fn ($group) => [
                 'count' => $group->count(),
-                'total' => $group->sum('total'),
+                'total' => (float) $group->sum('total'),
             ]);
 
+        // Order Type stats (Dine-In, Takeout, Grab Delivery)
+        $orderTypesStats = [
+            'dine_in' => [
+                'label' => 'Dine-In',
+                'icon' => '🍽️',
+                'count' => $orders->where('order_type', 'dine_in')->count(),
+                'total' => (float) $orders->where('order_type', 'dine_in')->sum('total'),
+                'pct' => $totalSales > 0 ? round(($orders->where('order_type', 'dine_in')->sum('total') / $totalSales) * 100, 1) : 0,
+            ],
+            'takeout' => [
+                'label' => 'Takeout',
+                'icon' => '🛍️',
+                'count' => $orders->where('order_type', 'takeout')->count(),
+                'total' => (float) $orders->where('order_type', 'takeout')->sum('total'),
+                'pct' => $totalSales > 0 ? round(($orders->where('order_type', 'takeout')->sum('total') / $totalSales) * 100, 1) : 0,
+            ],
+            'grab_delivery' => [
+                'label' => 'Grab Delivery',
+                'icon' => '🛵',
+                'count' => $orders->where('order_type', 'grab_delivery')->count(),
+                'total' => (float) $orders->where('order_type', 'grab_delivery')->sum('total'),
+                'pct' => $totalSales > 0 ? round(($orders->where('order_type', 'grab_delivery')->sum('total') / $totalSales) * 100, 1) : 0,
+            ],
+        ];
+
+        // Branch Performance Comparison
+        $branchStats = Branch::active()->get()->map(function ($b) use ($dateFrom, $dateTo) {
+            $bOrders = Order::where('branch_id', $b->id)
+                ->whereBetween('created_at', ["{$dateFrom} 00:00:00", "{$dateTo} 23:59:59"])
+                ->completed()
+                ->get();
+            return [
+                'id' => $b->id,
+                'name' => $b->name,
+                'code' => $b->code,
+                'orders_count' => $bOrders->count(),
+                'total_sales' => (float) $bOrders->sum('total'),
+            ];
+        });
+
+        // Peak Ordering Periods (Rush hours 6 AM to 10 PM)
+        $peakHours = [];
+        for ($h = 6; $h <= 22; $h++) {
+            $label = date('g A', mktime($h, 0, 0));
+            $hOrders = $orders->filter(fn ($o) => (int) $o->created_at->format('G') === $h);
+            $peakHours[] = [
+                'hour' => $label,
+                'count' => $hOrders->count(),
+                'sales' => (float) $hOrders->sum('total'),
+            ];
+        }
+
         // Best sellers
-        $bestSellers = OrderItem::whereHas('order', fn ($q) =>
-                $q->whereBetween('created_at', ["{$dateFrom} 00:00:00", "{$dateTo} 23:59:59"])->completed()
-            )
-            ->selectRaw('product_name, size_name, SUM(quantity) as total_qty, SUM(subtotal) as total_revenue')
-            ->groupBy('product_name', 'size_name')
-            ->orderByDesc('total_qty')
-            ->take(10)
-            ->get();
+        $bestSellers = OrderItem::whereHas('order', function ($q) use ($dateFrom, $dateTo, $branchId, $orderType) {
+            $q->whereBetween('created_at', ["{$dateFrom} 00:00:00", "{$dateTo} 23:59:59"])->completed();
+            if ($branchId) $q->where('branch_id', $branchId);
+            if ($orderType && $orderType !== 'all') $q->where('order_type', $orderType);
+        })
+        ->selectRaw('product_name, size_name, SUM(quantity) as total_qty, SUM(subtotal) as total_revenue')
+        ->groupBy('product_name', 'size_name')
+        ->orderByDesc('total_qty')
+        ->take(10)
+        ->get();
 
         // Sales by cashier
         $salesByCashier = $orders->groupBy('cashier_name')
             ->map(fn ($group) => [
                 'orders' => $group->count(),
-                'total' => $group->sum('total'),
+                'total' => (float) $group->sum('total'),
             ])->sortByDesc('total');
 
-        // Refunds
-        $refundedOrders = Order::whereBetween('created_at', ["{$dateFrom} 00:00:00", "{$dateTo} 23:59:59"])
-            ->where('status', 'refunded')
-            ->get();
-        $totalRefunds = $refundedOrders->sum('total');
+        // Refunds, Voids & Cancellations
+        $refundedOrdersQuery = Order::whereBetween('created_at', ["{$dateFrom} 00:00:00", "{$dateTo} 23:59:59"])
+            ->whereIn('status', ['refunded', 'cancelled', 'voided']);
+        if ($branchId) $refundedOrdersQuery->where('branch_id', $branchId);
+        $refundedOrders = $refundedOrdersQuery->get();
+        $totalRefunds = (float) $refundedOrders->sum('total');
 
         // Log report generation
         AuditLog::log('report_generated', 'reports', "Sales report generated: {$period} ({$dateFrom} to {$dateTo})");
@@ -87,9 +166,10 @@ class ReportController extends Controller
         $googleSheetAutoSync = (bool) PosSetting::get('google_sheet_auto_sync', false);
 
         return view('reports.sales', compact(
-            'period', 'dateFrom', 'dateTo',
-            'totalSales', 'totalOrders', 'totalItems',
-            'paymentBreakdown', 'bestSellers', 'salesByCashier',
+            'period', 'dateFrom', 'dateTo', 'branchId', 'orderType', 'branches',
+            'totalSales', 'totalOrders', 'totalItems', 'avgTicketSize',
+            'paymentBreakdown', 'detailedPayments', 'orderTypesStats', 'branchStats', 'peakHours',
+            'bestSellers', 'salesByCashier',
             'totalRefunds', 'refundedOrders',
             'googleSheetWebhookUrl', 'googleSheetAutoSync'
         ));

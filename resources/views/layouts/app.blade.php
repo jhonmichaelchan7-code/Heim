@@ -5,7 +5,8 @@
         <meta name="viewport" content="width=device-width, initial-scale=1">
         <meta name="csrf-token" content="{{ csrf_token() }}">
 
-        <title>{{ config('app.name', 'Coffee Shop POS') }}</title>
+        <title>{{ config('app.name', 'Heim POS') }}</title>
+        <link rel="icon" type="image/png" href="{{ asset('images/logo.png') }}" />
 
         <!-- Fonts -->
         <link rel="preconnect" href="https://fonts.bunny.net">
@@ -21,7 +22,7 @@
             @include('layouts.navigation')
 
             <!-- Main Application Content Area -->
-            <div class="flex-1 flex flex-col min-w-0">
+            <div class="flex-1 flex flex-col min-w-0 {{ request()->routeIs('pos.*') ? 'h-screen overflow-hidden' : '' }}">
                 <!-- Flash Messages -->
                 @if (session('success'))
                     <div id="flash-success" class="w-full px-4 sm:px-6 lg:px-8 xl:px-10 2xl:max-w-[1880px] 2xl:mx-auto mt-4">
@@ -55,7 +56,7 @@
                 @endif
 
                 <!-- Page Content -->
-                <main class="flex-1">
+                <main class="flex-1 {{ request()->routeIs('pos.*') ? 'h-full overflow-hidden' : '' }}">
                     {{ $slot }}
                 </main>
             </div>

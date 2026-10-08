@@ -51,28 +51,37 @@ html, body {
 }
 </style>
 @endpush
-    <div class="py-3 min-h-[calc(100vh-4rem)] lg:h-screen lg:min-h-0 flex flex-col">
-        <div class="w-full px-3 sm:px-4 lg:px-6 2xl:max-w-[1880px] 2xl:mx-auto flex-1 flex flex-col md:flex-row gap-4 md:overflow-hidden overflow-visible">
+    <div class="py-2.5 sm:py-3 h-screen overflow-hidden flex flex-col bg-gray-50/60">
+        <div class="w-full px-2 sm:px-4 lg:px-5 2xl:max-w-[1880px] 2xl:mx-auto flex-1 flex flex-col md:flex-row gap-3 sm:gap-4 overflow-hidden">
             
             <!-- Left Column: Catalog & Categories (65% width) -->
-            <div class="flex-1 flex flex-col bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden min-h-[480px] md:min-h-0">
+            <div class="flex-1 flex flex-col bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden min-h-0">
                 <!-- Search & Category Filters -->
-                <div class="p-4 border-b border-gray-100 flex flex-col sm:flex-row gap-3 items-center justify-between bg-[#f0f8f5]/60">
-                    <div class="flex items-center gap-2 w-full sm:w-72">
-                        <div class="relative flex-1">
-                            <span class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none text-[#155d49]">
+                <div class="p-3 sm:p-4 border-b border-gray-100 flex flex-col gap-2.5 sm:gap-3 bg-[#f0f8f5]/60">
+                    <div class="flex items-center justify-between gap-3 w-full">
+                        <!-- Search Bar -->
+                        <div class="relative flex-1 max-w-md">
+                            <span class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none text-[#0e703c]">
                                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
                                 </svg>
                             </span>
-                            <input type="text" id="search-input" onkeyup="filterProducts()" placeholder="Search menu, coffee, pastries..." class="w-full pl-9 pr-4 py-2 text-sm bg-white border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#155d49] focus:border-[#155d49] outline-none transition shadow-sm font-medium" />
+                            <input type="text" id="search-input" onkeyup="filterProducts()" placeholder="Search menu, coffee, pastries..." class="w-full pl-9 pr-4 py-2 text-sm bg-white border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#0e703c] focus:border-[#0e703c] outline-none transition shadow-2xs font-medium" />
                         </div>
 
-                        <!-- Mobile-only Quick Jump to Cart Button (HCI: Visibility of System Status & Fitts's Law) -->
+                        <!-- Top Header Info: Cashier & Branch (Phase 1 #1) -->
+                        <div class="hidden sm:flex items-center gap-2 px-3 py-1.5 bg-white border border-gray-200/80 rounded-xl text-xs shadow-2xs">
+                            <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+                            <span class="font-extrabold text-gray-900">{{ $activeShift ? $activeShift->opened_by : Auth::user()->name }}</span>
+                            <span class="text-gray-300">·</span>
+                            <span class="font-semibold text-gray-600">📍 {{ $activeShift?->branch?->name ?? ($branches->first()?->name ?? 'Main Branch') }}</span>
+                        </div>
+
+                        <!-- Mobile-only Quick Jump to Cart Button -->
                         <button type="button" 
                                 onclick="scrollToCart()" 
                                 title="View Current Order"
-                                class="md:hidden relative shrink-0 p-2.5 bg-white hover:bg-emerald-50 text-[#155d49] border border-gray-200 hover:border-[#155d49] rounded-xl shadow-sm transition-all flex items-center justify-center active:scale-95">
+                                class="md:hidden relative shrink-0 p-2.5 bg-white hover:bg-emerald-50 text-[#0e703c] border border-gray-200 hover:border-[#0e703c] rounded-xl shadow-2xs transition-all flex items-center justify-center active:scale-95">
                             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
                             </svg>
@@ -82,43 +91,87 @@ html, body {
                         </button>
                     </div>
 
-                    <!-- Category Pills -->
-                    <div class="flex gap-2 overflow-x-auto w-full sm:w-auto pb-1 sm:pb-0 scrollbar-none">
-                        <button onclick="selectCategory('all', this)" class="category-btn active px-4 py-2 rounded-xl text-xs font-bold whitespace-nowrap bg-[#155d49] text-white shadow-sm transition">
+                    <!-- Category Pills (Phase 3 #10 & #11: Flex wrap row, Best Sellers first, shortened labels) -->
+                    <div class="flex flex-wrap items-center gap-1.5 sm:gap-2 w-full pt-0.5">
+                        <button onclick="selectCategory('popular', this)" class="category-btn px-3 py-1.5 rounded-xl text-xs font-black whitespace-nowrap bg-amber-50 hover:bg-amber-100 text-amber-900 border border-amber-300 transition shadow-2xs flex items-center gap-1.5">
+                            <span>⭐ Best Sellers</span>
+                        </button>
+                        <button onclick="selectCategory('all', this)" class="category-btn active px-3.5 py-1.5 rounded-xl text-xs font-black whitespace-nowrap bg-[#0e703c] text-white shadow-2xs transition">
                             All Menu
                         </button>
                         @foreach($categories as $category)
-                            <button onclick="selectCategory('{{ $category->id }}', this)" class="category-btn px-4 py-2 rounded-xl text-xs font-bold whitespace-nowrap bg-white text-gray-700 hover:bg-emerald-50 hover:text-[#155d49] border border-gray-200 transition">
-                                {{ $category->name }} ({{ $category->activeProducts->count() }})
+                            @php
+                                $cName = $category->name;
+                                $cLower = strtolower($cName);
+                                if (str_contains($cLower, 'hot')) $cLabel = 'Hot (' . $category->activeProducts->count() . ')';
+                                elseif (str_contains($cLower, 'iced')) $cLabel = 'Iced (' . $category->activeProducts->count() . ')';
+                                elseif (str_contains($cLower, 'frappe')) $cLabel = 'Frappe (' . $category->activeProducts->count() . ')';
+                                elseif (str_contains($cLower, 'snack') || str_contains($cLower, 'pastr')) $cLabel = 'Pastries (' . $category->activeProducts->count() . ')';
+                                elseif (str_contains($cLower, 'non')) $cLabel = 'Non-Coffee (' . $category->activeProducts->count() . ')';
+                                else $cLabel = $category->name . ' (' . $category->activeProducts->count() . ')';
+                            @endphp
+                            <button onclick="selectCategory('{{ $category->id }}', this)" class="category-btn px-3 py-1.5 rounded-xl text-xs font-bold whitespace-nowrap bg-white text-gray-700 hover:bg-emerald-50 hover:text-[#0e703c] border border-gray-200 transition shadow-2xs">
+                                {{ $cLabel }}
                             </button>
                         @endforeach
                     </div>
                 </div>
 
-                <!-- Products Grid (Scrollable) -->
-                <div class="flex-1 p-4 overflow-y-auto">
-                    <div id="product-grid" class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3.5">
+                <!-- Products Grid (Scrollable, Phase 2 & 3: category tints, tap feedback, whole card clickable) -->
+                <div class="flex-1 p-3 sm:p-4 overflow-y-auto">
+                    <div id="product-grid" class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-3.5">
                         @foreach($categories as $category)
+                            @php
+                                $catLower = strtolower($category->name);
+                                if (str_contains($catLower, 'hot')) {
+                                    $cardTheme = ['bg' => 'bg-[#fffaf4]', 'border' => 'border-[#fae8d2]', 'headerBg' => 'bg-gradient-to-br from-amber-100/90 to-amber-200/60', 'icon' => '☕'];
+                                } elseif (str_contains($catLower, 'iced')) {
+                                    $cardTheme = ['bg' => 'bg-[#f4faff]', 'border' => 'border-[#cbe7fd]', 'headerBg' => 'bg-gradient-to-br from-sky-100/90 to-sky-200/60', 'icon' => '🧊'];
+                                } elseif (str_contains($catLower, 'frappe')) {
+                                    $cardTheme = ['bg' => 'bg-[#fffdf5]', 'border' => 'border-[#faeec5]', 'headerBg' => 'bg-gradient-to-br from-amber-100/90 to-yellow-200/60', 'icon' => '🥤'];
+                                } elseif (str_contains($catLower, 'snack') || str_contains($catLower, 'pastr') || str_contains($catLower, 'bake')) {
+                                    $cardTheme = ['bg' => 'bg-[#fffdf2]', 'border' => 'border-[#faefbe]', 'headerBg' => 'bg-gradient-to-br from-yellow-100/90 to-amber-200/60', 'icon' => '🥐'];
+                                } elseif (str_contains($catLower, 'non') || str_contains($catLower, 'tea')) {
+                                    $cardTheme = ['bg' => 'bg-[#f4fbf7]', 'border' => 'border-[#c7edd9]', 'headerBg' => 'bg-gradient-to-br from-emerald-100/90 to-teal-200/60', 'icon' => '🍵'];
+                                } else {
+                                    $cardTheme = ['bg' => 'bg-[#f9fafb]', 'border' => 'border-gray-200', 'headerBg' => 'bg-gradient-to-br from-gray-100 to-gray-200', 'icon' => '☕'];
+                                }
+                            @endphp
                             @foreach($category->activeProducts as $product)
                                 @php
                                     $minPrice = $product->sizes->min('pivot.price');
                                     $maxPrice = $product->sizes->max('pivot.price');
                                     $priceDisplay = $minPrice == $maxPrice ? "₱" . number_format($minPrice, 2) : "₱" . number_format($minPrice, 0) . " - ₱" . number_format($maxPrice, 0);
+                                    $isPopular = in_array($product->id, $popularProductIds ?? []);
                                 @endphp
-                                <div class="product-card bg-white border border-gray-100 hover:border-[#155d49] rounded-2xl p-3.5 flex flex-col justify-between cursor-pointer transition-all duration-150 shadow-sm hover:shadow-md group relative overflow-hidden"
+                                <div class="product-card {{ $cardTheme['bg'] }} border {{ $cardTheme['border'] }} hover:border-[#0e703c] rounded-2xl p-3 flex flex-col justify-between cursor-pointer transition-all duration-150 shadow-2xs hover:shadow-md group relative overflow-hidden select-none active:scale-[0.97]"
                                      data-category="{{ $category->id }}"
                                      data-name="{{ strtolower($product->name) }}"
-                                     onclick="openProductModal({{ json_encode($product) }})">
-                                    <div>
-                                        <div class="w-full h-24 rounded-xl bg-gradient-to-br from-[#f0f8f5] to-[#dcf0e9] flex items-center justify-center text-3xl group-hover:scale-105 transition-transform duration-200">
-                                            ☕
-                                        </div>
-                                        <h4 class="font-bold text-gray-900 text-sm mt-2.5 line-clamp-1 group-hover:text-[#155d49] transition">{{ $product->name }}</h4>
-                                        <p class="text-xs text-gray-400 capitalize">{{ $category->name }}</p>
+                                     data-product-id="{{ $product->id }}"
+                                     data-popular="{{ $isPopular ? '1' : '0' }}"
+                                     onclick="handleProductCardClick({{ json_encode($product) }}, this)">
+                                    
+                                    <!-- In-cart Badge (Phase 2 #8) -->
+                                    <div id="card-badge-{{ $product->id }}" class="hidden absolute top-2 right-2 px-2 py-0.5 rounded-full bg-[#0e703c] text-white text-[11px] font-black shadow-md ring-2 ring-white z-10 animate-fade-in pointer-events-none">
+                                        ×0
                                     </div>
-                                    <div class="mt-3 pt-2.5 border-t border-gray-50 flex items-center justify-between">
-                                        <span class="font-black text-[#155d49] text-sm">{{ $priceDisplay }}</span>
-                                        <span class="p-1.5 bg-[#f0f8f5] text-[#155d49] rounded-lg group-hover:bg-[#155d49] group-hover:text-white transition">
+
+                                    @if($isPopular)
+                                    <div class="absolute top-2 left-2 px-2 py-0.5 rounded-full bg-amber-500 text-white text-[10px] font-black shadow-2xs z-10 pointer-events-none flex items-center gap-1">
+                                        ★ Popular
+                                    </div>
+                                    @endif
+
+                                    <div>
+                                        <div class="w-full h-24 rounded-xl {{ $cardTheme['headerBg'] }} flex items-center justify-center text-3xl group-hover:scale-105 transition-transform duration-200 shadow-inner">
+                                            {{ $cardTheme['icon'] }}
+                                        </div>
+                                        <h4 class="font-bold text-gray-900 text-sm mt-2.5 line-clamp-1 group-hover:text-[#0e703c] transition">{{ $product->name }}</h4>
+                                        <p class="text-xs text-gray-600 font-semibold capitalize mt-0.5">{{ $category->name }}</p>
+                                    </div>
+                                    <div class="mt-3 pt-2 border-t border-black/5 flex items-center justify-between">
+                                        <span class="font-black text-[#0e703c] text-sm">{{ $priceDisplay }}</span>
+                                        <span class="p-1.5 bg-white/90 text-[#0e703c] rounded-lg border border-black/5 shadow-2xs group-hover:bg-[#0e703c] group-hover:text-white transition pointer-events-none">
                                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 4v16m8-8H4" />
                                             </svg>
@@ -131,43 +184,47 @@ html, body {
                 </div>
             </div>
 
-            <!-- Right Column: Order Cart Panel (35% width) -->
+            <!-- Right Column: Order Cart Panel (35% width, Phase 1 decluttered column layout) -->
             <div id="pos-cart-panel" class="w-full md:w-[420px] flex flex-col bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden shrink-0">
-                <!-- Cart Header & Cashier Assignment -->
-                <div class="p-4 border-b border-gray-100 bg-[#f0f8f5]/60 space-y-3">
+                <!-- Cart Header (Phase 1 #1 & #2: Shift info/time moved out, minimalist) -->
+                <div class="p-3.5 border-b border-gray-100 bg-[#f0f8f5]/60 space-y-3">
                     <div class="flex items-center justify-between">
                         <div class="flex items-center gap-2">
-                            <div class="w-7 h-7 rounded-full overflow-hidden bg-[#155d49] border border-white shrink-0">
+                            <div class="w-7 h-7 rounded-full overflow-hidden bg-[#0e703c] border border-white shrink-0">
                                 <img src="{{ asset('images/logo.png') }}" alt="Heim Logo" class="w-full h-full object-cover rounded-full" />
                             </div>
                             <h3 class="font-bold text-gray-900 text-base">Heim Order Cart</h3>
                         </div>
                         <div class="flex items-center gap-2">
-                            <button type="button" onclick="clearCart()" class="text-xs text-rose-600 hover:text-rose-800 font-bold transition">Clear All</button>
+                            <!-- Clear All (Phase 5 #15: Protected with confirmation modal) -->
+                            <button type="button" onclick="promptClearCart()" class="text-xs text-rose-600 hover:text-rose-800 font-bold transition flex items-center gap-1 px-2 py-1 rounded-lg hover:bg-rose-50" title="Clear all items in cart">
+                                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+                                <span>Clear All</span>
+                            </button>
 
                             <!-- Kiosk Fullscreen Mode for Tablets -->
-                            <button type="button" onclick="toggleKioskFullscreen()" id="kiosk-fullscreen-btn" title="Toggle Tablet Kiosk Fullscreen" class="h-8 px-2.5 rounded-xl bg-white hover:bg-emerald-50 text-gray-700 hover:text-[#155d49] border border-gray-200 flex items-center gap-1.5 font-bold text-xs transition shadow-2xs active:scale-95 touch-manipulation select-none">
+                            <button type="button" onclick="toggleKioskFullscreen()" id="kiosk-fullscreen-btn" title="Toggle Tablet Kiosk Fullscreen" class="h-8 px-2.5 rounded-xl bg-white hover:bg-emerald-50 text-gray-700 hover:text-[#0e703c] border border-gray-200 flex items-center gap-1.5 font-bold text-xs transition shadow-2xs active:scale-95 touch-manipulation select-none">
                                 <svg class="w-4 h-4 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 8V4m0 0h4M4 4l5 5m11-5h-4m4 0v4m0 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4"/></svg>
                                 <span class="hidden sm:inline" id="fullscreen-btn-text">Kiosk</span>
                             </button>
 
                             <!-- Inventify 3-dot Menu ⋮ -->
                             <div class="relative" id="pos-menu-container">
-                                <button type="button" onclick="togglePosMenu(event)" id="pos-three-dots-btn" title="Shift & POS Menu" class="w-8 h-8 rounded-xl bg-white hover:bg-emerald-50 text-gray-700 hover:text-[#155d49] border border-gray-200 flex items-center justify-center font-bold text-lg leading-none transition shadow-xs">
+                                <button type="button" onclick="togglePosMenu(event)" id="pos-three-dots-btn" title="Shift & POS Menu" class="w-8 h-8 rounded-xl bg-white hover:bg-emerald-50 text-gray-700 hover:text-[#0e703c] border border-gray-200 flex items-center justify-center font-bold text-lg leading-none transition shadow-2xs">
                                     ⋮
                                 </button>
-                                <!-- Dropdown (Matching video 00:01) -->
+                                <!-- Dropdown -->
                                 <div id="pos-menu-dropdown" class="hidden absolute right-0 mt-2 w-48 bg-white rounded-2xl shadow-xl border border-gray-100 py-1.5 z-50 animate-fade-in text-sm font-medium">
-                                    <button type="button" onclick="triggerOpenDrawer()" class="w-full px-4 py-2.5 text-left text-gray-700 hover:bg-[#f0f8f5] hover:text-[#155d49] flex items-center gap-2.5 transition">
+                                    <button type="button" onclick="triggerOpenDrawer()" class="w-full px-4 py-2.5 text-left text-gray-700 hover:bg-[#f0f8f5] hover:text-[#0e703c] flex items-center gap-2.5 transition">
                                         <svg class="w-4 h-4 text-emerald-600 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4"/></svg>
                                         <span>Open Drawer</span>
                                     </button>
-                                    <button type="button" onclick="handleShiftMenuClick()" class="w-full px-4 py-2.5 text-left text-gray-700 hover:bg-[#f0f8f5] hover:text-[#155d49] flex items-center gap-2.5 transition">
+                                    <button type="button" onclick="handleShiftMenuClick()" class="w-full px-4 py-2.5 text-left text-gray-700 hover:bg-[#f0f8f5] hover:text-[#0e703c] flex items-center gap-2.5 transition">
                                         <svg class="w-4 h-4 text-emerald-600 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
                                         <span>Shifts</span>
                                     </button>
                                     @if(auth()->user()->isManager())
-                                    <button type="button" onclick="openSettingsModal()" class="w-full px-4 py-2.5 text-left text-gray-700 hover:bg-[#f0f8f5] hover:text-[#155d49] flex items-center gap-2.5 transition">
+                                    <button type="button" onclick="openSettingsModal()" class="w-full px-4 py-2.5 text-left text-gray-700 hover:bg-[#f0f8f5] hover:text-[#0e703c] flex items-center gap-2.5 transition">
                                         <svg class="w-4 h-4 text-emerald-600 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
                                         <span>Settings</span>
                                     </button>
@@ -177,100 +234,164 @@ html, body {
                         </div>
                     </div>
 
-                    <!-- Shift Status Bar (Interactive trigger for Start Shift / View Shift) -->
-                    <div id="pos-shift-status-bar" onclick="handleShiftMenuClick()" class="cursor-pointer flex items-center justify-between px-3 py-2 rounded-xl border text-[11px] font-semibold transition hover:shadow-xs {{ $activeShift ? 'bg-emerald-50/90 border-emerald-200 text-emerald-800' : 'bg-amber-50/90 border-amber-200 text-amber-800' }}">
+                    <!-- Single Shift Indicator Bar (Phase 1 #1: Keep single shift indicator) -->
+                    <div id="pos-shift-status-bar" onclick="handleShiftMenuClick()" class="cursor-pointer flex items-center justify-between px-3 py-2 rounded-xl border text-[11px] font-semibold transition hover:shadow-2xs {{ $activeShift ? 'bg-emerald-50/90 border-emerald-200 text-emerald-800' : 'bg-amber-50/90 border-amber-200 text-amber-800' }}">
                         <div class="flex items-center gap-2">
                             <span id="pos-shift-indicator-dot" class="w-2.5 h-2.5 rounded-full {{ $activeShift ? 'bg-emerald-500 animate-pulse' : 'bg-amber-500' }}"></span>
                             <span id="pos-shift-status-text" class="font-bold">{{ $activeShift ? 'Shift Active: ' . $activeShift->opened_by : 'No Shift Active (Required)' }}</span>
                         </div>
-                        <span id="pos-shift-action-label" class="text-[10px] font-extrabold uppercase tracking-wider text-[#155d49] hover:underline flex items-center gap-1">
+                        <span id="pos-shift-action-label" class="text-[10px] font-extrabold uppercase tracking-wider text-[#0e703c] hover:underline flex items-center gap-1">
                             <span>{{ $activeShift ? 'Reconcile / End' : 'Start Shift' }}</span>
                             <span>➔</span>
                         </span>
                     </div>
 
-                    <!-- Cashier Name Field (Shared login support) -->
-                    <div>
-                        <label class="block text-[11px] font-bold uppercase tracking-wider text-gray-600 mb-1">Cashier on Shift</label>
-                        <input type="text" id="cashier-name" value="{{ $activeShift ? $activeShift->opened_by : Auth::user()->name }}" class="w-full px-3 py-1.5 text-sm bg-white border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#155d49] outline-none font-semibold text-gray-800" placeholder="Cashier Name..." required />
-                    </div>
+                    <!-- Hidden Inputs for Form/AJAX Submissions -->
+                    <input type="hidden" id="cashier-name" value="{{ $activeShift ? $activeShift->opened_by : Auth::user()->name }}" />
+                    <input type="hidden" id="pos-branch-select" value="{{ $activeShift?->branch_id ?? ($branches->first()?->id ?? '') }}" />
 
-                    <!-- Real-time Live Clock -->
-                    <div class="flex items-center justify-between px-3 py-1.5 bg-white rounded-xl border border-gray-200 text-[11px] font-semibold text-gray-600 shadow-xs">
-                        <span class="flex items-center gap-1.5 text-emerald-700">
-                            <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
-                            <span class="uppercase tracking-wider text-[10px] font-bold">Live Time</span>
-                        </span>
-                        <span id="pos-live-clock" class="font-mono text-gray-900 font-bold">--:--:-- --</span>
+                    <!-- Order Type Tabs & Grab Details -->
+                    <div class="space-y-2 pt-0.5">
+                        <div class="flex items-center justify-between">
+                            <label class="block text-[11px] font-extrabold uppercase tracking-wider text-gray-700">Order Mode</label>
+                            <span class="text-[11px] font-medium text-gray-500">📍 {{ $activeShift?->branch?->name ?? ($branches->first()?->name ?? 'Main Branch') }}</span>
+                        </div>
+                        
+                        <!-- Segmented Tab Bar -->
+                        <div class="flex items-center bg-white p-1 rounded-2xl border border-gray-200 shadow-2xs select-none">
+                            <button type="button" id="btn-ot-dine_in" onclick="setOrderType('dine_in')" class="flex-1 py-2 text-center text-xs font-black rounded-xl transition bg-[#0e703c] text-white shadow-xs">
+                                Dine-in
+                            </button>
+                            <button type="button" id="btn-ot-takeout" onclick="setOrderType('takeout')" class="flex-1 py-2 text-center text-xs font-bold rounded-xl text-gray-700 hover:text-[#0e703c] hover:bg-emerald-50/50 transition">
+                                Take-out
+                            </button>
+                            <button type="button" id="btn-ot-grab_delivery" onclick="setOrderType('grab_delivery')" class="flex-1 py-2 text-center text-xs font-bold rounded-xl text-gray-700 hover:text-[#0e703c] hover:bg-emerald-50/50 transition">
+                                Grab
+                            </button>
+                        </div>
+
+                        <!-- GrabFood Order Details Box -->
+                        <div id="grab-details-box" class="hidden p-3 bg-[#f0f9f4] rounded-2xl border border-[#9ae1c3] space-y-2 transition">
+                            <div class="text-[11px] font-black tracking-wide text-[#0e703c] uppercase">
+                                GRABFOOD ORDER DETAILS
+                            </div>
+                            <div class="grid grid-cols-2 gap-2">
+                                <div>
+                                    <label class="block text-[10px] font-bold text-[#0e703c] mb-1">
+                                        Grab Order Code <span class="text-rose-500 font-black">*</span>
+                                    </label>
+                                    <input type="text" id="grab-order-code" placeholder="GF-20260927-0012" class="w-full px-2.5 py-1.5 text-xs bg-white border border-[#34d399] rounded-xl focus:ring-2 focus:ring-[#0e703c] outline-none font-semibold text-gray-800 placeholder-gray-400 shadow-2xs" />
+                                </div>
+                                <div>
+                                    <label class="block text-[10px] font-bold text-[#0e703c] mb-1">
+                                        Rider Code <span class="text-rose-500 font-black">*</span>
+                                    </label>
+                                    <input type="text" id="rider-code" placeholder="RDR-025" class="w-full px-2.5 py-1.5 text-xs bg-white border border-[#34d399] rounded-xl focus:ring-2 focus:ring-[#0e703c] outline-none font-semibold text-gray-800 placeholder-gray-400 shadow-2xs" />
+                                </div>
+                            </div>
+                            <div class="flex items-center gap-1.5 text-[10px] font-semibold text-[#0e703c]">
+                                <svg class="w-3.5 h-3.5 shrink-0 text-[#0e703c]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <circle cx="12" cy="12" r="10" stroke-width="2" />
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 16v-4m0-4h.01" />
+                                </svg>
+                                <span>Grab pricing applies automatically for this order</span>
+                            </div>
+                        </div>
                     </div>
                 </div>
 
-                <!-- Cart Items List (Scrollable) -->
-                <div id="cart-items" class="flex-1 p-4 overflow-y-auto divide-y divide-gray-100 space-y-3 max-h-[350px] md:max-h-none">
-                    <div id="empty-cart-msg" class="h-full flex flex-col items-center justify-center text-gray-400 py-16">
-                        <div class="w-16 h-16 rounded-full bg-[#f0f8f5] flex items-center justify-center text-2xl mb-3 text-[#155d49]">
+                <!-- Cart Items List (Scrollable, Phase 1 #3: flex: 1; overflow-y: auto; min-height: 240px) -->
+                <div id="cart-items" class="flex-1 min-h-[240px] p-3.5 overflow-y-auto divide-y divide-gray-100 space-y-2.5">
+                    <div id="empty-cart-msg" class="h-full flex flex-col items-center justify-center text-gray-500 py-12 select-none">
+                        <div class="w-16 h-16 rounded-full bg-[#f0f8f5] border border-emerald-100 flex items-center justify-center text-3xl mb-3 text-[#0e703c] shadow-inner">
                             🛒
                         </div>
-                        <p class="text-sm font-bold text-gray-700">Order Cart is Empty</p>
-                        <p class="text-xs text-gray-400 mt-1">Select items from the Heim menu</p>
+                        <p class="text-sm font-extrabold text-gray-800">No items yet</p>
+                        <p class="text-xs text-gray-500 mt-1 font-medium">Tap an item to add it</p>
                     </div>
                 </div>
 
                 <!-- Cart Footer & Checkout -->
-                <div class="p-4 border-t border-gray-100 bg-[#f0f8f5]/40 space-y-3">
-                    <!-- Quick Bulk Actions -->
-                    <div class="flex items-center justify-between text-xs">
-                        <span class="font-bold text-gray-700 uppercase tracking-wider text-[10px]">Line Item Discounts</span>
+                <div class="p-3.5 border-t border-gray-100 bg-[#f0f8f5]/40 space-y-3">
+                    <!-- Expandable Line Item Discounts Row (Phase 1 #4: Hidden when cart empty) -->
+                    <div id="cart-discounts-wrapper" class="hidden flex items-center justify-between text-xs pb-2 border-b border-gray-100">
+                        <span class="font-extrabold text-gray-700 uppercase tracking-wider text-[10px]">Line Discounts</span>
                         <div class="flex items-center gap-1.5">
-                            <button type="button" onclick="openBulkSeniorModal()" class="px-2 py-0.5 rounded-lg font-bold text-[10px] bg-amber-100 hover:bg-amber-200 text-amber-900 transition" title="Apply Senior/PWD 20% to all items in cart">
+                            <button type="button" onclick="openBulkSeniorModal()" class="px-2.5 py-1 rounded-lg font-bold text-[11px] bg-amber-100 hover:bg-amber-200 text-amber-900 transition" title="Apply Senior/PWD 20% to all items in cart">
                                 + Senior to All
                             </button>
-                            <button type="button" onclick="clearAllCartDiscounts()" class="px-2 py-0.5 rounded-lg font-bold text-[10px] bg-gray-100 hover:bg-gray-200 text-gray-600 transition" title="Reset all line discounts">
+                            <button type="button" onclick="clearAllCartDiscounts()" class="px-2.5 py-1 rounded-lg font-bold text-[11px] bg-gray-100 hover:bg-gray-200 text-gray-600 transition" title="Reset all line discounts">
                                 Reset
                             </button>
                         </div>
                     </div>
 
-                    <div class="space-y-1 text-xs">
-                        <div class="flex justify-between text-gray-500 font-medium">
+                    <!-- Totals Breakdown (Phase 4 #13: WCAG AA contrast > 4.5:1) -->
+                    <div class="space-y-1.5 text-xs">
+                        <div class="flex justify-between text-gray-600 font-semibold">
                             <span>Total Items</span>
-                            <span id="cart-item-count" class="font-bold text-gray-800">0</span>
+                            <span id="cart-item-count" class="font-black text-gray-900">0</span>
                         </div>
-                        <div class="flex justify-between text-gray-500 font-medium">
+                        <div class="flex justify-between text-gray-600 font-semibold">
                             <span>Subtotal (Gross)</span>
-                            <span id="cart-subtotal" class="font-bold text-gray-800">₱0.00</span>
+                            <span id="cart-subtotal" class="font-black text-gray-900">₱0.00</span>
                         </div>
-                        <div class="flex justify-between text-rose-600 font-medium">
+                        <div class="flex justify-between text-rose-600 font-semibold">
                             <span>Line Discounts</span>
-                            <span id="cart-discount" class="font-bold">-₱0.00</span>
+                            <span id="cart-discount" class="font-black">-₱0.00</span>
                         </div>
-                        <div class="flex justify-between text-gray-500 font-medium">
+                        <div class="flex justify-between text-gray-600 font-semibold">
                             <span>Vatable Sales</span>
-                            <span id="cart-taxable" class="font-bold text-gray-800">₱0.00</span>
+                            <span id="cart-taxable" class="font-black text-gray-900">₱0.00</span>
                         </div>
-                        <div class="flex justify-between text-gray-500 font-medium">
+                        <div class="flex justify-between text-gray-600 font-semibold">
                             <span>VAT (12%)</span>
-                            <span id="cart-tax" class="font-bold text-gray-800">₱0.00</span>
+                            <span id="cart-tax" class="font-black text-gray-900">₱0.00</span>
                         </div>
-                        <div id="cart-vat-exempt-row" class="hidden flex justify-between text-amber-800 font-medium bg-amber-50/80 px-1.5 py-0.5 rounded-md">
+                        <div id="cart-vat-exempt-row" class="hidden flex justify-between text-amber-900 font-semibold bg-amber-50/90 px-2 py-0.5 rounded-md border border-amber-200/60">
                             <span>VAT-Exempt Sales (RA 9994/10754)</span>
-                            <span id="cart-vat-exempt" class="font-bold">₱0.00</span>
+                            <span id="cart-vat-exempt" class="font-black">₱0.00</span>
                         </div>
-                        <div class="flex justify-between text-base font-bold text-gray-900 pt-2 border-t border-gray-200">
+                        <div class="flex justify-between text-base font-extrabold text-gray-900 pt-2 border-t border-gray-200">
                             <span>Total Due</span>
-                            <span id="cart-total" class="text-2xl font-black text-[#155d49]">₱0.00</span>
+                            <span id="cart-total" class="text-2xl font-black text-[#0e703c]">₱0.00</span>
                         </div>
                     </div>
 
-                    <button id="checkout-btn" onclick="openPaymentModal()" disabled class="w-full py-3.5 bg-[#155d49] hover:bg-[#114a3b] disabled:bg-gray-300 text-white font-bold rounded-xl shadow transition duration-150 flex items-center justify-center gap-2 cursor-pointer disabled:cursor-not-allowed">
-                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z"/>
+                    <!-- 56px Tall Payment Button (Phase 5 #16) -->
+                    <button id="checkout-btn" onclick="openPaymentModal()" disabled class="w-full h-14 min-h-[56px] rounded-2xl bg-gray-200 text-gray-500 font-bold flex items-center justify-center gap-2 cursor-not-allowed select-none transition-all">
+                        <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"/>
                         </svg>
-                        Proceed to Payment (₱<span id="btn-total">0.00</span>)
+                        <span>Add items to start</span>
                     </button>
+                    <span id="btn-total" class="hidden">0.00</span>
                 </div>
             </div>
 
+        </div>
+    </div>
+
+    <!-- Clear Cart Confirmation Modal (Phase 5 #15) -->
+    <div id="clear-cart-confirm-modal" class="fixed inset-0 bg-black/60 backdrop-blur-xs z-50 flex items-center justify-center p-3 sm:p-4" style="display: none;" onclick="if(event.target === this) closeClearConfirmModal()">
+        <div class="shift-modal-box bg-white rounded-3xl max-w-sm w-full p-6 text-center shadow-2xl border border-gray-100">
+            <div class="w-14 h-14 rounded-full bg-rose-50 border border-rose-200 flex items-center justify-center text-rose-600 mx-auto mb-4 text-2xl shadow-inner">
+                <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
+                </svg>
+            </div>
+            <h3 class="font-extrabold text-gray-900 text-lg">Clear Order Cart?</h3>
+            <p id="clear-cart-modal-msg" class="text-xs text-gray-600 mt-2 leading-relaxed">
+                Are you sure you want to clear this order? All items and discounts will be removed.
+            </p>
+            <div class="grid grid-cols-2 gap-3 mt-6">
+                <button type="button" onclick="closeClearConfirmModal()" class="py-2.5 px-4 rounded-xl border border-gray-300 font-bold text-xs text-gray-700 hover:bg-gray-100 transition">
+                    Keep Items
+                </button>
+                <button type="button" onclick="confirmClearCart()" class="py-2.5 px-4 rounded-xl bg-rose-600 hover:bg-rose-700 text-white font-bold text-xs shadow-sm transition">
+                    Clear Order
+                </button>
+            </div>
         </div>
     </div>
 
@@ -913,14 +1034,18 @@ html, body {
                 <!-- Payment Method Tabs -->
                 <div>
                     <label class="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-1.5">Payment Method</label>
-                    <div class="grid grid-cols-2 gap-2.5">
-                        <button type="button" onclick="setPaymentMethod('cash')" id="pm-cash" class="pm-btn active py-3 px-4 border-2 border-[#155d49] bg-[#f0f8f5] text-[#155d49] rounded-xl font-bold text-sm flex items-center justify-center gap-2 transition shadow-xs touch-manipulation select-none active:scale-98">
-                            <span class="text-xl">💵</span>
+                    <div class="grid grid-cols-3 gap-2">
+                        <button type="button" onclick="setPaymentMethod('cash')" id="pm-cash" class="pm-btn active py-2.5 px-2 border-2 border-[#155d49] bg-[#f0f8f5] text-[#155d49] rounded-xl font-bold text-xs sm:text-sm flex items-center justify-center gap-1.5 transition shadow-xs touch-manipulation select-none active:scale-98">
+                            <span class="text-base sm:text-lg">💵</span>
                             <span>Cash</span>
                         </button>
-                        <button type="button" onclick="setPaymentMethod('online')" id="pm-online" class="pm-btn py-3 px-4 border-2 border-gray-200 bg-white text-gray-700 hover:border-gray-300 rounded-xl font-bold text-sm flex items-center justify-center gap-2 transition touch-manipulation select-none active:scale-98">
-                            <span class="text-xl">📲</span>
-                            <span>Online Payment</span>
+                        <button type="button" onclick="setPaymentMethod('online')" id="pm-online" class="pm-btn py-2.5 px-2 border-2 border-gray-200 bg-white text-gray-700 hover:border-gray-300 rounded-xl font-bold text-xs sm:text-sm flex items-center justify-center gap-1.5 transition touch-manipulation select-none active:scale-98">
+                            <span class="text-base sm:text-lg">📲</span>
+                            <span>Online</span>
+                        </button>
+                        <button type="button" onclick="setPaymentMethod('split')" id="pm-split" class="pm-btn py-2.5 px-2 border-2 border-gray-200 bg-white text-gray-700 hover:border-gray-300 rounded-xl font-bold text-xs sm:text-sm flex items-center justify-center gap-1.5 transition touch-manipulation select-none active:scale-98">
+                            <span class="text-base sm:text-lg">⚖️</span>
+                            <span>Split</span>
                         </button>
                     </div>
                 </div>
@@ -979,10 +1104,43 @@ html, body {
                     </div>
                 </div>
 
-                <!-- Reference Number Section (For Online Payment) -->
+                <!-- Reference Number Section (For Online Payment - Enforced per System Analysis Paper) -->
                 <div id="reference-section" class="hidden space-y-2">
-                    <label class="block text-xs font-bold text-gray-700">Reference / Transaction Number (Optional)</label>
-                    <input type="text" id="reference-number" class="w-full px-4 py-2.5 text-sm border border-gray-300 rounded-xl focus:ring-2 focus:ring-[#155d49] outline-none font-mono" placeholder="e.g. GCash / Maya / QRPh Ref #" />
+                    <div class="flex items-center justify-between">
+                        <label class="block text-xs font-bold text-gray-700">Digital Reference / Approval Number</label>
+                        <span class="text-[10px] font-black uppercase px-2 py-0.5 rounded bg-amber-100 text-amber-900 border border-amber-300">Required</span>
+                    </div>
+                    <input type="text" id="reference-number" class="w-full px-4 py-2.5 text-sm border-2 border-emerald-300 rounded-xl focus:ring-2 focus:ring-[#155d49] outline-none font-mono font-bold" placeholder="e.g. GCash / Maya / QRPh Ref # (e.g. 1029384756)" />
+                    <p class="text-[11px] text-gray-500">Checkout is strictly verified against an external transaction reference ID.</p>
+                </div>
+
+                <!-- Split Payment Section -->
+                <div id="split-section" class="hidden space-y-3 p-3.5 bg-amber-50/70 rounded-2xl border border-amber-200">
+                    <div class="flex justify-between items-center text-xs font-bold text-amber-900 border-b border-amber-200/60 pb-1.5">
+                        <span class="flex items-center gap-1.5"><span>⚖️</span> Split Payment Tender</span>
+                        <span id="split-remaining-label" class="font-mono font-black text-amber-800">Due: ₱0.00</span>
+                    </div>
+                    <div class="grid grid-cols-2 gap-2.5">
+                        <div>
+                            <label class="block text-[11px] font-bold text-gray-700 mb-1">💵 Cash Amount</label>
+                            <input type="number" step="0.01" min="0" id="split-cash-amount" oninput="calculateSplitChange()" placeholder="0.00" class="w-full px-3 py-2 text-sm border border-gray-300 rounded-xl font-bold font-mono focus:ring-2 focus:ring-[#155d49] outline-none" />
+                        </div>
+                        <div>
+                            <label class="block text-[11px] font-bold text-gray-700 mb-1">📲 Online Amount</label>
+                            <input type="number" step="0.01" min="0" id="split-online-amount" oninput="calculateSplitChange()" placeholder="0.00" class="w-full px-3 py-2 text-sm border border-gray-300 rounded-xl font-bold font-mono focus:ring-2 focus:ring-[#155d49] outline-none" />
+                        </div>
+                    </div>
+                    <div>
+                        <div class="flex items-center justify-between mb-1">
+                            <label class="block text-[11px] font-bold text-gray-700">Online Reference #</label>
+                            <span class="text-[10px] font-bold text-gray-500">For digital portion</span>
+                        </div>
+                        <input type="text" id="split-reference-number" class="w-full px-3 py-2 text-xs border border-gray-300 rounded-xl font-mono focus:ring-2 focus:ring-[#155d49] outline-none" placeholder="GCash / Maya transaction ref #" />
+                    </div>
+                    <div class="flex justify-between items-center text-xs font-black text-gray-800 pt-1 border-t border-amber-200/60">
+                        <span>Total Tendered / Change:</span>
+                        <span id="split-change-display" class="font-mono text-[#155d49] font-black text-sm">₱0.00</span>
+                    </div>
                 </div>
             </div>
 
@@ -1022,8 +1180,8 @@ html, body {
                         </div>
                         <h2 class="text-base font-black tracking-wider text-black">HEIM COFFEE</h2>
                         <p class="text-[10px] text-gray-700 font-semibold uppercase tracking-wider">Fresh Brews & Pastries</p>
-                        <p class="text-[10px] text-gray-600">Main Branch • Bangkal, Davao City, PH</p>
-                        <p class="text-[10px] text-gray-600">Tel: </p>
+                        <p id="rec-branch-name" class="text-[10px] text-gray-800 font-bold">Bangkal Branch</p>
+                        <p id="rec-branch-address" class="text-[9px] text-gray-600">MacArthur Hwy, Bangkal, Davao City, PH</p>
                     </div>
 
                     <div class="border-t border-dashed border-gray-400 my-2.5"></div>
@@ -1033,6 +1191,18 @@ html, body {
                         <div class="flex justify-between font-bold text-xs text-black">
                             <span>ORDER NO:</span>
                             <span id="rec-order-no" class="font-black text-black">-</span>
+                        </div>
+                        <div class="flex justify-between font-bold text-[11px] text-[#155d49] bg-emerald-50 px-1 py-0.5 rounded">
+                            <span>ORDER TYPE:</span>
+                            <span id="rec-order-type" class="font-black uppercase tracking-wider">DINE-IN</span>
+                        </div>
+                        <div id="rec-grab-code-row" class="hidden flex justify-between font-bold text-[11px] text-[#0e703c] bg-emerald-50 px-1 py-0.5 rounded">
+                            <span>GRAB ORDER:</span>
+                            <span id="rec-grab-order-code" class="font-mono font-black">-</span>
+                        </div>
+                        <div id="rec-rider-code-row" class="hidden flex justify-between font-bold text-[11px] text-[#0e703c] bg-emerald-50 px-1 py-0.5 rounded">
+                            <span>RIDER CODE:</span>
+                            <span id="rec-rider-code" class="font-mono font-black">-</span>
                         </div>
                         <div class="flex justify-between text-gray-700">
                             <span>DATE:</span>
@@ -1143,24 +1313,75 @@ html, body {
         let selectedModalSize = null;
         let modalQuantity = 1;
         let paymentMethod = 'cash';
+        let currentOrderType = 'dine_in';
+        let currentBranchId = {{ $activeShift?->branch_id ?? ($branches->first()?->id ?? 'null') }};
 
-        // Filter products by category
+        function setOrderType(type) {
+            currentOrderType = type;
+            const types = ['dine_in', 'takeout', 'grab_delivery'];
+            types.forEach(t => {
+                const btn = document.getElementById(`btn-ot-${t}`);
+                if (btn) {
+                    if (t === type) {
+                        btn.className = 'flex-1 py-2 text-center text-xs font-extrabold rounded-xl transition bg-[#0e703c] text-white shadow-xs';
+                    } else {
+                        btn.className = 'flex-1 py-2 text-center text-xs font-bold rounded-xl text-gray-700 hover:text-[#0e703c] hover:bg-emerald-50/50 transition';
+                    }
+                }
+            });
+
+            const grabBox = document.getElementById('grab-details-box');
+            if (grabBox) {
+                if (type === 'grab_delivery') {
+                    grabBox.classList.remove('hidden');
+                    const grabInput = document.getElementById('grab-order-code');
+                    if (grabInput && !grabInput.value) {
+                        setTimeout(() => grabInput.focus(), 50);
+                    }
+                } else {
+                    grabBox.classList.add('hidden');
+                }
+            }
+        }
+
+        // Filter products by category (Phase 3 #10 & #11: Best Sellers tab & wrap pills)
         function selectCategory(categoryId, btn) {
             document.querySelectorAll('.category-btn').forEach(b => {
-                b.classList.remove('active', 'bg-[#155d49]', 'text-white');
+                b.classList.remove('active', 'bg-[#0e703c]', 'text-white', 'shadow-2xs');
                 b.classList.add('bg-white', 'text-gray-700', 'border', 'border-gray-200');
             });
-            btn.classList.add('active', 'bg-[#155d49]', 'text-white');
-            btn.classList.remove('bg-white', 'text-gray-700', 'border', 'border-gray-200');
+            if (btn) {
+                btn.classList.add('active', 'bg-[#0e703c]', 'text-white', 'shadow-2xs');
+                btn.classList.remove('bg-white', 'text-gray-700', 'border', 'border-gray-200');
+            }
 
             const cards = document.querySelectorAll('.product-card');
             cards.forEach(card => {
-                if (categoryId === 'all' || card.dataset.category === categoryId) {
+                if (categoryId === 'all') {
+                    card.classList.remove('hidden');
+                } else if (categoryId === 'popular') {
+                    if (card.dataset.popular === '1') {
+                        card.classList.remove('hidden');
+                    } else {
+                        card.classList.add('hidden');
+                    }
+                } else if (card.dataset.category === String(categoryId)) {
                     card.classList.remove('hidden');
                 } else {
                     card.classList.add('hidden');
                 }
             });
+        }
+
+        // Tactile micro-interaction feedback on product card tap (Phase 2 #6, #8)
+        function handleProductCardClick(product, cardEl) {
+            if (cardEl) {
+                cardEl.classList.add('ring-2', 'ring-[#0e703c]', 'ring-offset-1');
+                setTimeout(() => {
+                    cardEl.classList.remove('ring-2', 'ring-[#0e703c]', 'ring-offset-1');
+                }, 150);
+            }
+            openProductModal(product);
         }
 
         // Search products
@@ -1303,8 +1524,9 @@ html, body {
             }
         }
 
-        // Cart State & Per-Line Calculations (RA 9994 / RA 10754 Compliant)
+        // Cart State & Per-Line Calculations (VAT-Inclusive Philippine Coffee Shop Standard)
         const TAX_RATE = {{ (float) \App\Models\PosSetting::get('tax_rate', 12.00) }};
+        const TAX_DIVISOR = 1 + (TAX_RATE / 100);
         let activeDiscountItemIndex = null;
 
         function calculateCartTotals() {
@@ -1313,6 +1535,7 @@ html, body {
             let vatableSales = 0;
             let vatExemptSales = 0;
             let totalTax = 0;
+            let totalDue = 0;
 
             cart.forEach(item => {
                 const itemGross = item.subtotal;
@@ -1320,42 +1543,49 @@ html, body {
 
                 let itemDisc = 0;
                 let isExempt = false;
+                let itemTotal = 0;
 
                 if (item.discount_type === 'pwd_senior') {
-                    // RA 9994 / RA 10754: 20% discount + VAT Exemption on senior/PWD item
-                    itemDisc = Math.round(itemGross * 0.20 * 100) / 100;
+                    // RA 9994 / RA 10754: 20% discount on Net of VAT price + VAT Exemption
+                    const netOfVat = itemGross / TAX_DIVISOR;
+                    itemDisc = Math.round(netOfVat * 0.20 * 100) / 100;
                     isExempt = true;
+                    itemTotal = Math.round((netOfVat - itemDisc) * 100) / 100;
                 } else if (item.discount_type === 'employee') {
                     itemDisc = Math.round(itemGross * 0.10 * 100) / 100;
+                    itemTotal = Math.round(Math.max(0, itemGross - itemDisc) * 100) / 100;
                 } else if (item.discount_type === 'custom_pct') {
                     const pct = Math.min(100, Math.max(0, parseFloat(item.discount_value) || 0));
                     itemDisc = Math.round(itemGross * (pct / 100) * 100) / 100;
+                    itemTotal = Math.round(Math.max(0, itemGross - itemDisc) * 100) / 100;
                 } else if (item.discount_type === 'custom_fixed') {
                     itemDisc = Math.min(itemGross, Math.max(0, parseFloat(item.discount_value) || 0));
+                    itemTotal = Math.round(Math.max(0, itemGross - itemDisc) * 100) / 100;
+                } else {
+                    itemDisc = 0;
+                    itemTotal = Math.round(itemGross * 100) / 100;
                 }
 
                 itemDisc = Math.round(itemDisc * 100) / 100;
                 item.discount = itemDisc;
                 totalDiscount += itemDisc;
 
-                const net = Math.max(0, itemGross - itemDisc);
-
                 if (isExempt) {
                     item.is_vat_exempt = true;
                     item.tax = 0.00;
-                    item.total = net;
-                    vatExemptSales += net;
+                    item.total = itemTotal;
+                    vatExemptSales += itemTotal;
                 } else {
                     item.is_vat_exempt = false;
-                    const tax = Math.round((net * (TAX_RATE / 100)) * 100) / 100;
-                    item.tax = tax;
-                    item.total = Math.round((net + tax) * 100) / 100;
-                    vatableSales += net;
-                    totalTax += tax;
+                    const itemVatable = Math.round((itemTotal / TAX_DIVISOR) * 100) / 100;
+                    const itemTax = Math.round((itemTotal - itemVatable) * 100) / 100;
+                    item.tax = itemTax;
+                    item.total = itemTotal;
+                    vatableSales += itemVatable;
+                    totalTax += itemTax;
                 }
+                totalDue += item.total;
             });
-
-            const totalDue = Math.round((vatableSales + totalTax + vatExemptSales) * 100) / 100;
 
             return {
                 subtotal: Math.round(subtotal * 100) / 100,
@@ -1364,7 +1594,7 @@ html, body {
                 vatExemptSales: Math.round(vatExemptSales * 100) / 100,
                 tax: Math.round(totalTax * 100) / 100,
                 taxRate: TAX_RATE,
-                totalDue
+                totalDue: Math.round(totalDue * 100) / 100
             };
         }
 
@@ -1436,32 +1666,39 @@ html, body {
 
             let disc = 0;
             let isExempt = false;
+            let itemTotal = 0;
 
             if (type === 'pwd_senior') {
-                disc = Math.round(itemGross * 0.20 * 100) / 100;
+                const netOfVat = itemGross / TAX_DIVISOR;
+                disc = Math.round(netOfVat * 0.20 * 100) / 100;
                 isExempt = true;
+                itemTotal = Math.round((netOfVat - disc) * 100) / 100;
             } else if (type === 'employee') {
                 disc = Math.round(itemGross * 0.10 * 100) / 100;
+                itemTotal = Math.round(Math.max(0, itemGross - disc) * 100) / 100;
             } else if (type === 'custom_pct') {
                 const pct = Math.min(100, Math.max(0, parseFloat(document.getElementById('line-disc-pct-input')?.value) || 0));
                 disc = Math.round(itemGross * (pct / 100) * 100) / 100;
+                itemTotal = Math.round(Math.max(0, itemGross - disc) * 100) / 100;
             } else if (type === 'custom_fixed') {
                 const val = parseFloat(document.getElementById('line-disc-fixed-input')?.value) || 0;
                 disc = Math.min(itemGross, Math.max(0, val));
+                itemTotal = Math.round(Math.max(0, itemGross - disc) * 100) / 100;
+            } else {
+                itemTotal = Math.round(itemGross * 100) / 100;
             }
 
-            const net = Math.max(0, itemGross - disc);
-            const tax = isExempt ? 0 : Math.round((net * (TAX_RATE / 100)) * 100) / 100;
-            const total = Math.round((net + tax) * 100) / 100;
+            const vatable = isExempt ? 0 : Math.round((itemTotal / TAX_DIVISOR) * 100) / 100;
+            const tax = isExempt ? 0 : Math.round((itemTotal - vatable) * 100) / 100;
 
             document.getElementById('line-prev-subtotal').innerText = `₱${itemGross.toFixed(2)}`;
             document.getElementById('line-prev-discount').innerText = `-₱${disc.toFixed(2)}`;
             const taxEl = document.getElementById('line-prev-tax-status');
             if (taxEl) {
-                taxEl.innerText = isExempt ? 'VAT-Exempt (0%) • RA 9994/10754' : `Vatable (${TAX_RATE}%) = +₱${tax.toFixed(2)}`;
+                taxEl.innerText = isExempt ? 'VAT-Exempt (0%) • RA 9994/10754' : `Vatable (12% Included: ₱${tax.toFixed(2)})`;
                 taxEl.className = isExempt ? 'font-bold text-amber-800' : 'font-bold text-emerald-800';
             }
-            document.getElementById('line-prev-total').innerText = `₱${total.toFixed(2)}`;
+            document.getElementById('line-prev-total').innerText = `₱${itemTotal.toFixed(2)}`;
         }
 
         function saveLineDiscount() {
@@ -1569,19 +1806,21 @@ html, body {
             renderCart();
         }
 
-        // Cart Rendering
+        // Cart Rendering (Phases 1, 2, 4, 5)
         function renderCart() {
             const container = document.getElementById('cart-items');
             const mobileBadge = document.getElementById('mobile-cart-header-badge');
+            const discWrapper = document.getElementById('cart-discounts-wrapper');
+            const checkoutBtn = document.getElementById('checkout-btn');
 
             if (cart.length === 0) {
                 container.innerHTML = `
-                    <div id="empty-cart-msg" class="h-full flex flex-col items-center justify-center text-gray-400 py-16">
-                        <div class="w-16 h-16 rounded-full bg-[#f0f8f5] flex items-center justify-center text-2xl mb-3 text-[#155d49]">
+                    <div id="empty-cart-msg" class="h-full flex flex-col items-center justify-center text-gray-500 py-12 select-none">
+                        <div class="w-16 h-16 rounded-full bg-[#f0f8f5] border border-emerald-100 flex items-center justify-center text-3xl mb-3 text-[#0e703c] shadow-inner">
                             🛒
                         </div>
-                        <p class="text-sm font-bold text-gray-700">Order Cart is Empty</p>
-                        <p class="text-xs text-gray-400 mt-1">Select items from the Heim menu</p>
+                        <p class="text-sm font-extrabold text-gray-800">No items yet</p>
+                        <p class="text-xs text-gray-500 mt-1 font-medium">Tap an item to add it</p>
                     </div>
                 `;
                 document.getElementById('cart-item-count').innerText = '0';
@@ -1592,8 +1831,29 @@ html, body {
                 const vatExemptRow = document.getElementById('cart-vat-exempt-row');
                 if (vatExemptRow) vatExemptRow.classList.add('hidden');
                 document.getElementById('cart-total').innerText = '₱0.00';
-                document.getElementById('btn-total').innerText = '0.00';
-                document.getElementById('checkout-btn').disabled = true;
+                const btnTotalEl = document.getElementById('btn-total');
+                if (btnTotalEl) btnTotalEl.innerText = '0.00';
+
+                // Hide discounts row when cart is empty (Phase 1 #4)
+                if (discWrapper) discWrapper.classList.add('hidden');
+
+                // Disabled 56px payment button (Phase 4 #14 & Phase 5 #16)
+                if (checkoutBtn) {
+                    checkoutBtn.disabled = true;
+                    checkoutBtn.className = "w-full h-14 min-h-[56px] rounded-2xl bg-gray-200 text-gray-500 font-bold flex items-center justify-center gap-2 cursor-not-allowed select-none transition-all";
+                    checkoutBtn.innerHTML = `
+                        <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"/>
+                        </svg>
+                        <span>Add items to start</span>
+                    `;
+                }
+
+                // Reset all card badges (Phase 2 #8)
+                document.querySelectorAll('[id^="card-badge-"]').forEach(badge => {
+                    badge.classList.add('hidden');
+                    badge.innerText = '×0';
+                });
 
                 if (mobileBadge) {
                     mobileBadge.innerText = '0';
@@ -1605,16 +1865,18 @@ html, body {
 
             container.innerHTML = '';
             let count = 0;
+            const productQuantities = {};
 
             cart.forEach((item, index) => {
                 count += item.quantity;
+                productQuantities[item.product_id] = (productQuantities[item.product_id] || 0) + item.quantity;
 
                 const itemRow = document.createElement('div');
                 itemRow.className = 'py-2.5 flex flex-col gap-1.5 text-sm border-b border-gray-100 last:border-b-0';
                 
                 let addOnsHtml = '';
                 if (item.add_ons && item.add_ons.length > 0) {
-                    addOnsHtml = `<div class="text-[11px] text-[#155d49] pl-2 border-l-2 border-[#155d49]/30">
+                    addOnsHtml = `<div class="text-[11px] text-[#0e703c] pl-2 border-l-2 border-[#0e703c]/30 font-medium">
                         ${item.add_ons.map(a => `+ ${a.name} (₱${a.price.toFixed(2)})`).join('<br>')}
                     </div>`;
                 }
@@ -1655,29 +1917,30 @@ html, body {
                     `;
                 } else {
                     discBadge = `
-                        <button type="button" onclick="openLineDiscountModal(${index})" class="self-start inline-flex items-center gap-1 px-2 py-0.5 rounded-lg border border-dashed border-gray-300 hover:border-[#155d49] text-[10px] text-gray-500 hover:text-[#155d49] bg-white hover:bg-emerald-50 font-semibold transition cursor-pointer">
+                        <button type="button" onclick="openLineDiscountModal(${index})" class="self-start inline-flex items-center gap-1 px-2 py-0.5 rounded-lg border border-dashed border-gray-300 hover:border-[#0e703c] text-[10px] text-gray-500 hover:text-[#0e703c] bg-white hover:bg-emerald-50 font-semibold transition cursor-pointer">
                             <span>+ Line Discount</span>
                         </button>
                     `;
                 }
 
+                // Phase 2 #7: Enlarge touch targets (buttons >= 40px with >= 8px gap)
                 itemRow.innerHTML = `
                     <div class="flex justify-between items-start">
                         <div>
                             <p class="font-bold text-gray-900 text-sm">${item.product_name}</p>
-                            <span class="inline-block px-2 py-0.5 bg-[#f0f8f5] text-[#155d49] rounded-md text-[10px] font-bold uppercase border border-emerald-100">${item.size_name}</span>
+                            <span class="inline-block px-2 py-0.5 bg-[#f0f8f5] text-[#0e703c] rounded-md text-[10px] font-bold uppercase border border-emerald-100">${item.size_name}</span>
                         </div>
                         <span class="font-bold text-gray-900 text-sm">₱${item.subtotal.toFixed(2)}</span>
                     </div>
                     ${addOnsHtml}
                     ${discBadge}
                     <div class="flex justify-between items-center mt-2 pt-1 border-t border-gray-100/80">
-                        <div class="flex items-center gap-1.5">
-                            <button type="button" onclick="updateCartQty(${index}, -1)" class="w-9 h-9 rounded-xl bg-gray-100 hover:bg-emerald-100 text-gray-800 hover:text-[#155d49] border border-gray-200 font-black text-base flex items-center justify-center transition active:scale-90 shadow-2xs touch-manipulation select-none" title="Decrease Quantity">-</button>
+                        <div class="flex items-center gap-2.5">
+                            <button type="button" onclick="updateCartQty(${index}, -1)" class="w-10 h-10 min-w-[40px] min-h-[40px] rounded-xl bg-gray-100 hover:bg-emerald-100 text-gray-800 hover:text-[#0e703c] border border-gray-200 font-black text-lg flex items-center justify-center transition active:scale-90 shadow-2xs touch-manipulation select-none" title="Decrease Quantity">-</button>
                             <span class="w-8 text-center text-sm font-black text-gray-900 select-none">${item.quantity}</span>
-                            <button type="button" onclick="updateCartQty(${index}, 1)" class="w-9 h-9 rounded-xl bg-gray-100 hover:bg-emerald-100 text-gray-800 hover:text-[#155d49] border border-gray-200 font-black text-base flex items-center justify-center transition active:scale-90 shadow-2xs touch-manipulation select-none" title="Increase Quantity">+</button>
+                            <button type="button" onclick="updateCartQty(${index}, 1)" class="w-10 h-10 min-w-[40px] min-h-[40px] rounded-xl bg-gray-100 hover:bg-emerald-100 text-gray-800 hover:text-[#0e703c] border border-gray-200 font-black text-lg flex items-center justify-center transition active:scale-90 shadow-2xs touch-manipulation select-none" title="Increase Quantity">+</button>
                         </div>
-                        <button type="button" onclick="removeFromCart(${index})" class="h-9 px-3 bg-rose-50 hover:bg-rose-600 text-rose-700 hover:text-white border border-rose-200 hover:border-rose-600 rounded-xl text-xs font-bold transition flex items-center gap-1.5 shadow-2xs cursor-pointer active:scale-95 touch-manipulation select-none" title="Remove item from order">
+                        <button type="button" onclick="removeFromCart(${index})" class="h-10 min-h-[40px] px-3.5 bg-rose-50 hover:bg-rose-600 text-rose-700 hover:text-white border border-rose-200 hover:border-rose-600 rounded-xl text-xs font-bold transition flex items-center gap-1.5 shadow-2xs cursor-pointer active:scale-95 touch-manipulation select-none" title="Remove item from order">
                             <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
                             <span>Remove</span>
                         </button>
@@ -1685,6 +1948,21 @@ html, body {
                 `;
                 container.appendChild(itemRow);
             });
+
+            // Update in-cart badges on product cards (Phase 2 #8)
+            document.querySelectorAll('[id^="card-badge-"]').forEach(badge => {
+                const pId = badge.id.replace('card-badge-', '');
+                const q = productQuantities[pId] || 0;
+                if (q > 0) {
+                    badge.innerText = `×${q}`;
+                    badge.classList.remove('hidden');
+                } else {
+                    badge.classList.add('hidden');
+                }
+            });
+
+            // Show line discounts row when cart has items (Phase 1 #4)
+            if (discWrapper) discWrapper.classList.remove('hidden');
 
             const totals = calculateCartTotals();
             document.getElementById('cart-item-count').innerText = count;
@@ -1703,8 +1981,20 @@ html, body {
             }
 
             document.getElementById('cart-total').innerText = `₱${totals.totalDue.toFixed(2)}`;
-            document.getElementById('btn-total').innerText = totals.totalDue.toFixed(2);
-            document.getElementById('checkout-btn').disabled = false;
+            const btnTotalEl = document.getElementById('btn-total');
+            if (btnTotalEl) btnTotalEl.innerText = totals.totalDue.toFixed(2);
+
+            // Enabled 56px Tall Payment Button (Phase 5 #16)
+            if (checkoutBtn) {
+                checkoutBtn.disabled = false;
+                checkoutBtn.className = "w-full h-14 min-h-[56px] rounded-2xl bg-[#0e703c] hover:bg-[#0b5930] text-white font-black text-base flex items-center justify-center gap-2.5 cursor-pointer shadow-md hover:shadow-lg active:scale-[0.99] transition-all select-none";
+                checkoutBtn.innerHTML = `
+                    <svg class="w-5 h-5 text-emerald-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z"/>
+                    </svg>
+                    <span>Charge ₱${totals.totalDue.toFixed(2)}</span>
+                `;
+            }
 
             if (mobileBadge) {
                 mobileBadge.innerText = count;
@@ -1730,15 +2020,34 @@ html, body {
             renderCart();
         }
 
-        function clearCart() {
+        // Phase 5 #15: Safe Clear Cart Confirmation Modal
+        function promptClearCart() {
             if (cart.length === 0) return;
-            if (confirm('Are you sure you want to clear the entire cart?')) {
-                cart = [];
-                currentDiscountType = 'none';
-                currentDiscountVal = 0;
-                setCartDiscount('none');
-                renderCart();
+            const count = cart.reduce((sum, item) => sum + item.quantity, 0);
+            const msgEl = document.getElementById('clear-cart-modal-msg');
+            if (msgEl) {
+                msgEl.innerText = `Are you sure you want to clear ${count} ${count === 1 ? 'item' : 'items'} from this order? All items and discounts will be removed.`;
             }
+            const modal = document.getElementById('clear-cart-confirm-modal');
+            if (modal) modal.style.display = 'flex';
+        }
+
+        function closeClearConfirmModal() {
+            const modal = document.getElementById('clear-cart-confirm-modal');
+            if (modal) modal.style.display = 'none';
+        }
+
+        function confirmClearCart() {
+            cart = [];
+            currentDiscountType = 'none';
+            currentDiscountVal = 0;
+            setCartDiscount('none');
+            renderCart();
+            closeClearConfirmModal();
+        }
+
+        function clearCart() {
+            promptClearCart();
         }
 
         // Payment Modal & Methods
@@ -1824,30 +2133,65 @@ html, body {
         function setPaymentMethod(method) {
             paymentMethod = method;
             document.querySelectorAll('.pm-btn').forEach(btn => {
-                btn.className = 'pm-btn py-3 px-4 border-2 border-gray-200 bg-white text-gray-700 hover:border-gray-300 rounded-xl font-bold text-sm flex items-center justify-center gap-2 transition touch-manipulation select-none active:scale-98';
+                btn.className = 'pm-btn py-2.5 px-2 border-2 border-gray-200 bg-white text-gray-700 hover:border-gray-300 rounded-xl font-bold text-xs sm:text-sm flex items-center justify-center gap-1.5 transition touch-manipulation select-none active:scale-98';
             });
             const activeBtn = document.getElementById(`pm-${method}`);
             if (activeBtn) {
-                activeBtn.className = 'pm-btn active py-3 px-4 border-2 border-[#155d49] bg-[#f0f8f5] text-[#155d49] rounded-xl font-bold text-sm flex items-center justify-center gap-2 transition shadow-xs touch-manipulation select-none active:scale-98';
+                activeBtn.className = 'pm-btn active py-2.5 px-2 border-2 border-[#155d49] bg-[#f0f8f5] text-[#155d49] rounded-xl font-bold text-xs sm:text-sm flex items-center justify-center gap-1.5 transition shadow-xs touch-manipulation select-none active:scale-98';
             }
 
             const totals = calculateCartTotals();
+            const cashSection = document.getElementById('cash-section');
+            const refSection = document.getElementById('reference-section');
+            const splitSection = document.getElementById('split-section');
+
             if (method === 'cash') {
-                document.getElementById('cash-section').classList.remove('hidden');
-                document.getElementById('reference-section').classList.add('hidden');
+                cashSection.classList.remove('hidden');
+                refSection.classList.add('hidden');
+                splitSection.classList.add('hidden');
                 numpadFresh = true;
                 document.getElementById('amount-tendered').value = totals.totalDue.toFixed(2);
                 calculateChange();
-            } else {
-                // Online Payment (GCash / Maya / QRPh)
-                document.getElementById('cash-section').classList.add('hidden');
-                document.getElementById('reference-section').classList.remove('hidden');
+            } else if (method === 'online') {
+                cashSection.classList.add('hidden');
+                refSection.classList.remove('hidden');
+                splitSection.classList.add('hidden');
                 document.getElementById('amount-tendered').value = totals.totalDue.toFixed(2);
                 calculateChange();
                 setTimeout(() => {
                     const refInput = document.getElementById('reference-number');
                     if (refInput) refInput.focus();
                 }, 50);
+            } else if (method === 'split') {
+                cashSection.classList.add('hidden');
+                refSection.classList.add('hidden');
+                splitSection.classList.remove('hidden');
+                document.getElementById('split-remaining-label').innerText = `Due: ₱${totals.totalDue.toFixed(2)}`;
+                // Default split half or 0
+                if (!document.getElementById('split-cash-amount').value) {
+                    document.getElementById('split-cash-amount').value = '';
+                }
+                if (!document.getElementById('split-online-amount').value) {
+                    document.getElementById('split-online-amount').value = '';
+                }
+                calculateSplitChange();
+            }
+        }
+
+        function calculateSplitChange() {
+            const totals = calculateCartTotals();
+            const splitCash = parseFloat(document.getElementById('split-cash-amount').value) || 0;
+            const splitOnline = parseFloat(document.getElementById('split-online-amount').value) || 0;
+            const totalSplit = splitCash + splitOnline;
+            const diff = totalSplit - totals.totalDue;
+
+            const changeDisplay = document.getElementById('split-change-display');
+            if (diff >= 0) {
+                changeDisplay.className = 'font-mono text-emerald-700 font-black text-sm';
+                changeDisplay.innerText = `Change: ₱${diff.toFixed(2)}`;
+            } else {
+                changeDisplay.className = 'font-mono text-rose-600 font-black text-sm';
+                changeDisplay.innerText = `Remaining: ₱${Math.abs(diff).toFixed(2)}`;
             }
         }
 
@@ -1913,20 +2257,75 @@ html, body {
         async function submitOrder() {
             const cashierName = document.getElementById('cashier-name').value.trim();
             const totals = calculateCartTotals();
-            const amountTendered = paymentMethod === 'cash' ? (parseFloat(document.getElementById('amount-tendered').value) || 0) : totals.totalDue;
             const referenceNumber = document.getElementById('reference-number').value.trim();
+            const splitCash = parseFloat(document.getElementById('split-cash-amount').value) || 0;
+            const splitOnline = parseFloat(document.getElementById('split-online-amount').value) || 0;
+            const splitRef = document.getElementById('split-reference-number').value.trim();
 
-            if (paymentMethod === 'cash' && amountTendered < totals.totalDue) {
-                alert('Amount tendered is less than the total due (₱' + totals.totalDue.toFixed(2) + ').');
-                return;
+            let amountTendered = totals.totalDue;
+
+            if (paymentMethod === 'cash') {
+                amountTendered = parseFloat(document.getElementById('amount-tendered').value) || 0;
+                if (amountTendered < totals.totalDue) {
+                    alert('Amount tendered is less than the total due (₱' + totals.totalDue.toFixed(2) + ').');
+                    return;
+                }
+            } else if (paymentMethod === 'online') {
+                amountTendered = totals.totalDue;
+                if (!referenceNumber) {
+                    alert('Verification Required: Online payments strictly require an external transaction reference / confirmation number.');
+                    document.getElementById('reference-number').focus();
+                    return;
+                }
+            } else if (paymentMethod === 'split') {
+                amountTendered = splitCash + splitOnline;
+                if (amountTendered < totals.totalDue) {
+                    alert('Total split payment tendered (₱' + amountTendered.toFixed(2) + ') is less than the total due (₱' + totals.totalDue.toFixed(2) + ').');
+                    return;
+                }
+                if (splitOnline > 0 && !splitRef) {
+                    alert('Digital Verification Required: Please enter the reference number for the digital/online portion of this split payment.');
+                    document.getElementById('split-reference-number').focus();
+                    return;
+                }
+            }
+
+            const branchSelect = document.getElementById('pos-branch-select');
+            const branchId = branchSelect ? branchSelect.value : currentBranchId;
+
+            let grabOrderCode = null;
+            let riderCode = null;
+            if (currentOrderType === 'grab_delivery') {
+                const grabInput = document.getElementById('grab-order-code');
+                const riderInput = document.getElementById('rider-code');
+                grabOrderCode = grabInput ? grabInput.value.trim() : '';
+                riderCode = riderInput ? riderInput.value.trim() : '';
+
+                if (!grabOrderCode) {
+                    alert('GrabFood Order Code is required. (e.g. GF-20260927-0012)');
+                    if (grabInput) grabInput.focus();
+                    return;
+                }
+                if (!riderCode) {
+                    alert('Rider Code is required. (e.g. RDR-025)');
+                    if (riderInput) riderInput.focus();
+                    return;
+                }
             }
 
             const payload = {
                 cashier_name: cashierName,
+                branch_id: branchId,
+                order_type: currentOrderType,
+                grab_order_code: grabOrderCode,
+                rider_code: riderCode,
                 payment_method: paymentMethod,
                 discount: totals.discount,
                 amount_tendered: amountTendered,
                 reference_number: referenceNumber,
+                split_cash_amount: splitCash,
+                split_online_amount: splitOnline,
+                split_reference_number: splitRef,
                 items: cart.map(item => ({
                     product_id: item.product_id,
                     size_id: item.size_id,
@@ -2032,6 +2431,36 @@ html, body {
             setReceiptPaperWidth(currentPaperWidth);
 
             document.getElementById('rec-order-no').innerText = order.order_number;
+            const branchName = order.branch ? order.branch.name : (document.getElementById('pos-branch-select')?.selectedOptions[0]?.text?.replace('📍 ', '') || 'Bangkal Branch');
+            const branchAddress = order.branch ? order.branch.address : 'MacArthur Hwy, Bangkal, Davao City, PH';
+            const bNameEl = document.getElementById('rec-branch-name');
+            const bAddrEl = document.getElementById('rec-branch-address');
+            if (bNameEl) bNameEl.innerText = branchName;
+            if (bAddrEl) bAddrEl.innerText = branchAddress;
+
+            const otEl = document.getElementById('rec-order-type');
+            if (otEl) {
+                const ot = order.order_type || 'dine_in';
+                otEl.innerText = ot === 'takeout' ? 'TAKEOUT' : (ot === 'grab_delivery' ? 'GRAB DELIVERY' : 'DINE-IN');
+            }
+
+            const recGrabRow = document.getElementById('rec-grab-code-row');
+            const recGrabCode = document.getElementById('rec-grab-order-code');
+            const recRiderRow = document.getElementById('rec-rider-code-row');
+            const recRiderCode = document.getElementById('rec-rider-code');
+            if (order.grab_order_code) {
+                if (recGrabRow) recGrabRow.classList.remove('hidden');
+                if (recGrabCode) recGrabCode.innerText = order.grab_order_code;
+            } else {
+                if (recGrabRow) recGrabRow.classList.add('hidden');
+            }
+            if (order.rider_code) {
+                if (recRiderRow) recRiderRow.classList.remove('hidden');
+                if (recRiderCode) recRiderCode.innerText = order.rider_code;
+            } else {
+                if (recRiderRow) recRiderRow.classList.add('hidden');
+            }
+
             const orderDate = new Date(order.created_at);
             document.getElementById('rec-date').innerText = isNaN(orderDate.getTime())
                 ? new Date().toLocaleString('en-US', { month: 'short', day: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit', hour12: true })
@@ -2061,16 +2490,34 @@ html, body {
 
             document.getElementById('rec-total').innerText = `₱${parseFloat(order.total).toFixed(2)}`;
             
+            const payments = order.payments || [];
             const payment = order.payment || {};
-            const isOnline = ['online', 'gcash'].includes((payment.method || '').toLowerCase());
-            document.getElementById('rec-payment-method').innerText = isOnline ? 'ONLINE PAYMENT' : 'CASH';
-            document.getElementById('rec-tendered').innerText = `₱${parseFloat(payment.amount_tendered || order.total).toFixed(2)}`;
-            document.getElementById('rec-change').innerText = `₱${parseFloat(payment.change || 0).toFixed(2)}`;
+            let pmLabel = 'CASH';
+            let tenderedTotal = parseFloat(payment.amount_tendered || order.total);
+            let changeTotal = parseFloat(payment.change || 0);
+            let refText = payment.reference_number || '';
+
+            if (payments.length > 1) {
+                pmLabel = 'SPLIT PAYMENT';
+                tenderedTotal = payments.reduce((acc, p) => acc + parseFloat(p.amount_tendered || 0), 0);
+                changeTotal = payments.reduce((acc, p) => acc + parseFloat(p.change || 0), 0);
+                const onlinePart = payments.find(p => p.method !== 'cash');
+                if (onlinePart && onlinePart.reference_number) {
+                    refText = onlinePart.reference_number;
+                }
+            } else {
+                const isOnline = ['online', 'gcash', 'card'].includes((payment.method || '').toLowerCase());
+                pmLabel = isOnline ? 'ONLINE PAYMENT' : 'CASH';
+            }
+
+            document.getElementById('rec-payment-method').innerText = pmLabel;
+            document.getElementById('rec-tendered').innerText = `₱${tenderedTotal.toFixed(2)}`;
+            document.getElementById('rec-change').innerText = `₱${changeTotal.toFixed(2)}`;
 
             const refContainer = document.getElementById('rec-ref-container');
             const refNo = document.getElementById('rec-ref-no');
-            if (payment.reference_number && payment.reference_number.trim() !== '') {
-                refNo.innerText = payment.reference_number;
+            if (refText && refText.trim() !== '') {
+                refNo.innerText = refText;
                 refContainer.classList.remove('hidden');
             } else {
                 refContainer.classList.add('hidden');
@@ -2168,21 +2615,49 @@ html, body {
                 `;
             }).join('');
 
+            const payments = currentReceiptOrder.payments || [];
             const payment = currentReceiptOrder.payment || {};
-            const isOnline = ['online', 'gcash'].includes((payment.method || '').toLowerCase());
-            const paymentName = isOnline ? 'ONLINE PAYMENT' : 'CASH';
-            const refHtml = payment.reference_number ? `
-                <div style="display:flex; justify-content:space-between;">
-                    <span>Ref #:</span>
-                    <span style="font-weight:bold;">${payment.reference_number}</span>
-                </div>
-            ` : '';
+            let paymentName = 'CASH';
+            let printTendered = parseFloat(payment.amount_tendered || currentReceiptOrder.total).toFixed(2);
+            let printChange = parseFloat(payment.change || 0).toFixed(2);
+            let refHtml = '';
+
+            if (payments.length > 1) {
+                paymentName = 'SPLIT PAYMENT';
+                printTendered = payments.reduce((acc, p) => acc + parseFloat(p.amount_tendered || 0), 0).toFixed(2);
+                printChange = payments.reduce((acc, p) => acc + parseFloat(p.change || 0), 0).toFixed(2);
+                const onlinePart = payments.find(p => p.method !== 'cash');
+                if (onlinePart && onlinePart.reference_number) {
+                    refHtml = `
+                        <div style="display:flex; justify-content:space-between; font-size:0.85em;">
+                            <span>Online Ref #:</span>
+                            <span style="font-weight:bold;">${onlinePart.reference_number}</span>
+                        </div>
+                    `;
+                }
+            } else {
+                const isOnline = ['online', 'gcash', 'card'].includes((payment.method || '').toLowerCase());
+                paymentName = isOnline ? 'ONLINE PAYMENT' : 'CASH';
+                if (payment.reference_number) {
+                    refHtml = `
+                        <div style="display:flex; justify-content:space-between; font-size:0.85em;">
+                            <span>Ref #:</span>
+                            <span style="font-weight:bold;">${payment.reference_number}</span>
+                        </div>
+                    `;
+                }
+            }
+
+            const printBranch = currentReceiptOrder.branch ? currentReceiptOrder.branch.name : (document.getElementById('pos-branch-select')?.selectedOptions[0]?.text?.replace('📍 ', '') || 'Bangkal Branch');
+            const printAddress = currentReceiptOrder.branch ? currentReceiptOrder.branch.address : 'MacArthur Hwy, Bangkal, Davao City, PH';
+            const ot = currentReceiptOrder.order_type || 'dine_in';
+            const printOrderType = ot === 'takeout' ? 'TAKEOUT' : (ot === 'grab_delivery' ? 'GRAB DELIVERY' : 'DINE-IN');
 
             const dateFormatted = new Date(currentReceiptOrder.created_at).toLocaleString('en-US', {
                 month: 'short', day: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit', hour12: true
             });
 
-            const vatablePrint = parseFloat(currentReceiptOrder.vatable_sales !== undefined ? currentReceiptOrder.vatable_sales : Math.max(0, currentReceiptOrder.subtotal - currentReceiptOrder.discount));
+            const vatablePrint = parseFloat(currentReceiptOrder.vatable_sales !== undefined && currentReceiptOrder.vatable_sales !== null ? currentReceiptOrder.vatable_sales : ((parseFloat(currentReceiptOrder.total || 0) - parseFloat(currentReceiptOrder.vat_exempt_sales || 0)) / 1.12));
             const vatExemptPrint = parseFloat(currentReceiptOrder.vat_exempt_sales || 0);
 
             const receiptHtml = `
@@ -2249,8 +2724,8 @@ html, body {
     <div class="center">
         <div class="store-name">HEIM COFFEE</div>
         <div style="font-size: 0.9em; font-weight: bold;">FRESH BREWS & PASTRIES</div>
-        <div style="font-size: 0.85em;">Main Branch • Bangkal, Davao City, PH</div>
-        <div style="font-size: 0.85em;">Tel: </div>
+        <div style="font-size: 0.85em; font-weight: bold;">${printBranch}</div>
+        <div style="font-size: 0.8em;">${printAddress}</div>
     </div>
 
     <div class="dashed"></div>
@@ -2259,6 +2734,22 @@ html, body {
         <span>ORDER:</span>
         <span>${currentReceiptOrder.order_number}</span>
     </div>
+    <div class="row bold" style="background:#eee; padding:1px 0;">
+        <span>TYPE:</span>
+        <span>${printOrderType}</span>
+    </div>
+    ${currentReceiptOrder.grab_order_code ? `
+    <div class="row bold" style="color:#0e703c;">
+        <span>GRAB ORDER:</span>
+        <span>${currentReceiptOrder.grab_order_code}</span>
+    </div>
+    ` : ''}
+    ${currentReceiptOrder.rider_code ? `
+    <div class="row bold" style="color:#0e703c;">
+        <span>RIDER CODE:</span>
+        <span>${currentReceiptOrder.rider_code}</span>
+    </div>
+    ` : ''}
     <div class="row">
         <span>DATE:</span>
         <span>${dateFormatted}</span>
@@ -2368,6 +2859,10 @@ html, body {
         function startNewOrder() {
             document.getElementById('receipt-modal').classList.add('hidden');
             currentReceiptOrder = null;
+            const grabInput = document.getElementById('grab-order-code');
+            const riderInput = document.getElementById('rider-code');
+            if (grabInput) grabInput.value = '';
+            if (riderInput) riderInput.value = '';
         }
 
         // Live Clock Updater

@@ -11,7 +11,12 @@ class InventoryController extends Controller
 {
     public function index(Request $request)
     {
-        $query = Ingredient::query()->orderBy('name');
+        $lowStockCount = Ingredient::whereColumn('current_stock', '<=', 'minimum_stock')->where('current_stock', '>', 0)->count();
+        $outOfStockCount = Ingredient::where('current_stock', '<=', 0)->count();
+        $totalCount = Ingredient::count();
+
+        $query = Ingredient::query()
+            ->orderByRaw("CASE WHEN current_stock <= 0 THEN 1 WHEN current_stock <= minimum_stock THEN 2 ELSE 3 END ASC, name ASC");
 
         if ($request->filled('search')) {
             $query->where('name', 'like', "%{$request->search}%");
@@ -25,9 +30,9 @@ class InventoryController extends Controller
             };
         }
 
-        $ingredients = $query->paginate(20);
+        $ingredients = $query->paginate(30);
 
-        return view('inventory.index', compact('ingredients'));
+        return view('inventory.index', compact('ingredients', 'lowStockCount', 'outOfStockCount', 'totalCount'));
     }
 
     public function create()

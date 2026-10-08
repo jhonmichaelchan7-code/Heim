@@ -10,7 +10,7 @@ class Order extends Model
     use HasFactory;
 
     protected $fillable = [
-        'order_number', 'cashier_name', 'user_id', 'shift_id',
+        'order_number', 'order_type', 'grab_order_code', 'rider_code', 'cashier_name', 'user_id', 'shift_id', 'branch_id',
         'subtotal', 'discount', 'tax_rate', 'tax', 'vatable_sales', 'vat_exempt_sales', 'total', 'status', 'notes',
     ];
 
@@ -23,6 +23,11 @@ class Order extends Model
         'vat_exempt_sales' => 'decimal:2',
         'total' => 'decimal:2',
     ];
+
+    public function branch()
+    {
+        return $this->belongsTo(Branch::class);
+    }
 
     public function shift()
     {
@@ -44,14 +49,67 @@ class Order extends Model
         return $this->hasOne(Payment::class);
     }
 
+    public function payments()
+    {
+        return $this->hasMany(Payment::class);
+    }
+
     public function refunds()
     {
         return $this->hasMany(Refund::class);
     }
 
+    public function getPaidAmountAttribute(): float
+    {
+        $payments = $this->payments()->get();
+        if ($payments->isEmpty()) {
+            return $this->payment ? (float) $this->payment->amount_tendered - (float) $this->payment->change : 0.0;
+        }
+        return (float) $payments->sum('amount_tendered') - (float) $payments->sum('change');
+    }
+
+    public function getRemainingBalanceAttribute(): float
+    {
+        return max(0, round((float) $this->total - $this->paid_amount, 2));
+    }
+
+    public function getOrderTypeLabelAttribute(): string
+    {
+        return match ($this->order_type) {
+            'takeout' => 'Takeout',
+            'grab_delivery' => 'Grab Delivery',
+            default => 'Dine-In',
+        };
+    }
+
+    public function getOrderTypeIconAttribute(): string
+    {
+        return match ($this->order_type) {
+            'takeout' => '🛍️',
+            'grab_delivery' => '🛵',
+            default => '🍽️',
+        };
+    }
+
     public function scopeCompleted($query)
     {
         return $query->where('status', 'completed');
+    }
+
+    public function scopeByBranch($query, $branchId)
+    {
+        if ($branchId) {
+            return $query->where('branch_id', $branchId);
+        }
+        return $query;
+    }
+
+    public function scopeByOrderType($query, $type)
+    {
+        if ($type && $type !== 'all') {
+            return $query->where('order_type', $type);
+        }
+        return $query;
     }
 
     public function scopeToday($query)

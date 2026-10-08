@@ -6,7 +6,7 @@
                     {{ __('Orders Management') }}
                 </h2>
                 <p class="text-xs text-gray-500 mt-0.5">
-                    {{ !auth()->user()->isAtLeast('supervisor') ? 'View your cashier transaction history and manage order statuses' : 'View transaction histories, cashier shift records, and manage order statuses' }}
+                    {{ !auth()->user()->isAtLeast('supervisor') ? 'View your cashier transaction history, print receipts, and manage order statuses' : 'View multi-branch transaction histories, cashier shift records, and manage order statuses' }}
                 </p>
             </div>
             <a href="{{ route('pos.index') }}" class="inline-flex items-center justify-center h-10 px-4 py-2 bg-[#155d49] hover:bg-[#114a3b] text-white font-bold text-sm rounded-xl shadow-sm hover:shadow active:scale-[0.98] transition-all gap-2">
@@ -21,7 +21,7 @@
 
             <!-- Filters Bar -->
             <div class="bg-white p-4 rounded-2xl shadow-sm border border-gray-100">
-                <form method="GET" action="{{ route('orders.index') }}" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 items-end">
+                <form method="GET" action="{{ route('orders.index') }}" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3 items-end">
                     <div>
                         <label class="block text-xs font-bold uppercase tracking-wider text-gray-600 mb-1">
                             {{ auth()->user()->isAtLeast('supervisor') ? 'Search Order # or Cashier' : 'Search Order #' }}
@@ -30,22 +30,41 @@
                     </div>
 
                     <div>
-                        <label class="block text-xs font-bold uppercase tracking-wider text-gray-600 mb-1">Order Status</label>
-                        <select name="status" class="w-full h-10 px-3 py-2 text-sm border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#155d49] outline-none font-medium">
-                            <option value="">All Statuses</option>
-                            <option value="completed" {{ request('status') === 'completed' ? 'selected' : '' }}>Completed</option>
-                            <option value="refunded" {{ request('status') === 'refunded' ? 'selected' : '' }}>Refunded</option>
+                        <label class="block text-xs font-bold uppercase tracking-wider text-gray-600 mb-1">Branch</label>
+                        <select name="branch_id" class="w-full h-10 px-3 py-2 text-sm border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#155d49] outline-none font-medium">
+                            <option value="">All Branches</option>
+                            @foreach($branches as $b)
+                                <option value="{{ $b->id }}" {{ request('branch_id') == $b->id ? 'selected' : '' }}>
+                                    📍 {{ $b->name }}
+                                </option>
+                            @endforeach
                         </select>
                     </div>
 
                     <div>
-                        <label class="block text-xs font-bold uppercase tracking-wider text-gray-600 mb-1">Filter by Date</label>
-                        <input type="date" name="date" value="{{ request('date') }}" class="w-full h-10 px-3 py-2 text-sm border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#155d49] outline-none" />
+                        <label class="block text-xs font-bold uppercase tracking-wider text-gray-600 mb-1">Order Type</label>
+                        <select name="order_type" class="w-full h-10 px-3 py-2 text-sm border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#155d49] outline-none font-medium">
+                            <option value="">All Order Types</option>
+                            <option value="dine_in" {{ request('order_type') === 'dine_in' ? 'selected' : '' }}>🍽️ Dine-In</option>
+                            <option value="takeout" {{ request('order_type') === 'takeout' ? 'selected' : '' }}>🛍️ Takeout</option>
+                            <option value="grab_delivery" {{ request('order_type') === 'grab_delivery' ? 'selected' : '' }}>🛵 Grab Delivery</option>
+                        </select>
+                    </div>
+
+                    <div>
+                        <label class="block text-xs font-bold uppercase tracking-wider text-gray-600 mb-1">Status</label>
+                        <select name="status" class="w-full h-10 px-3 py-2 text-sm border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#155d49] outline-none font-medium">
+                            <option value="">All Statuses</option>
+                            <option value="completed" {{ request('status') === 'completed' ? 'selected' : '' }}>Completed</option>
+                            <option value="refunded" {{ request('status') === 'refunded' ? 'selected' : '' }}>Refunded</option>
+                            <option value="cancelled" {{ request('status') === 'cancelled' ? 'selected' : '' }}>Cancelled</option>
+                            <option value="voided" {{ request('status') === 'voided' ? 'selected' : '' }}>Voided</option>
+                        </select>
                     </div>
 
                     <div class="flex gap-2">
                         <button type="submit" class="flex-1 inline-flex items-center justify-center h-10 px-4 py-2 bg-[#155d49] hover:bg-[#114a3b] text-white font-bold text-sm rounded-xl transition shadow-sm active:scale-[0.98]">
-                            Apply Filter
+                            Filter
                         </button>
                         <a href="{{ route('orders.index') }}" class="inline-flex items-center justify-center h-10 px-3 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 font-bold text-sm rounded-xl transition active:scale-[0.98]">
                             Reset
@@ -61,11 +80,13 @@
                         <thead class="bg-gray-50 text-gray-500 text-xs uppercase font-semibold border-b border-gray-100">
                             <tr>
                                 <th class="py-3.5 px-4">Order Number</th>
+                                <th class="py-3.5 px-4">Branch</th>
+                                <th class="py-3.5 px-4">Type</th>
                                 <th class="py-3.5 px-4">Date & Time</th>
                                 <th class="py-3.5 px-4">Cashier</th>
                                 <th class="py-3.5 px-4">Items Qty</th>
                                 <th class="py-3.5 px-4">Total Amount</th>
-                                <th class="py-3.5 px-4">Payment Method</th>
+                                <th class="py-3.5 px-4">Payment</th>
                                 <th class="py-3.5 px-4">Status</th>
                                 <th class="py-3.5 px-4 text-right">Actions</th>
                             </tr>
@@ -77,6 +98,22 @@
                                         <a href="{{ route('orders.show', $order) }}" class="hover:text-[#155d49] transition">
                                             {{ $order->order_number }}
                                         </a>
+                                    </td>
+                                    <td class="py-3.5 px-4 text-gray-600 text-xs font-semibold">
+                                        <span class="inline-flex items-center gap-1">
+                                            <span>📍</span>
+                                            <span>{{ $order->branch ? $order->branch->name : 'Bangkal Branch' }}</span>
+                                        </span>
+                                    </td>
+                                    <td class="py-3.5 px-4">
+                                        <span class="inline-flex items-center gap-1 px-2.5 py-1 text-xs rounded-full font-bold
+                                            {{ $order->order_type === 'takeout' ? 'bg-amber-100 text-amber-900' : '' }}
+                                            {{ $order->order_type === 'grab_delivery' ? 'bg-emerald-100 text-[#155d49]' : '' }}
+                                            {{ (!$order->order_type || $order->order_type === 'dine_in') ? 'bg-sky-100 text-sky-900' : '' }}
+                                        ">
+                                            <span>{{ $order->order_type_icon }}</span>
+                                            <span>{{ $order->order_type_label }}</span>
+                                        </span>
                                     </td>
                                     <td class="py-3.5 px-4 text-gray-600 text-xs">
                                         {{ $order->created_at->format('M d, Y h:i A') }}
@@ -93,18 +130,26 @@
                                         ₱{{ number_format($order->total, 2) }}
                                     </td>
                                     <td class="py-3.5 px-4">
-                                        <span class="px-2.5 py-1 text-xs rounded-full font-bold
-                                            {{ $order->payment?->method === 'cash' ? 'bg-emerald-100 text-[#155d49]' : '' }}
-                                            {{ in_array($order->payment?->method, ['online', 'gcash']) ? 'bg-sky-100 text-sky-800' : '' }}
-                                            {{ $order->payment?->method === 'card' ? 'bg-purple-100 text-purple-800' : '' }}
-                                        ">
-                                            {{ in_array($order->payment?->method, ['online', 'gcash']) ? 'Online' : ($order->payment?->method ? ucfirst($order->payment->method) : 'N/A') }}
-                                        </span>
+                                        @if($order->payments && $order->payments->count() > 1)
+                                            <span class="px-2.5 py-1 text-xs rounded-full font-bold bg-amber-100 text-amber-900">
+                                                ⚖️ Split Payment
+                                            </span>
+                                        @else
+                                            <span class="px-2.5 py-1 text-xs rounded-full font-bold
+                                                {{ $order->payment?->method === 'cash' ? 'bg-emerald-100 text-[#155d49]' : '' }}
+                                                {{ in_array($order->payment?->method, ['online', 'gcash']) ? 'bg-sky-100 text-sky-800' : '' }}
+                                                {{ $order->payment?->method === 'card' ? 'bg-purple-100 text-purple-800' : '' }}
+                                            ">
+                                                {{ in_array($order->payment?->method, ['online', 'gcash']) ? '📲 Online' : ($order->payment?->method === 'cash' ? '💵 Cash' : ($order->payment?->method ? ucfirst($order->payment->method) : 'N/A')) }}
+                                            </span>
+                                        @endif
                                     </td>
                                     <td class="py-3.5 px-4">
                                         <span class="px-2.5 py-1 text-xs rounded-full font-bold
                                             {{ $order->status === 'completed' ? 'bg-emerald-100 text-emerald-800' : '' }}
                                             {{ $order->status === 'refunded' ? 'bg-rose-100 text-rose-800' : '' }}
+                                            {{ $order->status === 'cancelled' ? 'bg-gray-100 text-gray-800' : '' }}
+                                            {{ $order->status === 'voided' ? 'bg-purple-100 text-purple-800' : '' }}
                                         ">
                                             {{ ucfirst($order->status) }}
                                         </span>
@@ -117,7 +162,7 @@
                                 </tr>
                             @empty
                                 <tr>
-                                    <td colspan="8" class="py-12 text-center text-gray-400">
+                                    <td colspan="10" class="py-12 text-center text-gray-400">
                                         No orders matched your search criteria.
                                     </td>
                                 </tr>

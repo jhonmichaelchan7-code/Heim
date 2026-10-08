@@ -29,12 +29,12 @@
             <div class="bg-white p-4 rounded-2xl shadow-sm border border-gray-100">
                 <form method="GET" action="{{ route('products.index') }}" class="grid grid-cols-1 sm:grid-cols-3 gap-3 items-end">
                     <div>
-                        <label class="block text-xs font-bold uppercase tracking-wider text-gray-600 mb-1">Search Product Name</label>
+                        <label class="block text-xs font-bold text-gray-800 mb-1">Search product name</label>
                         <input type="text" name="search" value="{{ request('search') }}" placeholder="e.g. Latte, Americano..." class="w-full h-10 px-3 py-2 text-sm border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#155d49] outline-none" />
                     </div>
 
                     <div>
-                        <label class="block text-xs font-bold uppercase tracking-wider text-gray-600 mb-1">Filter by Category</label>
+                        <label class="block text-xs font-bold text-gray-800 mb-1">Filter by category</label>
                         <select name="category" class="w-full h-10 px-3 py-2 text-sm border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#155d49] outline-none font-medium">
                             <option value="">All Categories</option>
                             @foreach($categories as $cat)
@@ -59,25 +59,27 @@
             <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
                 <div class="overflow-x-auto">
                     <table class="w-full text-left text-sm">
-                        <thead class="bg-gray-50 text-gray-500 text-xs uppercase font-semibold border-b border-gray-100">
+                        <thead class="bg-gray-50 text-gray-700 text-xs font-semibold border-b border-gray-100">
                             <tr>
                                 <th class="py-3.5 px-4">Product</th>
                                 <th class="py-3.5 px-4">Category</th>
-                                <th class="py-3.5 px-4">Serving Sizes & Prices</th>
-                                <th class="py-3.5 px-4">POS Status</th>
+                                <th class="py-3.5 px-4">Serving sizes & prices</th>
+                                <th class="py-3.5 px-4">POS status</th>
                                 <th class="py-3.5 px-4 text-right">Actions</th>
                             </tr>
                         </thead>
                         <tbody class="divide-y divide-gray-100">
                             @forelse($products as $product)
-                                <tr class="hover:bg-gray-50 transition">
+                                <tr class="transition {{ !$product->is_active ? 'row-inactive' : 'hover:bg-gray-50' }}">
                                     <td class="py-4 px-4">
                                         <div class="flex items-center gap-3">
                                             <div class="w-10 h-10 rounded-xl bg-[#f0f8f5] flex items-center justify-center text-xl shrink-0">
                                                 ☕
                                             </div>
                                             <div>
-                                                <p class="font-bold text-gray-900">{{ $product->name }}</p>
+                                                <a href="{{ route('products.edit', $product) }}" class="font-bold text-gray-900 hover:text-[#155d49] hover:underline transition">
+                                                    {{ $product->name }}
+                                                </a>
                                                 @if($product->description)
                                                     <p class="text-xs text-gray-400 line-clamp-1">{{ $product->description }}</p>
                                                 @endif
@@ -92,35 +94,22 @@
                                     <td class="py-4 px-4">
                                         <div class="flex flex-wrap gap-1.5">
                                             @foreach($product->sizes as $size)
-                                                <span class="inline-flex items-center px-2.5 py-0.5 rounded-md text-xs font-semibold bg-gray-50 text-gray-800 border border-gray-200">
-                                                    {{ $size->name }}: <strong class="ml-1 text-[#155d49]">₱{{ number_format($size->pivot->price, 2) }}</strong>
+                                                <span class="inline-flex items-center px-2.5 py-0.5 rounded-md text-xs font-semibold {{ $product->is_active ? 'bg-gray-50 text-gray-800 border border-gray-200' : 'bg-gray-100 text-gray-400 border border-gray-200' }}">
+                                                    {{ $size->name }}: <strong class="ml-1 {{ $product->is_active ? 'text-[#155d49]' : 'text-gray-400' }}">₱{{ number_format($size->pivot->price, 2) }}</strong>
                                                 </span>
                                             @endforeach
                                         </div>
                                     </td>
                                     <td class="py-4 px-4">
-                                        <form method="POST" action="{{ route('products.toggle-active', $product) }}" class="inline-block">
-                                            @csrf
-                                            <button type="submit" title="Click to toggle status (currently {{ $product->is_active ? 'Active' : 'Inactive' }})" class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold transition shadow-xs cursor-pointer
-                                                {{ $product->is_active ? 'bg-emerald-100 text-[#155d49] hover:bg-emerald-200' : 'bg-gray-100 text-gray-500 hover:bg-gray-200' }}
-                                            ">
-                                                <span class="w-1.5 h-1.5 rounded-full {{ $product->is_active ? 'bg-[#155d49]' : 'bg-gray-400' }}"></span>
-                                                {{ $product->is_active ? 'Active' : 'Inactive' }}
-                                            </button>
-                                        </form>
+                                        <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold {{ $product->is_active ? 'bg-emerald-100 text-[#155d49]' : 'bg-gray-100 text-gray-500' }}">
+                                            <span class="w-1.5 h-1.5 rounded-full {{ $product->is_active ? 'bg-[#155d49]' : 'bg-gray-400' }}"></span>
+                                            {{ $product->is_active ? 'Active' : 'Inactive' }}
+                                        </span>
                                     </td>
-                                    <td class="py-4 px-4 text-right space-x-1.5">
+                                    <td class="py-4 px-4 text-right">
                                         <a href="{{ route('products.edit', $product) }}" class="inline-flex items-center justify-center h-8 px-3 bg-white hover:bg-gray-50 border border-gray-200 text-gray-700 rounded-lg text-xs font-semibold shadow-xs transition active:scale-[0.98]">
                                             Edit
-                                         </a>
-                                        <form method="POST" action="{{ route('products.toggle-active', $product) }}" class="inline-block">
-                                            @csrf
-                                            <button type="submit" class="inline-flex items-center justify-center h-8 px-3 rounded-lg text-xs font-semibold shadow-xs transition active:scale-[0.98]
-                                                {{ $product->is_active ? 'bg-rose-600 hover:bg-rose-700 text-white' : 'bg-[#155d49] hover:bg-[#114a3b] text-white' }}
-                                            ">
-                                                {{ $product->is_active ? 'Set Inactive' : 'Set Active' }}
-                                            </button>
-                                        </form>
+                                        </a>
                                     </td>
                                 </tr>
                             @empty
@@ -143,4 +132,10 @@
 
         </div>
     </div>
+
+    <style>
+        .row-inactive {
+            opacity: 0.6;
+        }
+    </style>
 </x-app-layout>

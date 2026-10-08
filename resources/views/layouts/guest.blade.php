@@ -6,6 +6,7 @@
         <meta name="csrf-token" content="{{ csrf_token() }}">
 
         <title>{{ config('app.name', 'Heim POS') }}</title>
+        <link rel="icon" type="image/png" href="{{ asset('images/logo.png') }}" />
 
         <!-- Fonts -->
         <link rel="preconnect" href="https://fonts.bunny.net">
@@ -18,8 +19,8 @@
         <div class="min-h-screen flex flex-col sm:justify-center items-center pt-6 sm:pt-0 p-4">
             <div class="flex flex-col items-center gap-2 mb-2">
                 <a href="/" class="flex flex-col items-center group">
-                    <div class="w-24 h-24 rounded-full overflow-hidden shadow-lg border-4 border-white bg-[#155d49] transition-transform group-hover:scale-105 duration-200">
-                        <img src="{{ asset('images/logo.png') }}" alt="Heim Logo" class="w-full h-full object-cover rounded-full" />
+                    <div class="w-24 h-24 rounded-3xl overflow-hidden shadow-lg border-4 border-white bg-[#165846] transition-transform group-hover:scale-105 duration-200">
+                        <img src="{{ asset('images/logo.png') }}" alt="Heim Logo" class="w-full h-full object-cover rounded-3xl" />
                     </div>
                     <h1 class="mt-3 font-extrabold text-2xl text-[#155d49] tracking-tight">Heim</h1>
                     <p class="text-xs font-semibold text-gray-500 uppercase tracking-widest">Coffee POS & Inventory</p>

@@ -8,12 +8,16 @@ return new class extends Migration
 {
     public function up(): void
     {
-        // Add 'stock_out' to enum type in inventory_transactions table
-        DB::statement("ALTER TABLE inventory_transactions MODIFY COLUMN type ENUM('stock_in', 'sales_consumption', 'waste', 'adjustment', 'stock_out') NOT NULL");
+        // Add 'stock_out' to enum type in inventory_transactions table (MySQL specific)
+        if (DB::getDriverName() === 'mysql') {
+            DB::statement("ALTER TABLE inventory_transactions MODIFY COLUMN type ENUM('stock_in', 'sales_consumption', 'waste', 'adjustment', 'stock_out') NOT NULL");
+        }
     }
 
     public function down(): void
     {
-        DB::statement("ALTER TABLE inventory_transactions MODIFY COLUMN type ENUM('stock_in', 'sales_consumption', 'waste', 'adjustment') NOT NULL");
+        if (DB::getDriverName() === 'mysql') {
+            DB::statement("ALTER TABLE inventory_transactions MODIFY COLUMN type ENUM('stock_in', 'sales_consumption', 'waste', 'adjustment') NOT NULL");
+        }
     }
 };

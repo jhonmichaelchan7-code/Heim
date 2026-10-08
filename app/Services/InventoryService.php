@@ -13,45 +13,149 @@ use Illuminate\Support\Facades\DB;
 class InventoryService
 {
     /**
-     * Deduct ingredients based on recipe for a completed order.
+     * Deduct ingredients based on recipe and dynamic add-on modifiers for a completed order.
      * All operations are wrapped in a DB transaction.
      */
     public function deductForOrder(Order $order): void
     {
         DB::transaction(function () use ($order) {
             foreach ($order->items as $item) {
+                // 1. Base Recipe BOM Deductions
                 $recipe = Recipe::where('product_id', $item->product_id)
                     ->where('size_id', $item->size_id)
                     ->with('recipeIngredients.ingredient')
                     ->first();
 
-                if (!$recipe) {
-                    continue; // No recipe defined for this product/size
+                if ($recipe) {
+                    foreach ($recipe->recipeIngredients as $recipeIngredient) {
+                        $ingredient = $recipeIngredient->ingredient;
+                        if (!$ingredient) continue;
+
+                        $totalQty = $recipeIngredient->quantity * $item->quantity;
+                        $previousStock = $ingredient->current_stock;
+                        $newStock = $previousStock - $totalQty;
+
+                        $ingredient->update(['current_stock' => $newStock]);
+
+                        InventoryTransaction::create([
+                            'ingredient_id' => $ingredient->id,
+                            'type' => 'sales_consumption',
+                            'quantity' => $totalQty,
+                            'previous_stock' => $previousStock,
+                            'new_stock' => $newStock,
+                            'reference_type' => 'order',
+                            'reference_id' => $order->id,
+                            'notes' => "Base BOM: {$item->product_name} ({$item->size_name}) x{$item->quantity}",
+                            'performed_by' => auth()->id(),
+                        ]);
+
+                        $this->checkStockLevel($ingredient->fresh());
+                    }
                 }
 
-                foreach ($recipe->recipeIngredients as $recipeIngredient) {
-                    $ingredient = $recipeIngredient->ingredient;
-                    $totalQty = $recipeIngredient->quantity * $item->quantity;
-                    $previousStock = $ingredient->current_stock;
-                    $newStock = $previousStock - $totalQty;
+                // 2. Dynamic Modifier Deductions (Add-ons BOM)
+                if ($item->addOns && $item->addOns->isNotEmpty()) {
+                    foreach ($item->addOns as $orderItemAddOn) {
+                        $addOn = \App\Models\AddOn::find($orderItemAddOn->add_on_id);
+                        if ($addOn && $addOn->ingredient_id && $addOn->quantity > 0) {
+                            $ingredient = $addOn->ingredient;
+                            if (!$ingredient) continue;
 
-                    // Update ingredient stock
-                    $ingredient->update(['current_stock' => $newStock]);
+                            $totalModifierQty = $addOn->quantity * $item->quantity;
+                            $previousStock = $ingredient->current_stock;
+                            $newStock = $previousStock - $totalModifierQty;
 
-                    // Create inventory transaction
-                    InventoryTransaction::create([
-                        'ingredient_id' => $ingredient->id,
-                        'type' => 'sales_consumption',
-                        'quantity' => $totalQty,
-                        'previous_stock' => $previousStock,
-                        'new_stock' => $newStock,
-                        'reference_type' => 'order',
-                        'reference_id' => $order->id,
-                        'performed_by' => auth()->id(),
-                    ]);
+                            $ingredient->update(['current_stock' => $newStock]);
 
-                    // Check stock levels and create notifications
-                    $this->checkStockLevel($ingredient->fresh());
+                            InventoryTransaction::create([
+                                'ingredient_id' => $ingredient->id,
+                                'type' => 'sales_consumption',
+                                'quantity' => $totalModifierQty,
+                                'previous_stock' => $previousStock,
+                                'new_stock' => $newStock,
+                                'reference_type' => 'order',
+                                'reference_id' => $order->id,
+                                'notes' => "Modifier BOM: +{$addOn->name} on {$item->product_name} x{$item->quantity}",
+                                'performed_by' => auth()->id(),
+                            ]);
+
+                            $this->checkStockLevel($ingredient->fresh());
+                        }
+                    }
+                }
+            }
+        });
+    }
+
+    /**
+     * Restore ingredients for a refunded, cancelled, or voided order (Optional Inventory Restoration).
+     */
+    public function restoreForOrder(Order $order, string $reason = 'Order refund / void restoration'): void
+    {
+        DB::transaction(function () use ($order, $reason) {
+            foreach ($order->items as $item) {
+                // Restore Base Recipe BOM
+                $recipe = Recipe::where('product_id', $item->product_id)
+                    ->where('size_id', $item->size_id)
+                    ->with('recipeIngredients.ingredient')
+                    ->first();
+
+                if ($recipe) {
+                    foreach ($recipe->recipeIngredients as $recipeIngredient) {
+                        $ingredient = $recipeIngredient->ingredient;
+                        if (!$ingredient) continue;
+
+                        $totalQty = $recipeIngredient->quantity * $item->quantity;
+                        $previousStock = $ingredient->current_stock;
+                        $newStock = $previousStock + $totalQty;
+
+                        $ingredient->update(['current_stock' => $newStock]);
+
+                        InventoryTransaction::create([
+                            'ingredient_id' => $ingredient->id,
+                            'type' => 'adjustment',
+                            'quantity' => $totalQty,
+                            'previous_stock' => $previousStock,
+                            'new_stock' => $newStock,
+                            'reason' => "Restoration: {$reason} (Order #{$order->order_number})",
+                            'reference_type' => 'order',
+                            'reference_id' => $order->id,
+                            'performed_by' => auth()->id(),
+                        ]);
+
+                        $this->resolveStockNotifications($ingredient->fresh());
+                    }
+                }
+
+                // Restore Dynamic Add-on Modifier BOM
+                if ($item->addOns && $item->addOns->isNotEmpty()) {
+                    foreach ($item->addOns as $orderItemAddOn) {
+                        $addOn = \App\Models\AddOn::find($orderItemAddOn->add_on_id);
+                        if ($addOn && $addOn->ingredient_id && $addOn->quantity > 0) {
+                            $ingredient = $addOn->ingredient;
+                            if (!$ingredient) continue;
+
+                            $totalModifierQty = $addOn->quantity * $item->quantity;
+                            $previousStock = $ingredient->current_stock;
+                            $newStock = $previousStock + $totalModifierQty;
+
+                            $ingredient->update(['current_stock' => $newStock]);
+
+                            InventoryTransaction::create([
+                                'ingredient_id' => $ingredient->id,
+                                'type' => 'adjustment',
+                                'quantity' => $totalModifierQty,
+                                'previous_stock' => $previousStock,
+                                'new_stock' => $newStock,
+                                'reason' => "Modifier Restoration: +{$addOn->name} on {$item->product_name} (Order #{$order->order_number})",
+                                'reference_type' => 'order',
+                                'reference_id' => $order->id,
+                                'performed_by' => auth()->id(),
+                            ]);
+
+                            $this->resolveStockNotifications($ingredient->fresh());
+                        }
+                    }
                 }
             }
         });
@@ -186,7 +290,7 @@ class InventoryService
             $transaction = InventoryTransaction::create([
                 'ingredient_id' => $ingredient->id,
                 'type' => 'adjustment',
-                'quantity' => abs($quantity),
+                'quantity' => $quantity,
                 'previous_stock' => $previousStock,
                 'new_stock' => $newStock,
                 'reason' => $reason,

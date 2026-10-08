@@ -1,4 +1,4 @@
-<x-app-layout>
+    <x-app-layout>
     <x-slot name="header">
         <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
             <div>
@@ -9,32 +9,30 @@
                     Periodic summary of stock on hand, incoming deliveries, waste, and recipe consumption
                 </p>
             </div>
-            <!-- Action buttons: Export Excel, Print Data Only, and Google Sheet Sync -->
+            <!-- Consolidated Export Dropdown (Secondary Outline) -->
             <div class="flex flex-wrap items-center gap-2 no-print">
-                <button type="button" 
-                        onclick="exportCompleteInventoryReportExcel()" 
-                        class="inline-flex items-center justify-center gap-1.5 h-10 px-3.5 py-2 bg-[#107c41] hover:bg-[#0c6133] text-white font-bold text-xs sm:text-sm rounded-xl shadow-xs hover:shadow transition-all duration-150 active:scale-[0.98]">
-                    <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
-                    <span>Export Excel / CSV</span>
-                </button>
-
-                <button type="button" 
-                        onclick="printInventoryDataOnly()" 
-                        class="inline-flex items-center justify-center gap-1.5 h-10 px-3.5 py-2 bg-gray-800 hover:bg-gray-900 text-white font-bold text-xs sm:text-sm rounded-xl shadow-xs hover:shadow transition-all duration-150 active:scale-[0.98]">
-                    <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"/></svg>
-                    <span>Print Data Only</span>
-                </button>
-
-                <button type="button" 
-                        onclick="openGoogleSheetModal()" 
-                        id="btn-report-sync-google"
-                        title="Auto-sync to Google Sheet when online"
-                        class="inline-flex items-center justify-center gap-1.5 h-10 px-3.5 py-2 bg-[#0f9d58] hover:bg-[#0b8043] text-white font-bold text-xs sm:text-sm rounded-xl shadow-xs hover:shadow transition-all duration-150 active:scale-[0.98]">
-                    <svg class="w-4 h-4 shrink-0" viewBox="0 0 24 24" fill="currentColor">
-                        <path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-7 14H6v-2h6v2zm4-4H6v-2h10v2zm0-4H6V7h10v2z"/>
-                    </svg>
-                    <span>Sync Google Sheet</span>
-                </button>
+                <div class="relative" x-data="{ open: false }">
+                    <button type="button" @click="open = !open" @click.outside="open = false" class="inline-flex items-center gap-2 h-10 px-4 bg-white hover:bg-gray-50 border border-gray-200 text-gray-700 font-semibold text-xs sm:text-sm rounded-xl shadow-2xs transition">
+                        <svg class="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+                        <span>Export</span>
+                        <svg class="w-3.5 h-3.5 text-gray-400 transition-transform duration-150" :class="{ 'rotate-180': open }" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+                    </button>
+                    <div x-show="open" x-cloak class="absolute right-0 mt-1.5 w-52 bg-white rounded-xl shadow-lg border border-gray-100 py-1.5 z-30">
+                        <button type="button" @click="open = false; exportCompleteInventoryReportExcel()" class="w-full flex items-center gap-2.5 px-3.5 py-2 text-xs font-semibold text-gray-700 hover:bg-gray-50 text-left">
+                            <svg class="w-4 h-4 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+                            <span>Export Excel (.csv)</span>
+                        </button>
+                        <button type="button" @click="open = false; printInventoryDataOnly()" class="w-full flex items-center gap-2.5 px-3.5 py-2 text-xs font-semibold text-gray-700 hover:bg-gray-50 text-left">
+                            <svg class="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"/></svg>
+                            <span>Print Report</span>
+                        </button>
+                        <div class="border-t border-gray-100 my-1"></div>
+                        <button type="button" @click="open = false; openGoogleSheetModal()" class="w-full flex items-center gap-2.5 px-3.5 py-2 text-xs font-semibold text-gray-700 hover:bg-gray-50 text-left">
+                            <svg class="w-4 h-4 text-emerald-600" viewBox="0 0 24 24" fill="currentColor"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-7 14H6v-2h6v2zm4-4H6v-2h10v2zm0-4H6V7h10v2z"/></svg>
+                            <span>Sync Google Sheet</span>
+                        </button>
+                    </div>
+                </div>
             </div>
         </div>
     </x-slot>
@@ -58,20 +56,19 @@
             <div class="bg-white p-4 rounded-2xl shadow-sm border border-gray-100">
                 <form method="GET" action="{{ route('reports.inventory') }}" class="grid grid-cols-1 sm:grid-cols-3 gap-3 items-end">
                     <div>
-                        <label class="block text-xs font-bold uppercase tracking-wider text-gray-600 mb-1">Date From</label>
-                        <input type="date" name="date_from" value="{{ $dateFrom }}" class="w-full h-10 px-3 py-2 text-sm border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#155d49] outline-none" />
+                        <label class="block text-xs font-bold text-gray-800 mb-1">Date from</label>
+                        <input type="date" name="date_from" value="{{ $dateFrom }}" onchange="this.form.submit()" class="w-full h-10 px-3 py-2 text-sm border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#155d49] outline-none font-medium" />
                     </div>
 
                     <div>
-                        <label class="block text-xs font-bold uppercase tracking-wider text-gray-600 mb-1">Date To</label>
-                        <input type="date" name="date_to" value="{{ $dateTo }}" class="w-full h-10 px-3 py-2 text-sm border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#155d49] outline-none" />
+                        <label class="block text-xs font-bold text-gray-800 mb-1">Date to</label>
+                        <input type="date" name="date_to" value="{{ $dateTo }}" onchange="this.form.submit()" class="w-full h-10 px-3 py-2 text-sm border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#155d49] outline-none font-medium" />
                     </div>
 
-                    <div class="flex">
-                        <button type="submit" class="w-full h-10 px-4 py-2 bg-[#155d49] hover:bg-[#114a3b] text-white font-bold text-sm rounded-xl transition shadow-xs flex items-center justify-center gap-1.5 active:scale-[0.98]">
-                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z"/></svg>
-                            <span>Filter Results</span>
-                        </button>
+                    <div class="flex items-center pb-1">
+                        <a href="{{ route('reports.inventory') }}" class="text-xs font-semibold text-gray-600 hover:text-gray-900 transition underline underline-offset-4">
+                            Reset
+                        </a>
                     </div>
                 </form>
             </div>
@@ -85,15 +82,15 @@
 
                 <div class="overflow-x-auto">
                     <table class="w-full text-left text-sm">
-                        <thead class="bg-gray-50 text-gray-500 text-xs uppercase font-semibold border-b border-gray-100">
+                        <thead class="bg-gray-50 text-gray-700 text-xs font-semibold border-b border-gray-100">
                             <tr>
-                                <th class="py-3.5 px-4">Ingredient Name</th>
+                                <th class="py-3.5 px-4">Ingredient name</th>
                                 <th class="py-3.5 px-4 text-center">Unit</th>
-                                <th class="py-3.5 px-4 text-right text-[#155d49]">Stock Received</th>
-                                <th class="py-3.5 px-4 text-right text-blue-700">Sales Consumption</th>
-                                <th class="py-3.5 px-4 text-right text-rose-700">Spoilage / Waste</th>
-                                <th class="py-3.5 px-4 text-right text-purple-700">Net Adjustments</th>
-                                <th class="py-3.5 px-4 text-right">Current Stock</th>
+                                <th class="py-3.5 px-4 text-right text-[#155d49]">Stock received</th>
+                                <th class="py-3.5 px-4 text-right text-blue-700">Sales consumption</th>
+                                <th class="py-3.5 px-4 text-right text-rose-700">Spoilage / waste</th>
+                                <th class="py-3.5 px-4 text-right text-purple-700">Net adjustments</th>
+                                <th class="py-3.5 px-4 text-right">Current stock</th>
                                 <th class="py-3.5 px-4 text-center">Status</th>
                             </tr>
                         </thead>

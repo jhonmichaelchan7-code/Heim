@@ -127,15 +127,6 @@ class DatabaseSeeder extends Seeder
             $size22->id => ['price' => 139],
         ]);
 
-        // ── Add-ons ──
-        AddOn::create(['name' => 'Extra Shot', 'price' => 25]);
-        AddOn::create(['name' => 'Vanilla Syrup', 'price' => 20]);
-        AddOn::create(['name' => 'Caramel Syrup', 'price' => 20]);
-        AddOn::create(['name' => 'Hazelnut Syrup', 'price' => 20]);
-        AddOn::create(['name' => 'Whipped Cream', 'price' => 15]);
-        AddOn::create(['name' => 'Extra Milk', 'price' => 15]);
-        AddOn::create(['name' => 'Pearl/Boba', 'price' => 25]);
-
         // ── Ingredients ──
         $coffeeBeans = Ingredient::create(['name' => 'Coffee Beans', 'unit' => 'g', 'current_stock' => 5000, 'minimum_stock' => 500]);
         $freshMilk = Ingredient::create(['name' => 'Fresh Milk', 'unit' => 'ml', 'current_stock' => 10000, 'minimum_stock' => 2000]);
@@ -154,6 +145,15 @@ class DatabaseSeeder extends Seeder
         $cup22 = Ingredient::create(['name' => '22oz Cup', 'unit' => 'pcs', 'current_stock' => 200, 'minimum_stock' => 50]);
         $lid = Ingredient::create(['name' => 'Lid', 'unit' => 'pcs', 'current_stock' => 500, 'minimum_stock' => 100]);
         $straw = Ingredient::create(['name' => 'Straw', 'unit' => 'pcs', 'current_stock' => 500, 'minimum_stock' => 100]);
+
+        // ── Add-ons (with Dynamic Modifier BOM Ingredients) ──
+        AddOn::create(['name' => 'Extra Shot', 'price' => 25, 'ingredient_id' => $coffeeBeans->id, 'quantity' => 14]);
+        AddOn::create(['name' => 'Vanilla Syrup', 'price' => 20, 'ingredient_id' => $vanillaSyrup->id, 'quantity' => 20]);
+        AddOn::create(['name' => 'Caramel Syrup', 'price' => 20, 'ingredient_id' => $caramelSyrup->id, 'quantity' => 20]);
+        AddOn::create(['name' => 'Hazelnut Syrup', 'price' => 20, 'ingredient_id' => $hazelnutSyrup->id, 'quantity' => 20]);
+        AddOn::create(['name' => 'Whipped Cream', 'price' => 15, 'ingredient_id' => $whippedCream->id, 'quantity' => 30]);
+        AddOn::create(['name' => 'Extra Milk', 'price' => 15, 'ingredient_id' => $freshMilk->id, 'quantity' => 100]);
+        AddOn::create(['name' => 'Pearl/Boba', 'price' => 25, 'ingredient_id' => null, 'quantity' => 0]);
 
         // ── Sample Recipes ──
         // Americano 12oz
@@ -222,12 +222,20 @@ class DatabaseSeeder extends Seeder
         RecipeIngredient::create(['recipe_id' => $r->id, 'ingredient_id' => $lid->id, 'quantity' => 1]);
         RecipeIngredient::create(['recipe_id' => $r->id, 'ingredient_id' => $straw->id, 'quantity' => 1]);
 
-        // ── Branch ──
+        // ── Branches (Bangkal & San Rafael) ──
         \App\Models\Branch::create([
-            'name' => 'Main Branch',
-            'code' => 'MAIN-01',
-            'address' => 'Main Branch • Bangkal, Davao City, PH',
-            'phone' => '',
+            'name' => 'Bangkal Branch',
+            'code' => 'BNG-01',
+            'address' => 'MacArthur Hwy, Bangkal, Davao City, PH',
+            'phone' => '(082) 297-1234',
+            'is_active' => true,
+        ]);
+
+        \App\Models\Branch::create([
+            'name' => 'San Rafael Branch',
+            'code' => 'SRF-02',
+            'address' => 'San Rafael Park, Davao City, PH',
+            'phone' => '(082) 221-5678',
             'is_active' => true,
         ]);
 

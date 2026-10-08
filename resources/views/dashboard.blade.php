@@ -14,7 +14,18 @@
                     </p>
                 </div>
             </div>
-            <div class="flex items-center gap-3">
+            <div class="flex flex-wrap items-center gap-3">
+                <form method="GET" action="{{ route('dashboard') }}" class="flex items-center">
+                    <select name="branch_id" onchange="this.form.submit()" class="h-10 px-3 py-1.5 text-xs font-bold rounded-xl border border-gray-200 bg-white text-gray-800 shadow-xs focus:ring-2 focus:ring-[#155d49] outline-none">
+                        <option value="">🏢 All Branches</option>
+                        @foreach($branches as $b)
+                            <option value="{{ $b->id }}" {{ (string)$selectedBranchId === (string)$b->id ? 'selected' : '' }}>
+                                📍 {{ $b->name }}
+                            </option>
+                        @endforeach
+                    </select>
+                </form>
+
                 <a href="{{ route('pos.index') }}" class="inline-flex items-center px-4 py-2 bg-[#155d49] hover:bg-[#114a3b] text-white font-bold text-sm rounded-xl shadow transition duration-150 ease-in-out gap-2">
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"/>
@@ -157,6 +168,37 @@
                 </div>
             </div>
 
+            <!-- Order Channels & Tender Breakdown Row -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-4">
+                    <span class="text-[10px] font-bold uppercase tracking-wider text-blue-700 bg-blue-50 px-2 py-0.5 rounded">🍽️ Dine-In Today</span>
+                    <h4 class="text-xl font-extrabold text-gray-900 mt-1">₱{{ number_format($orderTypesBreakdown['dine_in']['total'] ?? 0, 2) }}</h4>
+                    <p class="text-xs text-gray-500 font-medium">{{ $orderTypesBreakdown['dine_in']['count'] ?? 0 }} orders</p>
+                </div>
+
+                <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-4">
+                    <span class="text-[10px] font-bold uppercase tracking-wider text-amber-700 bg-amber-50 px-2 py-0.5 rounded">🛍️ Takeout Today</span>
+                    <h4 class="text-xl font-extrabold text-gray-900 mt-1">₱{{ number_format($orderTypesBreakdown['takeout']['total'] ?? 0, 2) }}</h4>
+                    <p class="text-xs text-gray-500 font-medium">{{ $orderTypesBreakdown['takeout']['count'] ?? 0 }} orders</p>
+                </div>
+
+                <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-4">
+                    <span class="text-[10px] font-bold uppercase tracking-wider text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded">🛵 Grab Delivery</span>
+                    <h4 class="text-xl font-extrabold text-gray-900 mt-1">₱{{ number_format($orderTypesBreakdown['grab_delivery']['total'] ?? 0, 2) }}</h4>
+                    <p class="text-xs text-gray-500 font-medium">{{ $orderTypesBreakdown['grab_delivery']['count'] ?? 0 }} orders</p>
+                </div>
+
+                <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-4">
+                    <span class="text-[10px] font-bold uppercase tracking-wider text-purple-700 bg-purple-50 px-2 py-0.5 rounded">💳 Tender Settlement</span>
+                    <div class="flex items-center gap-2 mt-1">
+                        <span class="text-xs font-bold text-emerald-700">Cash: ₱{{ number_format($cashTotal ?? 0, 2) }}</span>
+                        <span class="text-gray-300">|</span>
+                        <span class="text-xs font-bold text-sky-700">Online: ₱{{ number_format($onlineTotal ?? 0, 2) }}</span>
+                    </div>
+                    <p class="text-xs text-gray-500 font-medium">Reconciled register totals</p>
+                </div>
+            </div>
+
             <!-- Notifications Card (if Manager+) -->
             @if(auth()->user()->isAtLeast('manager') && count($notifications) > 0)
                 <div class="bg-[#f0f8f5] border border-emerald-200 rounded-2xl p-5">
@@ -244,6 +286,7 @@
                                 <tr>
                                     <th class="py-3 px-4 rounded-l-lg">Order #</th>
                                     <th class="py-3 px-4">Cashier</th>
+                                    <th class="py-3 px-4">Branch & Channel</th>
                                     <th class="py-3 px-4">Items</th>
                                     <th class="py-3 px-4">Total</th>
                                     <th class="py-3 px-4">Payment</th>
@@ -271,6 +314,12 @@
                                             </div>
                                         </td>
                                         <td class="py-3 px-4 text-gray-600 font-medium">{{ $order->cashier_name }}</td>
+                                        <td class="py-3 px-4">
+                                            <div class="flex flex-col gap-0.5">
+                                                <span class="text-xs font-semibold text-gray-800">{{ $order->branch?->name ?? 'Main' }}</span>
+                                                <span class="text-[10px] font-bold text-gray-500">{{ $order->order_type_label }}</span>
+                                            </div>
+                                        </td>
                                         <td class="py-3 px-4 text-gray-600">{{ $order->items->sum('quantity') }}</td>
                                         <td class="py-3 px-4 font-extrabold text-gray-900">₱{{ number_format($order->total, 2) }}</td>
                                         <td class="py-3 px-4">

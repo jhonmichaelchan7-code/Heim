@@ -1,163 +1,103 @@
 # ☕ Heim — Coffee Shop POS & Inventory Management System
 
-Welcome to **Heim POS**! A fast, clean, and modern Point of Sale (POS) and inventory management system designed specifically for coffee shops and cafes. Built with Laravel 10, MySQL, Tailwind CSS, and Alpine.js.
+Welcome to **Heim POS**! An enterprise-grade, touch-friendly Point of Sale (POS), recipe BOM inventory system, and multi-branch management platform designed specifically for specialty coffee shops and cafes.
+
+Engineered with **Laravel 10**, **Standalone SQLite** (no XAMPP or external database server needed), **Tailwind CSS**, and **Alpine.js**, with built-in **Cloudflare Tunneling** for secure, zero-port-forwarding remote connectivity across registers, tablets, and mobile devices.
 
 ---
 
-## 🌟 What Heim POS Does
+## 🌟 Key Architecture & Features (System Analysis Paper Alignment)
 
-* **Point of Sale (POS)**: Fast, touch-friendly cashier checkout supporting sizes (12oz, 16oz, 22oz), customizable add-ons (extra shot, syrups, milk alternatives), discounts (Senior/PWD, custom discounts), streamlined payment options (Cash, Online Payment via GCash/Maya/QRPh), and Loyverse-compatible thermal receipt printing (80mm & 58mm).
-* **Automatic Recipe Inventory Deduction**: When a drink is sold, the exact ingredients (coffee beans, milk, syrups, cups, lids, and straws) are automatically deducted from your inventory in real-time.
-* **Waste & Restock Tracking**: Log newly purchased stocks (Stock In), record damaged or expired items (Waste/Spoilage), and track all movements.
-* **Supervisor-Protected Refunds**: Cashiers cannot cancel or refund an order without a supervisor or manager entering their password.
-* **Daily Consumption Matrix**: An end-of-day summary showing:  
-  $$\text{Closing Stock} = \text{Opening Stock} + \text{Stock In} - \text{Sales Used} - \text{Waste} \pm \text{Adjustments}$$
-* **Low Stock Alerts**: Instant notifications when ingredients are running low so you never run out during a morning rush.
+### 1. 🏢 Multi-Branch Support (Bangkal & San Rafael)
+* Pre-configured multi-branch operation supporting both the **Bangkal Branch (`BNG-01`)** and **San Rafael Branch (`SRF-02`)**.
+* Cashiers and registers operate under assigned branches; receipts automatically imprint the active branch header and address.
+* Management dashboard and sales reports provide single-click branch filtering and side-by-side revenue comparisons.
+
+### 2. 🛵 Omnichannel Fulfillment (Dine-In, Takeout, Grab Delivery)
+* Integrated channel selection on checkout: **🍽️ Dine-In**, **🛍️ Takeout**, and **🛵 Grab Delivery**.
+* Distinct channel badges and thermal slip annotations for kitchen preparation.
+* Management analytics breakdown showing sales volume and percentage share by channel.
+
+### 3. 🛡️ Role-Based Security & Manager/Owner Authorization
+* **Manager or Owner Credentials Required**: Authorizations for refunds, order cancellations, and order voids strictly require the live email and password credentials of an active Manager or Owner.
+* **Strict Cash-Only Refund Policy**: Digital and online payments (GCash, PayMaya, Card) are strictly designated **non-refundable in cash** to preserve external gateway reconciliation and prevent drawer discrepancies.
+* **Optional Inventory Restoration**: When processing a return or cancellation, supervisors can choose whether to restore deducted ingredients back to the inventory BOM.
+
+### 4. 🧮 Dynamic Bill of Materials (BOM) & Modifier Tracking
+* Finished drinks automatically deduct exact raw ingredients (coffee beans in grams, fresh milk in ml, syrups in ml, cups, lids, and straws).
+* **Add-On Modifier Deductions**: Custom add-ons (extra espresso shot, flavored syrups, alternative milk) automatically trigger real-time BOM deductions for their respective raw inventory ingredients.
+
+### 5. 💳 Split & Partial Tender Settlements
+* Support for split tender transactions: split a single order across Cash and Digital/Online Payment.
+* On-shift cashiers can record subsequent partial payments against their assigned orders until balance is fully settled.
+* Mandatory gateway transaction reference numbers for digital/online audits.
+
+### 6. 📊 Peak Rush Hours & Management Analytics
+* Hourly traffic distribution analytics (6:00 AM to 10:00 PM) identifying rush peak ordering hours.
+* Cashier shift attribution and float drawer variance tracking (Cash Over / Short / Balanced).
+* One-click complete CSV/Excel export and automated Google Sheet sync.
+
+### 7. 🧾 Dual Thermal Slip Printing (80mm & 58mm)
+* Loyverse-compatible thermal receipt layout with instant toggle between standard 80mm and compact 58mm roll widths.
+* Automatic branch metadata, order channel, cashier name, item modifiers, discounts, and BIR VAT breakdown.
 
 ---
 
 ## 👥 Default Login Accounts
 
-The system comes with 4 pre-configured roles out of the box:
+The system comes pre-seeded with 4 default staff roles (Password: `password` for all):
 
 | Role | Email | Password | Access Level |
 | :--- | :--- | :--- | :--- |
-| **👑 Owner** | `owner@coffee.com` | `password` | Full system access, staff management, financial reports |
-| **💼 Manager** | `manager@coffee.com` | `password` | Inventory control, recipes, daily consumption, sales reports |
-| **🛡️ Supervisor** | `supervisor@coffee.com` | `password` | POS checkout, inventory adjustments, authorizing refunds |
-| **☕ Cashier** | `cashier@coffee.com` | `password` | POS terminal, taking orders, reprinting receipts |
-
-> [!WARNING]
-> For security, please change these default passwords before using the system in an active store!
+| **👑 Owner** | `owner@coffee.com` | `password` | Full system access, multi-branch control, authorizations, reports |
+| **💼 Manager** | `manager@coffee.com` | `password` | Authorize refunds/voids, recipe BOMs, inventory stock-ins, analytics |
+| **🛡️ Supervisor** | `supervisor@coffee.com` | `password` | POS checkout, inventory adjustments, shift float monitoring |
+| **☕ Cashier** | `cashier@coffee.com` | `password` | POS terminal operations, taking orders, split payments, receipts |
 
 ---
 
-## ⚡ 1-Click Quick Start & Shutdown
+## ⚡ 1-Click Turnkey Startup (No XAMPP Required!)
 
-If you are on the main server PC, you can start or stop the entire system in one click:
+Because Heim uses standalone SQLite and Cloudflare Tunneling, **you do not need XAMPP, MySQL, or port forwarding**:
 
-* **To START:** Double-click **[`START-HEIM.bat`](file:///c:/Users/user/Documents/PROJECT/START-HEIM.bat)**.  
-  It checks MySQL, boots up the Laravel server on port 8000, and starts the Cloudflare tunnel with your live shareable link.
-  *(Keep the opened windows open while using the system!)*
-* **To STOP:** Double-click **[`STOP-HEIM.bat`](file:///c:/Users/user/Documents/PROJECT/STOP-HEIM.bat)**.  
-  Safely shuts down the background server and tunnel with zero leftover processes.
+* **To START:** Double-click **[`START-HEIM.bat`](file:///c:/Users/user/Documents/PROJECT/coffee%20shop/START-HEIM.bat)**.  
+  1. Automatically prepares the self-contained SQLite database (`database/database.sqlite`).
+  2. Launches the local Laravel POS server on `http://127.0.0.1:8000`.
+  3. Launches the Cloudflare tunnel, generating a live, secure HTTPS link (`https://*.trycloudflare.com`) accessible from any tablet or phone with zero router configuration!
+* **To STOP:** Double-click **[`STOP-HEIM.bat`](file:///c:/Users/user/Documents/PROJECT/coffee%20shop/STOP-HEIM.bat)**.  
+  Cleanly terminates the server and background tunnel processes.
+* **To RESET FOR DEMO:** Double-click **[`RESET-FRESH-DEMO-DATABASE.bat`](file:///c:/Users/user/Documents/PROJECT/coffee%20shop/RESET-FRESH-DEMO-DATABASE.bat)**.  
+  Instantly resets to a fresh demo state with Bangkal & San Rafael branches, recipes, ingredients, and demo accounts.
 
 ---
 
-## 🌐 How to Connect Multiple Devices (2 Methods)
+## 🌐 Connecting Devices & Register Terminals
 
-You can run Heim POS on multiple phones, tablets, or cashier stations using either of these two methods depending on your shop's setup:
-
-### Method 1: Cloudflare Public Tunnel (Online — Access From Anywhere)
-
-**Why use this?**
-* **Access anywhere**: Cashiers and tablets can connect from anywhere inside the shop or even from home using cellular data / mobile hotspots.
-* **No router setup**: Works immediately without port forwarding or changing Wi-Fi settings.
-* **Secure**: Free automatic HTTPS (`https://`) with Cloudflare security.
-
-**Manual Setup Steps:**
-1. **Make sure MySQL is running** in XAMPP.
-2. **Start the Laravel server** (in Command Prompt):
-   ```cmd
-   cd C:\Users\user\Documents\PROJECT
-   C:\xampp\php\php.exe artisan serve --host=0.0.0.0 --port=8000
-   ```
-3. **Start Cloudflare Tunnel** (in a second Command Prompt):
-   ```cmd
-   "C:\Program Files (x86)\cloudflared\cloudflared.exe" tunnel --protocol http2 --url http://127.0.0.1:8000
-   ```
-   *(Or simply double-click `start-tunnel.bat`)*
-4. **Open the Link**: In the terminal, look for the generated link:
+### Method 1: Cloudflare Secure Tunnel (Recommended)
+1. Double-click `START-HEIM.bat`.
+2. Look for the public tunnel address in the terminal window:
    ```text
-   https://your-temporary-name.trycloudflare.com
+   https://xxxx.trycloudflare.com
    ```
-   Open that link on any phone, iPad, or computer browser!
+3. Open this link on any iPad, Android tablet, phone, or laptop browser inside or outside the store.
 
----
-
-### Method 2: Local Shop Wi-Fi / LAN (Offline — No Internet Needed)
-
-**Why use this?**
-* **100% Offline**: Works completely without internet! Even if your internet provider has a service interruption or blackout, your cashiers can still take orders.
-* **Private & Fast**: Data stays inside your shop's Wi-Fi router.
-
-**Manual Setup Steps:**
-1. Connect your server PC and all tablets to the **same shop Wi-Fi network**.
-2. Find your PC's local IP address:
-   * Open Command Prompt, type `ipconfig`, and look for your **IPv4 Address** (for example, `192.168.1.17`).
-3. Allow port 8000 through Windows Firewall (*only need to do this once*):
-   * Open PowerShell as Administrator and run:
-     ```powershell
-     netsh advfirewall firewall add rule name="Heim POS Port 8000" dir=in action=allow protocol=TCP localport=8000
-     ```
-4. Start the Laravel server:
-   ```cmd
-   cd C:\Users\user\Documents\PROJECT
-   C:\xampp\php\php.exe artisan serve --host=0.0.0.0 --port=8000
-   ```
-5. **Open on any device:** Open the browser on your tablet or phone and go to:
+### Method 2: Offline Local Shop Network (LAN / Wi-Fi)
+1. Ensure all register tablets and the server PC are on the same Wi-Fi.
+2. Open Command Prompt and check your PC's IPv4 address (`ipconfig`, e.g., `192.168.1.50`).
+3. Open the browser on your tablet:
    ```text
-   http://192.168.1.17:8000
+   http://192.168.1.50:8000
    ```
-   *(Replace `192.168.1.17` with your actual IPv4 address from step 2)*
+   *(Works 100% offline even during internet provider outages!)*
 
 ---
 
-## 🛠️ Initial Installation (New PC Setup Only)
-
-If you are setting up the project on a fresh computer for the first time:
-
-1. **Prerequisites**: Install **XAMPP** (PHP 8.1+ & MySQL), **Composer**, and **Node.js LTS**.
-2. **Install PHP packages**:
-   ```cmd
-   composer install
-   ```
-3. **Install & build frontend assets**:
-   ```cmd
-   npm install
-   npm run build
-   ```
-4. **Configure `.env`**:
-   ```cmd
-   copy .env.example .env
-   C:\xampp\php\php.exe artisan key:generate
-   ```
-5. **Create Database & Seed Data**:
-   * Open phpMyAdmin (`http://localhost/phpmyadmin`) and create a database named `coffee_shop_pos`.
-   * Run migrations and populate sample products, sizes, recipes, and users:
-     ```cmd
-     C:\xampp\php\php.exe artisan migrate:fresh --seed
-     ```
-
----
-
-## 🔧 Troubleshooting Guide
-
-### ❌ Problem: "These credentials do not match our records."
-If you try to log in with `owner@coffee.com` and password `password` and see this error:
-* **Cause**: The database was cleared or fresh migrations were run without seeding default accounts.
-* **Fix (Method 1 — 5-Second Terminal Command)**:
-  Open your terminal or Command Prompt in the project folder and run:
-  ```cmd
-  C:\xampp\php\php.exe artisan db:seed
-  ```
-  *(This immediately restores all default accounts, menu categories, sizes, and recipes without losing your system settings).*
-* **Fix (Method 2 — 1-Click Reset)**:
-  Double-click **`RESET-FRESH-DEMO-DATABASE.bat`** in the project folder to do a complete clean reset with all default data.
-
-### ❌ Problem: "419 | Page Expired"
-* **Cause**: Your browser tab was left open or idle for a long time, causing the security session token to expire.
-* **Fix**:
-  1. Simply refresh the page (press `F5` or `Ctrl + R`).
-  2. If on the logout page, you will automatically be redirected to `/login` smoothly.
-
----
-
-## 💡 Common Questions & Tips
-
-* **Why didn't I need to run `npm run build` when starting manually?**  
-  `npm run build` compiles your stylesheets and scripts into [`public/build/`](file:///c:/Users/user/Documents/PROJECT/public/build). Once built, they remain saved on your computer permanently. You only ever need to re-run `npm run build` if you modify frontend source code or templates.
-* **Does the main PC need to stay awake?**  
-  Yes! The main computer acts as your local server. Make sure to set Windows sleep settings to "Never sleep" when plugged in during shop operating hours.
-* **Do I need router port forwarding?**  
-  No! You never need port forwarding. Cloudflare Tunnel securely handles external connections, and Local LAN handles offline internal connections.
+## 📁 Key File Structure
+* `database/database.sqlite`: Standalone SQLite database.
+* `app/Http/Controllers/PosController.php`: Order creation, branch selection, channel routing, and split payment tender.
+* `app/Http/Controllers/OrderController.php`: Order management, partial payment recording, and Manager/Owner credential refund authorization.
+* `app/Http/Controllers/DashboardController.php`: Branch filtering, shift metrics, channel stats, and payment breakdown.
+* `app/Http/Controllers/ReportController.php`: Branch comparison, rush hour peak traffic distribution, and CSV export.
+* `app/Services/InventoryService.php`: Automatic Recipe BOM and Modifier ingredient deduction & return logic.
+* `resources/views/pos/index.blade.php`: Real-time touch POS interface with branch/channel toggles and thermal printing.
+* `START-HEIM.bat`: Turnkey 1-click launcher for SQLite + Cloudflare tunnel.

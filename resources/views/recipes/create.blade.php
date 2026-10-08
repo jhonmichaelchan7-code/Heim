@@ -24,10 +24,10 @@
                     <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                         <div>
                             <label class="block text-xs font-bold uppercase tracking-wider text-gray-700 mb-1">Product</label>
-                            <select name="product_id" required class="w-full px-4 py-2 text-sm border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#155d49] outline-none font-medium">
+                            <select name="product_id" required class="w-full px-4 py-2 text-sm border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#0e703c] outline-none font-medium">
                                 <option value="">Select Product</option>
                                 @foreach($products as $product)
-                                    <option value="{{ $product->id }}" {{ old('product_id') == $product->id ? 'selected' : '' }}>
+                                    <option value="{{ $product->id }}" {{ old('product_id', $duplicateRecipe?->product_id) == $product->id ? 'selected' : '' }}>
                                         {{ $product->name }} ({{ $product->category?->name }})
                                     </option>
                                 @endforeach
@@ -37,7 +37,7 @@
 
                         <div>
                             <label class="block text-xs font-bold uppercase tracking-wider text-gray-700 mb-1">Cup Size</label>
-                            <select name="size_id" required class="w-full px-4 py-2 text-sm border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#155d49] outline-none font-medium">
+                            <select name="size_id" required class="w-full px-4 py-2 text-sm border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#0e703c] outline-none font-medium">
                                 <option value="">Select Size</option>
                                 @foreach($sizes as $size)
                                     <option value="{{ $size->id }}" {{ old('size_id') == $size->id ? 'selected' : '' }}>
@@ -51,7 +51,7 @@
 
                     <div>
                         <label class="block text-xs font-bold uppercase tracking-wider text-gray-700 mb-1">Recipe Notes (Optional)</label>
-                        <input type="text" name="notes" value="{{ old('notes') }}" placeholder="e.g. Standard 2 shots espresso, double pumps syrup..." class="w-full px-4 py-2 text-sm border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#155d49] outline-none" />
+                        <input type="text" name="notes" value="{{ old('notes', $duplicateRecipe?->notes) }}" placeholder="e.g. Standard 2 shots espresso, double pumps syrup..." class="w-full px-4 py-2 text-sm border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#0e703c] outline-none" />
                     </div>
 
                     <!-- Dynamic Ingredients List -->
@@ -61,34 +61,63 @@
                                 <label class="block text-xs font-bold uppercase tracking-wider text-gray-800">Required Ingredients</label>
                                 <p class="text-xs text-gray-500">Specify each raw ingredient and quantity deducted per sale</p>
                             </div>
-                            <button type="button" onclick="addIngredientRow()" class="px-3.5 py-1.5 bg-[#f0f8f5] hover:bg-emerald-100 text-[#155d49] text-xs font-bold rounded-xl transition">
+                            <button type="button" onclick="addIngredientRow()" class="px-3.5 py-1.5 bg-[#f0f8f5] hover:bg-emerald-100 text-[#0e703c] text-xs font-bold rounded-xl transition">
                                 + Add Ingredient
                             </button>
                         </div>
 
                         <div id="ingredient-rows-container" class="space-y-3">
-                            <div class="ing-row flex items-center gap-3 p-3.5 bg-gray-50 rounded-2xl border border-gray-200">
-                                <div class="flex-1">
-                                    <label class="block text-[10px] font-bold text-gray-500 uppercase mb-0.5">Ingredient</label>
-                                    <select name="ingredients[0][ingredient_id]" required onchange="updateUnitLabel(this)" class="w-full px-3 py-1.5 text-sm bg-white border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#155d49] outline-none font-semibold">
-                                        <option value="">Select Ingredient</option>
-                                        @foreach($ingredients as $ing)
-                                            <option value="{{ $ing->id }}" data-unit="{{ $ing->unit }}">{{ $ing->name }} ({{ $ing->unit }})</option>
-                                        @endforeach
-                                    </select>
-                                </div>
-                                <div class="w-36">
-                                    <label class="block text-[10px] font-bold text-gray-500 uppercase mb-0.5">Qty Deducted</label>
-                                    <div class="relative">
-                                        <input type="number" step="0.01" min="0.01" name="ingredients[0][quantity]" required placeholder="0.00" class="w-full px-3 py-1.5 text-sm bg-white border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#155d49] outline-none font-bold text-gray-900 pr-10" />
-                                        <span class="unit-label absolute right-2.5 top-1.5 text-xs text-[#155d49] font-bold">-</span>
+                            @if($duplicateRecipe && $duplicateRecipe->recipeIngredients->count() > 0)
+                                @foreach($duplicateRecipe->recipeIngredients as $idx => $ri)
+                                    <div class="ing-row flex items-center gap-3 p-3.5 bg-gray-50 rounded-2xl border border-gray-200">
+                                        <div class="flex-1">
+                                            <label class="block text-[10px] font-bold text-gray-500 uppercase mb-0.5">Ingredient</label>
+                                            <select name="ingredients[{{ $idx }}][ingredient_id]" required onchange="updateUnitLabel(this)" class="w-full px-3 py-1.5 text-sm bg-white border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#0e703c] outline-none font-semibold">
+                                                <option value="">Select Ingredient</option>
+                                                @foreach($ingredients as $ing)
+                                                    <option value="{{ $ing->id }}" data-unit="{{ $ing->unit }}" {{ $ri->ingredient_id == $ing->id ? 'selected' : '' }}>
+                                                        {{ $ing->name }} ({{ $ing->unit }})
+                                                    </option>
+                                                @endforeach
+                                            </select>
+                                        </div>
+                                        <div class="w-36">
+                                            <label class="block text-[10px] font-bold text-gray-500 uppercase mb-0.5">Qty Deducted</label>
+                                            <div class="relative">
+                                                <input type="number" step="0.01" min="0.01" name="ingredients[{{ $idx }}][quantity]" value="{{ $ri->quantity }}" required placeholder="0.00" class="w-full px-3 py-1.5 text-sm bg-white border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#0e703c] outline-none font-bold text-gray-900 pr-10" />
+                                                <span class="unit-label absolute right-2.5 top-1.5 text-xs text-[#0e703c] font-bold">{{ $ri->ingredient?->unit }}</span>
+                                            </div>
+                                        </div>
+                                        <button type="button" onclick="removeIngredientRow(this)" class="mt-4 px-3 py-2 bg-white hover:bg-rose-50 border border-gray-200 hover:border-rose-300 text-rose-600 rounded-xl text-xs font-bold transition flex items-center gap-1 shadow-2xs" title="Remove Ingredient">
+                                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+                                            <span>Remove</span>
+                                        </button>
                                     </div>
+                                @endforeach
+                            @else
+                                <div class="ing-row flex items-center gap-3 p-3.5 bg-gray-50 rounded-2xl border border-gray-200">
+                                    <div class="flex-1">
+                                        <label class="block text-[10px] font-bold text-gray-500 uppercase mb-0.5">Ingredient</label>
+                                        <select name="ingredients[0][ingredient_id]" required onchange="updateUnitLabel(this)" class="w-full px-3 py-1.5 text-sm bg-white border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#0e703c] outline-none font-semibold">
+                                            <option value="">Select Ingredient</option>
+                                            @foreach($ingredients as $ing)
+                                                <option value="{{ $ing->id }}" data-unit="{{ $ing->unit }}">{{ $ing->name }} ({{ $ing->unit }})</option>
+                                            @endforeach
+                                        </select>
+                                    </div>
+                                    <div class="w-36">
+                                        <label class="block text-[10px] font-bold text-gray-500 uppercase mb-0.5">Qty Deducted</label>
+                                        <div class="relative">
+                                            <input type="number" step="0.01" min="0.01" name="ingredients[0][quantity]" required placeholder="0.00" class="w-full px-3 py-1.5 text-sm bg-white border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#0e703c] outline-none font-bold text-gray-900 pr-10" />
+                                            <span class="unit-label absolute right-2.5 top-1.5 text-xs text-[#0e703c] font-bold">-</span>
+                                        </div>
+                                    </div>
+                                    <button type="button" onclick="removeIngredientRow(this)" class="mt-4 px-3 py-2 bg-white hover:bg-rose-50 border border-gray-200 hover:border-rose-300 text-rose-600 rounded-xl text-xs font-bold transition flex items-center gap-1 shadow-2xs" title="Remove Ingredient">
+                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+                                        <span>Remove</span>
+                                    </button>
                                 </div>
-                                <button type="button" onclick="removeIngredientRow(this)" class="mt-4 px-3 py-2 bg-rose-600 hover:bg-rose-700 text-white rounded-xl text-xs font-bold transition flex items-center gap-1 shadow-xs" title="Remove Ingredient">
-                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
-                                    <span>Remove</span>
-                                </button>
-                            </div>
+                            @endif
                         </div>
                     </div>
 

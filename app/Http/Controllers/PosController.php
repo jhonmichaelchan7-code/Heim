@@ -26,8 +26,23 @@ class PosController extends Controller
         $addOns = AddOn::active()->orderBy('name')->get();
         $activeShift = Shift::where('status', 'open')->latest()->first();
         $requireShift = (bool) PosSetting::get('require_user_shift', true);
+        $branches = \App\Models\Branch::active()->get();
 
-        return view('pos.index', compact('categories', 'addOns', 'activeShift', 'requireShift'));
+        // Calculate Best Sellers / Popular Products (Phase 3)
+        $popularProductIds = OrderItem::select('product_id', DB::raw('SUM(quantity) as total_sold'))
+            ->groupBy('product_id')
+            ->orderByDesc('total_sold')
+            ->limit(8)
+            ->pluck('product_id')
+            ->toArray();
+
+        // Fallback: If fresh database with few orders, take first active products
+        if (count($popularProductIds) < 3) {
+            $fallbackIds = \App\Models\Product::where('is_active', true)->limit(6)->pluck('id')->toArray();
+            $popularProductIds = array_values(array_unique(array_merge($popularProductIds, $fallbackIds)));
+        }
+
+        return view('pos.index', compact('categories', 'addOns', 'activeShift', 'requireShift', 'branches', 'popularProductIds'));
     }
 
     public function store(Request $request, InventoryService $inventoryService)
@@ -44,6 +59,8 @@ class PosController extends Controller
 
         $request->validate([
             'cashier_name' => 'required|string|max:255',
+            'order_type' => 'nullable|string|in:dine_in,takeout,grab_delivery',
+            'branch_id' => 'nullable|exists:branches,id',
             'items' => 'required|array|min:1',
             'items.*.product_id' => 'required|exists:products,id',
             'items.*.size_id' => 'required|exists:sizes,id',
@@ -55,10 +72,50 @@ class PosController extends Controller
             'items.*.discount' => 'nullable|numeric|min:0',
             'items.*.id_number' => 'nullable|string|max:100',
             'discount' => 'nullable|numeric|min:0',
-            'payment_method' => 'required|in:cash,online,gcash,card',
+            'payment_method' => 'required|in:cash,online,gcash,card,split',
             'amount_tendered' => 'required|numeric|min:0',
             'reference_number' => 'nullable|string|max:255',
+            'split_cash_amount' => 'nullable|numeric|min:0',
+            'split_online_amount' => 'nullable|numeric|min:0',
+            'split_reference_number' => 'nullable|string|max:255',
+            'grab_order_code' => 'nullable|string|max:50',
+            'rider_code' => 'nullable|string|max:50',
         ]);
+
+        // Enforce GrabFood order details
+        if ($request->order_type === 'grab_delivery') {
+            if (empty(trim($request->grab_order_code ?? ''))) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'GrabFood orders strictly require a Grab Order Code.',
+                    'errors' => ['grab_order_code' => ['Grab Order Code is required.']],
+                ], 422);
+            }
+            if (empty(trim($request->rider_code ?? ''))) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'GrabFood orders strictly require a Rider Code.',
+                    'errors' => ['rider_code' => ['Rider Code is required.']],
+                ], 422);
+            }
+        }
+
+        // Enforce digital payment verification per System Analysis Paper requirement
+        if (in_array($request->payment_method, ['online', 'gcash', 'card']) && empty(trim($request->reference_number ?? ''))) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Online payments strictly require a valid external transaction reference number / confirmation ID.',
+                'errors' => ['reference_number' => ['Reference number is required for online digital payments.']],
+            ], 422);
+        }
+
+        if ($request->payment_method === 'split' && (float)($request->split_online_amount ?? 0) > 0 && empty(trim($request->split_reference_number ?? ''))) {
+            return response()->json([
+                'success' => false,
+                'message' => 'The digital/online portion of split payment requires an external transaction reference number.',
+                'errors' => ['split_reference_number' => ['Reference number required for online split portion.']],
+            ], 422);
+        }
 
         try {
             $order = DB::transaction(function () use ($request, $inventoryService, $activeShift) {
@@ -111,9 +168,16 @@ class PosController extends Controller
 
                 $subtotal = collect($lineTotals)->sum('lineSubtotal');
 
+                $branchId = $request->branch_id ?? $activeShift?->branch_id ?? \App\Models\Branch::where('is_active', true)->first()?->id;
+                $orderType = $request->order_type ?: 'dine_in';
+
                 // Create order
                 $order = Order::create([
                     'order_number' => Order::generateOrderNumber(),
+                    'order_type' => $orderType,
+                    'grab_order_code' => $orderType === 'grab_delivery' ? trim($request->grab_order_code) : null,
+                    'rider_code' => $orderType === 'grab_delivery' ? trim($request->rider_code) : null,
+                    'branch_id' => $branchId,
                     'cashier_name' => $request->cashier_name,
                     'user_id' => auth()->id(),
                     'shift_id' => $activeShift?->id,
@@ -162,59 +226,68 @@ class PosController extends Controller
                         }
                     }
 
-                    // Calculate Per-Line Discount & Tax (RA 9994 / RA 10754 Compliance)
+                    // Calculate Per-Line Discount & Tax (VAT-Inclusive Philippine Retail Standard)
                     $discType = $itemData['discount_type'] ?? 'none';
                     $discRate = (float)($itemData['discount_rate'] ?? 0);
                     $lineDiscount = 0.00;
                     $isVatExempt = false;
                     $idNumber = !empty($itemData['id_number']) ? trim($itemData['id_number']) : null;
 
+                    // Menu prices in Heim are VAT-inclusive
+                    $taxMultiplier = 1 + ($taxRate / 100);
+
                     if ($discType === 'pwd_senior') {
-                        // RA 9994 / RA 10754: 20% discount + VAT Exemption on senior/PWD item
+                        // RA 9994 / RA 10754: 20% discount on Net of VAT price + VAT Exemption
                         $discRate = 20.00;
-                        $lineDiscount = round($itemSubtotal * 0.20, 2);
+                        $netOfVat = $itemSubtotal / $taxMultiplier;
+                        $lineDiscount = round($netOfVat * 0.20, 2);
                         $isVatExempt = true;
                         $lineTax = 0.00;
+                        $lineTotal = round($netOfVat - $lineDiscount, 2);
                     } elseif ($discType === 'employee' || $discType === 'staff') {
                         $discRate = 10.00;
                         $lineDiscount = round($itemSubtotal * 0.10, 2);
                         $isVatExempt = false;
-                        $net = max(0, $itemSubtotal - $lineDiscount);
-                        $lineTax = round($net * ($taxRate / 100), 2);
+                        $lineTotal = round(max(0, $itemSubtotal - $lineDiscount), 2);
+                        $vatablePortion = round($lineTotal / $taxMultiplier, 2);
+                        $lineTax = round($lineTotal - $vatablePortion, 2);
                     } elseif ($discType === 'custom_pct' || $discType === 'custom_percentage') {
                         $pct = min(100, max(0, $discRate > 0 ? $discRate : (float)($itemData['discount'] ?? 0)));
                         $discRate = $pct;
                         $lineDiscount = round($itemSubtotal * ($pct / 100), 2);
                         $isVatExempt = false;
-                        $net = max(0, $itemSubtotal - $lineDiscount);
-                        $lineTax = round($net * ($taxRate / 100), 2);
+                        $lineTotal = round(max(0, $itemSubtotal - $lineDiscount), 2);
+                        $vatablePortion = round($lineTotal / $taxMultiplier, 2);
+                        $lineTax = round($lineTotal - $vatablePortion, 2);
                     } elseif ($discType === 'custom_fixed') {
                         $fixed = min($itemSubtotal, max(0, (float)($itemData['discount'] ?? 0)));
                         $lineDiscount = round($fixed, 2);
                         $discRate = $itemSubtotal > 0 ? round(($lineDiscount / $itemSubtotal) * 100, 2) : 0;
                         $isVatExempt = false;
-                        $net = max(0, $itemSubtotal - $lineDiscount);
-                        $lineTax = round($net * ($taxRate / 100), 2);
+                        $lineTotal = round(max(0, $itemSubtotal - $lineDiscount), 2);
+                        $vatablePortion = round($lineTotal / $taxMultiplier, 2);
+                        $lineTax = round($lineTotal - $vatablePortion, 2);
                     } elseif ($legacyDiscountRemaining > 0) {
-                        // Distribute legacy flat discount to line items for accurate audit records
+                        // Distribute legacy flat discount to line items
                         $alloc = min($itemSubtotal, $legacyDiscountRemaining);
                         $lineDiscount = round($alloc, 2);
                         $legacyDiscountRemaining -= $alloc;
                         $discType = 'custom_fixed';
                         $discRate = $itemSubtotal > 0 ? round(($lineDiscount / $itemSubtotal) * 100, 2) : 0;
                         $isVatExempt = false;
-                        $net = max(0, $itemSubtotal - $lineDiscount);
-                        $lineTax = round($net * ($taxRate / 100), 2);
+                        $lineTotal = round(max(0, $itemSubtotal - $lineDiscount), 2);
+                        $vatablePortion = round($lineTotal / $taxMultiplier, 2);
+                        $lineTax = round($lineTotal - $vatablePortion, 2);
                     } else {
+                        // Standard line item with no discount: Fixed price is VAT-INCLUSIVE
                         $discType = 'none';
                         $discRate = 0.00;
                         $lineDiscount = 0.00;
                         $isVatExempt = false;
-                        $lineTax = round($itemSubtotal * ($taxRate / 100), 2);
+                        $lineTotal = round($itemSubtotal, 2);
+                        $vatablePortion = round($lineTotal / $taxMultiplier, 2);
+                        $lineTax = round($lineTotal - $vatablePortion, 2);
                     }
-
-                    $netSales = max(0, $itemSubtotal - $lineDiscount);
-                    $lineTotal = round($netSales + $lineTax, 2);
 
                     $orderItem->update([
                         'subtotal' => $itemSubtotal,
@@ -231,22 +304,62 @@ class PosController extends Controller
                 // Compute Order-Level Aggregates from Line Items
                 $order->refresh();
                 $totalDiscount = (float) $order->items->sum('discount');
-                $vatableSales = (float) $order->items->where('is_vat_exempt', false)->sum(function ($it) {
-                    return max(0, (float)$it->subtotal - (float)$it->discount);
+                $vatableSales = (float) $order->items->where('is_vat_exempt', false)->sum(function ($it) use ($taxMultiplier) {
+                    return round((float)$it->total / $taxMultiplier, 2);
                 });
-                $vatExemptSales = (float) $order->items->where('is_vat_exempt', true)->sum(function ($it) {
-                    return max(0, (float)$it->subtotal - (float)$it->discount);
-                });
-                $totalTax = (float) $order->items->sum('tax');
+                $vatExemptSales = (float) $order->items->where('is_vat_exempt', true)->sum('total');
+                $totalTax = (float) $order->items->where('is_vat_exempt', false)->sum('tax');
                 $totalDue = (float) $order->items->sum('total');
 
-                $amountTendered = $request->payment_method === 'cash'
-                    ? (float) $request->amount_tendered
-                    : $totalDue;
+                if ($request->payment_method === 'split') {
+                    $splitCash = (float) ($request->split_cash_amount ?? 0);
+                    $splitOnline = (float) ($request->split_online_amount ?? 0);
+                    $totalTendered = $splitCash + $splitOnline;
 
-                if ($request->payment_method === 'cash' && $amountTendered < $totalDue) {
-                    throw ValidationException::withMessages([
-                        'amount_tendered' => 'Amount tendered is less than the total due (₱' . number_format($totalDue, 2) . ').',
+                    if ($totalTendered < $totalDue) {
+                        throw ValidationException::withMessages([
+                            'amount_tendered' => 'Total split tendered (₱' . number_format($totalTendered, 2) . ') is less than the total due (₱' . number_format($totalDue, 2) . ').',
+                        ]);
+                    }
+
+                    $change = max(0, $totalTendered - $totalDue);
+
+                    if ($splitCash > 0) {
+                        Payment::create([
+                            'order_id' => $order->id,
+                            'method' => 'cash',
+                            'amount_tendered' => $splitCash,
+                            'change' => $change,
+                            'reference_number' => null,
+                        ]);
+                    }
+                    if ($splitOnline > 0) {
+                        Payment::create([
+                            'order_id' => $order->id,
+                            'method' => 'online',
+                            'amount_tendered' => $splitOnline,
+                            'change' => 0,
+                            'reference_number' => $request->split_reference_number,
+                        ]);
+                    }
+                } else {
+                    $amountTendered = $request->payment_method === 'cash'
+                        ? (float) $request->amount_tendered
+                        : $totalDue;
+
+                    if ($request->payment_method === 'cash' && $amountTendered < $totalDue) {
+                        throw ValidationException::withMessages([
+                            'amount_tendered' => 'Amount tendered is less than the total due (₱' . number_format($totalDue, 2) . ').',
+                        ]);
+                    }
+
+                    $change = max(0, $amountTendered - $totalDue);
+                    Payment::create([
+                        'order_id' => $order->id,
+                        'method' => $request->payment_method,
+                        'amount_tendered' => $amountTendered,
+                        'change' => $change,
+                        'reference_number' => $request->reference_number,
                     ]);
                 }
 
@@ -261,28 +374,18 @@ class PosController extends Controller
                     'total' => $totalDue,
                 ]);
 
-                // Create payment
-                $change = max(0, $amountTendered - $totalDue);
-                Payment::create([
-                    'order_id' => $order->id,
-                    'method' => $request->payment_method,
-                    'amount_tendered' => $amountTendered,
-                    'change' => $change,
-                    'reference_number' => $request->reference_number,
-                ]);
-
                 // Deduct inventory
-                $inventoryService->deductForOrder($order->load('items'));
+                $inventoryService->deductForOrder($order->load('items.addOns'));
 
                 // Audit log
                 AuditLog::log(
                     'order_completed',
                     'orders',
-                    "Order {$order->order_number} completed by {$order->cashier_name}. Total: ₱" . number_format($order->total, 2),
+                    "Order {$order->order_number} ({$order->order_type_label}) completed by {$order->cashier_name}. Total: ₱" . number_format($order->total, 2),
                     null,
                     'order',
                     $order->id,
-                    ['total' => $order->total, 'payment_method' => $request->payment_method]
+                    ['total' => $order->total, 'payment_method' => $request->payment_method, 'order_type' => $order->order_type, 'branch_id' => $order->branch_id]
                 );
 
                 // Update active shift metrics
@@ -300,7 +403,7 @@ class PosController extends Controller
 
             return response()->json([
                 'success' => true,
-                'order' => $order->load('items.addOns', 'payment'),
+                'order' => $order->load('items.addOns', 'payments', 'payment', 'branch'),
                 'message' => 'Order completed successfully!',
             ]);
         } catch (ValidationException $e) {

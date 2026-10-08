@@ -53,6 +53,7 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/orders', [OrderController::class, 'index'])->name('orders.index');
     Route::get('/orders/{order}', [OrderController::class, 'show'])->name('orders.show');
     Route::post('/orders/{order}/refund', [OrderController::class, 'refund'])->name('orders.refund');
+    Route::post('/orders/{order}/partial-payment', [OrderController::class, 'recordPartialPayment'])->name('orders.partial-payment');
 
     // Profile (Breeze)
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
@@ -68,7 +69,6 @@ Route::middleware(['auth'])->group(function () {
         Route::post('/products', [ProductController::class, 'store'])->name('products.store');
         Route::get('/products/{product}/edit', [ProductController::class, 'edit'])->name('products.edit');
         Route::put('/products/{product}', [ProductController::class, 'update'])->name('products.update');
-        Route::post('/products/{product}/toggle-active', [ProductController::class, 'toggleActive'])->name('products.toggle-active');
 
         // Categories
         Route::get('/categories', [CategoryController::class, 'index'])->name('categories.index');
